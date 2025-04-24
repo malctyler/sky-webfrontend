@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import './AllForecasts.css';
 
-const baseUrl = process.env.VITE_API_URL || 'http://localhost:5207/api';
+const baseUrl = process.env.VITE_API_URL || 'http://localhost:VITEAPIURL/api';
 
 function AllForecasts() {
   const { isDarkMode } = useTheme();
