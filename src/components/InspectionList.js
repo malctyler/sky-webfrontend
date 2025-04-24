@@ -80,7 +80,7 @@ const InspectionList = ({ holdingId }) => {
 
     const handleDeleteInspection = async () => {
         try {
-            const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api/Inspection/${inspectionToDelete.uniqueRef}`, {
+            const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/Inspection/${inspectionToDelete.uniqueRef}`, {
                 method: 'DELETE'
             });
 

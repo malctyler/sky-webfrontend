@@ -7,7 +7,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as Searc
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
 
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api';
+const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net';
 
 function CustomerNotes() {
   const { custId } = useParams();

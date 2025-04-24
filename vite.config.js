@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api',
+        target: 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net',
         changeOrigin: true,
         secure: false
       }

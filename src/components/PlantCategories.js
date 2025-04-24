@@ -27,7 +27,7 @@ function PlantCategories() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api/PlantCategories');
+      const response = await fetch('https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/PlantCategories');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -62,7 +62,7 @@ function PlantCategories() {
 
   const handleCreateCategory = async () => {
     try {
-      const response = await fetch('https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api/PlantCategories', {
+      const response = await fetch('https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/PlantCategories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ function PlantCategories() {
 
   const handleUpdateCategory = async () => {
     try {
-      const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api/PlantCategories/${editingCategory.categoryID}`, {
+      const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/PlantCategories/${editingCategory.categoryID}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ function PlantCategories() {
 
   const handleDeleteCategory = async () => {
     try {
-      const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/api/PlantCategories/${categoryToDelete.categoryID}`, {
+      const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/PlantCategories/${categoryToDelete.categoryID}`, {
         method: 'DELETE',
       });
 
