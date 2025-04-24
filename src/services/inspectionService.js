@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { generatePdfBlob, getPdfFileName } from '../components/InspectionCertificateTemplate';
 
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5207/api';
+const baseUrl = process.env.VITE_API_URL || 'http://localhost:5207/api';
 
 const getAll = async () => {
     const response = await axios.get(`${baseUrl}/inspection`);

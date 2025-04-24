@@ -18,7 +18,7 @@ import MuiAlert from '@mui/material/Alert';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import './ManagePlant.css';
 
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5207/api';
+const baseUrl = process.env.VITE_API_URL || 'http://localhost:5207/api';
 
 function ManagePlant() {
   const { isDarkMode } = useTheme();

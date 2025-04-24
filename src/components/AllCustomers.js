@@ -12,7 +12,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import './AllCustomers.css';
 
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5207/api';
+const baseUrl = process.env.VITE_API_URL || 'http://localhost:5207/api';
 
 function AllCustomers() {
   const { isDarkMode } = useTheme();

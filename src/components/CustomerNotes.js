@@ -7,7 +7,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as Searc
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
 
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5207/api';
+const baseUrl = process.env.VITE_API_URL || 'http://localhost:5207/api';
 
 function CustomerNotes() {
   const { custId } = useParams();
