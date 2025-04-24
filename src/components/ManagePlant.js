@@ -17,8 +17,7 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import './ManagePlant.css';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
+import { baseUrl } from '../config';
 
 function ManagePlant() {
   const { isDarkMode } = useTheme();

@@ -16,6 +16,7 @@ import './components/AllCustomers.css';
 import './components/CustomerNotes.css';
 import './components/PlantCategories.css';
 import './components/ManagePlant.css';
+import { baseUrl } from '../config';
 
 function RandomForecast() {
   const [weatherData, setWeatherData] = useState(null);
@@ -29,7 +30,7 @@ function RandomForecast() {
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/Summaries');
+      const response = await fetch(`${baseUrl}/Summaries`);
       if (!response.ok) {
         throw new Error('Failed to fetch weather data');
       }

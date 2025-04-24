@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { generatePdfBlob, getPdfFileName } from '../components/InspectionCertificateTemplate';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
+import { baseUrl } from '../config';
 
 const getAll = async () => {
     const response = await axios.get(`${baseUrl}/inspection`);

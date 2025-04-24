@@ -6,8 +6,7 @@ import { TextField, Button, IconButton, Dialog, DialogTitle, DialogContent, Dial
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
+import { baseUrl } from '../config';
 
 function CustomerNotes() {
   const { custId } = useParams();

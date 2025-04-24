@@ -19,6 +19,7 @@ import {
     Alert
 } from '@mui/material';
 import { Delete as DeleteIcon, Assignment as CertificateIcon, Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
+import { baseUrl } from '../config';
 import inspectionService from '../services/inspectionService';
 import InspectionForm from './InspectionForm';
 import { format } from 'date-fns';
@@ -80,7 +81,7 @@ const InspectionList = ({ holdingId }) => {
 
     const handleDeleteInspection = async () => {
         try {
-            const response = await fetch(`https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/Inspection/${inspectionToDelete.uniqueRef}`, {
+            const response = await fetch(`${baseUrl}/api/Inspection/${inspectionToDelete.uniqueRef}`, {
                 method: 'DELETE'
             });
 

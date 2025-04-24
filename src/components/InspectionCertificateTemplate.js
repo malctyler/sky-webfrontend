@@ -1,6 +1,7 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, Image, pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
+import { baseUrl } from '../config';
 
 Font.register({
     family: 'Helvetica',
@@ -125,10 +126,12 @@ const styles = StyleSheet.create({    page: {
     }
 });
 
-const InspectionCertificateTemplate = ({ inspection }) => {    const currentDate = new Date();
-    const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID}/${inspection.uniqueRef}`;    // Get signature from secure API endpoint
+const InspectionCertificateTemplate = ({ inspection }) => {    
+    const currentDate = new Date();
+    const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID}/${inspection.uniqueRef}`;    
+    // Get signature from secure API endpoint
     const signaturePath = inspection.inspectorsName 
-        ? `https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/Signature/${encodeURIComponent(inspection.inspectorsName)}`
+        ? `${baseUrl}/Signature/${encodeURIComponent(inspection.inspectorsName)}`
         : '';
 
     const formatDate = (date) => {

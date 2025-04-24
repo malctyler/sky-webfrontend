@@ -1,10 +1,8 @@
 import axios from 'axios';
+import { baseUrl } from '../config';
 
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api',
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    baseURL: baseUrl
 });
 
 export default apiClient;

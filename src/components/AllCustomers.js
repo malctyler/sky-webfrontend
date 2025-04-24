@@ -11,8 +11,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import './AllCustomers.css';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
+import { baseUrl } from '../config';
 
 function AllCustomers() {
   const { isDarkMode } = useTheme();

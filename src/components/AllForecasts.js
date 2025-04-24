@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { baseUrl } from '../config';
 import './AllForecasts.css';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
 
 function AllForecasts() {
   const { isDarkMode } = useTheme();

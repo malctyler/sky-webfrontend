@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { baseUrl } from '../config';
 import {
   Button,
   IconButton,
@@ -35,8 +36,6 @@ import {
 import './CustomerSummary.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
-
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
 
 function CustomerSummary() {
   const { custId } = useParams();

@@ -1,29 +1,36 @@
-import apiClient from './apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
+
+const getAll = async () => {
+    const response = await axios.get(`${baseUrl}/inspector`);
+    return response.data;
+};
+
+const getById = async (id) => {
+    const response = await axios.get(`${baseUrl}/inspector/${id}`);
+    return response.data;
+};
+
+const create = async (inspector) => {
+    const response = await axios.post(`${baseUrl}/inspector`, inspector);
+    return response.data;
+};
+
+const update = async (id, inspector) => {
+    const response = await axios.put(`${baseUrl}/inspector/${id}`, inspector);
+    return response.data;
+};
+
+const remove = async (id) => {
+    await axios.delete(`${baseUrl}/inspector/${id}`);
+};
 
 const inspectorService = {
-    getAll: async () => {
-        const response = await apiClient.get('/inspectors');
-        return response.data;
-    },
-
-    getById: async (id) => {
-        const response = await apiClient.get(`/inspectors/${id}`);
-        return response.data;
-    },
-
-    create: async (inspectorData) => {
-        const response = await apiClient.post('/inspectors', inspectorData);
-        return response.data;
-    },
-
-    update: async (id, inspectorData) => {
-        const response = await apiClient.put(`/inspectors/${id}`, inspectorData);
-        return response.data;
-    },
-
-    delete: async (id) => {
-        await apiClient.delete(`/inspectors/${id}`);
-    }
+    getAll,
+    getById,
+    create,
+    update,
+    remove
 };
 
 export default inspectorService;
