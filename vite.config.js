@@ -13,6 +13,19 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    outDir: 'build', // Match Azure Static Web Apps expected directory
+    chunkSizeWarningLimit: 2200, // Increase chunk size warning limit
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/icons-material'],
+          pdf: ['@react-pdf/renderer', 'pdf-lib']
+        }
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
