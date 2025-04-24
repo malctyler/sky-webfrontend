@@ -1,0 +1,275 @@
+.summary-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.summary-container.dark {
+  background-color: #282c34;
+  color: white;
+  --card-bg: #1a1e24;
+  --link-color: #66b3ff;
+}
+
+.summary-container.light {
+  background-color: #f5f5f5;
+  color: #333;
+  --card-bg: white;
+  --link-color: #0066cc;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.summary-header h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.summary-tabs {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-content {
+  padding: 1rem;
+}
+
+.customer-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.detail-section {
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detail-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--link-color);
+}
+
+.detail-section p {
+  margin: 0.5rem 0;
+}
+
+.notes-section {
+  margin-top: 1rem;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.note-card {
+  position: relative;
+  background-color: var(--card-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.note-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.note-card:hover .note-actions {
+  opacity: 1;
+}
+
+.note-date {
+  color: var(--link-color);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.note-content {
+  white-space: pre-wrap;
+}
+
+.no-notes {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.dark .no-notes {
+  color: #999;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--link-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dialog styles */
+.dialog-form {
+  padding-top: 1rem;
+}
+
+.checkbox-field {
+  margin: 1rem 0;
+}
+
+.checkbox-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Material-UI overrides */
+.dark .MuiDialog-paper {
+  background-color: #282c34;
+  color: white;
+}
+
+.dark .MuiInputBase-root {
+  color: white;
+}
+
+.dark .MuiInputLabel-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.23);
+}
+
+.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .MuiTextField-root {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.dark .MuiTab-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark .Mui-selected {
+  color: var(--link-color);
+}
+
+.dark .MuiTabs-indicator {
+  background-color: var(--link-color);
+}
+
+.plant-holdings-section {
+  margin-top: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.holdings-table {
+  margin-top: 1rem;
+}
+
+.holdings-table .MuiTableCell-root {
+  vertical-align: top;
+}
+
+.dark .holdings-table {
+  background-color: var(--card-bg);
+}
+
+.dark .MuiTableCell-root {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .MuiTableHead-root .MuiTableCell-root {
+  color: var(--link-color);
+}
+
+.no-holdings {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.dark .no-holdings {
+  color: #999;
+}
+
+/* Inspection list styles */
+.inspection-section {
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark .inspection-section {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.expand-button {
+  min-width: 40px;
+  padding: 4px;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.dark .MuiCollapse-root {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.light .MuiCollapse-root {
+  background-color: rgba(0, 0, 0, 0.02);
+}

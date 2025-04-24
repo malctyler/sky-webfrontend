@@ -1,0 +1,37 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.11",
+    "@mui/material": "^5.15.11",
+    "@react-pdf/renderer": "^4.3.0",
+    "ajv": "^8.17.1",
+    "axios": "^1.8.2",
+    "date-fns": "^4.1.0",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.2.0",
+    "react-date-picker": "^11.0.0",
+    "react-datepicker": "^8.2.1",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.3.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitejs/plugin-react": "^4.2.1",
+    "jsdom": "^24.0.0",
+    "vite": "^6.2.5",
+    "vitest": "^3.1.1"
+  }
+}
