@@ -36,7 +36,7 @@ import './CustomerSummary.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
 
-const baseUrl = process.env.VITEAPIURL || 'http://localhost:5207/api';
+const baseUrl = process.env.REACT_APP_VITEAPIURL || 'http://localhost:5207/api';
 
 function CustomerSummary() {
   const { custId } = useParams();
