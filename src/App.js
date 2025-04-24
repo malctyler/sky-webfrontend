@@ -16,7 +16,7 @@ import './components/AllCustomers.css';
 import './components/CustomerNotes.css';
 import './components/PlantCategories.css';
 import './components/ManagePlant.css';
-import { baseUrl } from '../config';
+import { baseUrl } from './config';
 
 function RandomForecast() {
   const [weatherData, setWeatherData] = useState(null);
