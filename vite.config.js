@@ -9,7 +9,7 @@ export default defineConfig({
       '/api': {
         target: 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net',
         changeOrigin: true,
-        secure: false
+        secure: true
       }
     }
   },

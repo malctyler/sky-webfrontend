@@ -128,7 +128,7 @@ const styles = StyleSheet.create({    page: {
 const InspectionCertificateTemplate = ({ inspection }) => {    const currentDate = new Date();
     const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID}/${inspection.uniqueRef}`;    // Get signature from secure API endpoint
     const signaturePath = inspection.inspectorsName 
-        ? `https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/Signature/${encodeURIComponent(inspection.inspectorsName)}`
+        ? `https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api/Signature/${encodeURIComponent(inspection.inspectorsName)}`
         : '';
 
     const formatDate = (date) => {

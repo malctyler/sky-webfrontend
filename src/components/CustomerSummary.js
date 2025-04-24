@@ -36,7 +36,7 @@ import './CustomerSummary.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
 
-const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net';
+const baseUrl = process.env.REACT_APP_VITEAPIURL || 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net/api';
 
 function CustomerSummary() {
   const { custId } = useParams();
