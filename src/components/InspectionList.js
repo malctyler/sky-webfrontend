@@ -80,7 +80,7 @@ const InspectionList = ({ holdingId }) => {
 
     const handleDeleteInspection = async () => {
         try {
-            const response = await fetch(`http://localhost:VITEAPIURL/api/Inspection/${inspectionToDelete.uniqueRef}`, {
+            const response = await fetch(`http://localhost:5207/api/Inspection/${inspectionToDelete.uniqueRef}`, {
                 method: 'DELETE'
             });
 
