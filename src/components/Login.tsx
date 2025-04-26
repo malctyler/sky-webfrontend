@@ -1,32 +1,55 @@
-// ...existing imports...
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../services/api';
 
 export const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
-  
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // ...existing login logic...
-    
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        login(data.token); // Use the login function from auth context
-        navigate('/'); // Redirect to home page after successful login
-      } else {
-        // ...error handling...
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
-    } catch (error) {
-      // ...error handling...
+
+      if (!data.token) {
+        throw new Error('No token received');
+      }
+
+      // Validate token immediately after receiving it
+      const validateResponse = await fetch(`${API_BASE_URL}/api/auth/validate`, {
+        headers: {
+          'Authorization': `Bearer ${data.token}`
+        }
+      });
+
+      if (!validateResponse.ok) {
+        throw new Error('Invalid token received');
+      }
+
+      login(data.token);
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+      console.error('Login error:', err);
     }
   };
 
-  // ...rest of the component...
+  // ... rest of the component JSX ...
