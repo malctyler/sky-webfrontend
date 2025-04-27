@@ -14,3 +14,12 @@ export const logout = async () => {
     const response = await apiClient.post('/Auth/logout');
     return response.data;
 };
+
+export const validateToken = async () => {
+    try {
+        const response = await apiClient.get('/Auth/validate');
+        return response.data;
+    } catch (error) {
+        return { valid: false };
+    }
+};
