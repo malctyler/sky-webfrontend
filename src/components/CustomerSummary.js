@@ -36,6 +36,7 @@ import {
 import './CustomerSummary.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
+import apiClient from '../services/apiClient';
 
 function CustomerSummary() {
   const { custId } = useParams();
@@ -82,19 +83,11 @@ function CustomerSummary() {
   const fetchCustomerAndNotes = useCallback(async () => {
     try {
       const [customerResponse, notesResponse] = await Promise.all([
-        fetch(`${baseUrl}/Customers/${custId}`),
-        fetch(`${baseUrl}/Notes`)
+        apiClient.get(`/Customers/${custId}`),
+        apiClient.get('/Notes')
       ]);
-
-      if (!customerResponse.ok || !notesResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const [customerData, notesData] = await Promise.all([
-        customerResponse.json(),
-        notesResponse.json()
-      ]);
-
+      const customerData = customerResponse.data;
+      const notesData = notesResponse.data;
       setCustomer(customerData);
       setEditingCustomer(customerData);
       const customerNotes = notesData
@@ -110,12 +103,8 @@ function CustomerSummary() {
 
   const fetchPlantHoldings = useCallback(async () => {
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding/customer/${custId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch plant holdings');
-      }
-      const data = await response.json();
-      setPlantHoldings(data);
+      const response = await apiClient.get(`/PlantHolding/customer/${custId}`);
+      setPlantHoldings(response.data);
     } catch (err) {
       setError(err.message);
     }
@@ -124,21 +113,11 @@ function CustomerSummary() {
   const fetchPlantAndStatusOptions = useCallback(async () => {
     try {
       const [plantsResponse, statusesResponse] = await Promise.all([
-        fetch(`${baseUrl}/AllPlant`),
-        fetch(`${baseUrl}/Status`)
+        apiClient.get('/AllPlant'),
+        apiClient.get('/Status')
       ]);
-
-      if (!plantsResponse.ok || !statusesResponse.ok) {
-        throw new Error('Failed to fetch options');
-      }
-
-      const [plantsData, statusesData] = await Promise.all([
-        plantsResponse.json(),
-        statusesResponse.json()
-      ]);
-
-      setAllPlants(plantsData);
-      setAllStatuses(statusesData);
+      setAllPlants(plantsResponse.data);
+      setAllStatuses(statusesResponse.data);
     } catch (err) {
       setError(err.message);
     }
@@ -176,18 +155,7 @@ function CustomerSummary() {
 
   const handleEditCustomer = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Customers/${custId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editingCustomer),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update customer');
-      }
-
+      await apiClient.put(`/Customers/${custId}`, editingCustomer);
       setCustomer(editingCustomer);
       setEditDialogOpen(false);
       showSuccess('Customer updated successfully');
@@ -202,20 +170,12 @@ function CustomerSummary() {
 
   const handleDeleteCustomer = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Customers/${custId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete customer');
-      }
-
+      await apiClient.delete(`/Customers/${custId}`);
       showSuccess('Customer deleted successfully');
       setDeleteCustomerDialog(false);
       setTimeout(() => {
         navigate('/customers');
       }, 1000);
-
     } catch (err) {
       showError(err.message);
     }
@@ -231,23 +191,12 @@ function CustomerSummary() {
 
   const handleCreateNote = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          custID: parseInt(custId),
-          date: new Date(),
-          notes: newNoteText
-        }),
+      const response = await apiClient.post('/Notes', {
+        custID: parseInt(custId),
+        date: new Date(),
+        notes: newNoteText
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create note');
-      }
-
-      const newNote = await response.json();
+      const newNote = response.data;
       setNotes(prev => [newNote, ...prev]);
       setNoteDialogOpen(false);
       setNewNoteText('');
@@ -258,21 +207,10 @@ function CustomerSummary() {
 
   const handleUpdateNote = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Notes/${editingNote.noteID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...editingNote,
-          notes: newNoteText
-        }),
+      await apiClient.put(`/Notes/${editingNote.noteID}`, {
+        ...editingNote,
+        notes: newNoteText
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update note');
-      }
-
       setNotes(prev => prev.map(note => 
         note.noteID === editingNote.noteID 
           ? { ...note, notes: newNoteText }
@@ -297,14 +235,7 @@ function CustomerSummary() {
 
   const handleConfirmDeleteNote = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Notes/${noteToDelete.noteID}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete note');
-      }
-
+      await apiClient.delete(`/Notes/${noteToDelete.noteID}`);
       setNotes(prev => prev.filter(n => n.noteID !== noteToDelete.noteID));
       setDeleteNoteDialog(false);
       setNoteToDelete(null);
@@ -324,24 +255,13 @@ function CustomerSummary() {
 
   const handleCreatePlantHolding = async () => {
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newPlantHolding,
-          custID: parseInt(custId),
-          plantNameID: parseInt(newPlantHolding.plantNameID),
-          statusID: parseInt(newPlantHolding.statusID)
-        }),
+      const response = await apiClient.post('/PlantHolding', {
+        ...newPlantHolding,
+        custID: parseInt(custId),
+        plantNameID: parseInt(newPlantHolding.plantNameID),
+        statusID: parseInt(newPlantHolding.statusID)
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create plant holding');
-      }
-
-      const createdHolding = await response.json();
+      const createdHolding = response.data;
       setPlantHoldings(prev => [...prev, createdHolding]);
       setPlantHoldingDialogOpen(false);
       resetPlantHoldingForm();
@@ -352,25 +272,14 @@ function CustomerSummary() {
 
   const handleUpdatePlantHolding = async () => {
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newPlantHolding,
-          holdingID: editingPlantHolding.holdingID,
-          custID: parseInt(custId),
-          plantNameID: parseInt(newPlantHolding.plantNameID),
-          statusID: parseInt(newPlantHolding.statusID)
-        }),
+      const response = await apiClient.put(`/PlantHolding/${editingPlantHolding.holdingID}`, {
+        ...newPlantHolding,
+        holdingID: editingPlantHolding.holdingID,
+        custID: parseInt(custId),
+        plantNameID: parseInt(newPlantHolding.plantNameID),
+        statusID: parseInt(newPlantHolding.statusID)
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update plant holding');
-      }
-
-      const updatedHolding = await response.json();
+      const updatedHolding = response.data;
       setPlantHoldings(prev => prev.map(holding => 
         holding.holdingID === editingPlantHolding.holdingID
           ? updatedHolding
@@ -390,14 +299,7 @@ function CustomerSummary() {
 
   const handleDeletePlantHolding = async () => {
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding/${holdingToDelete.holdingID}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete plant holding');
-      }
-
+      await apiClient.delete(`/PlantHolding/${holdingToDelete.holdingID}`);
       setPlantHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
       setDeleteHoldingDialog(false);
       setHoldingToDelete(null);

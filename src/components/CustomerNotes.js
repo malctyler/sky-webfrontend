@@ -7,6 +7,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as Searc
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
 import { baseUrl } from '../config';
+import apiClient from '../services/apiClient';
 
 function CustomerNotes() {
   const { custId } = useParams();
@@ -37,19 +38,11 @@ function CustomerNotes() {
   const fetchCustomerAndNotes = async () => {
     try {
       const [customerResponse, notesResponse] = await Promise.all([
-        fetch(`${baseUrl}/Customers/${custId}`),
-        fetch(`${baseUrl}/Notes`)
+        apiClient.get(`/Customers/${custId}`),
+        apiClient.get('/Notes')
       ]);
-
-      if (!customerResponse.ok || !notesResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const [customerData, notesData] = await Promise.all([
-        customerResponse.json(),
-        notesResponse.json()
-      ]);
-
+      const customerData = customerResponse.data;
+      const notesData = notesResponse.data;
       setCustomer(customerData);
       const customerNotes = notesData
         .filter(note => note.custID === parseInt(custId))
@@ -90,23 +83,12 @@ function CustomerNotes() {
 
   const handleCreateNote = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          custID: parseInt(custId),
-          date: new Date(),
-          notes: newNoteText
-        }),
+      const response = await apiClient.post('/Notes', {
+        custID: parseInt(custId),
+        date: new Date(),
+        notes: newNoteText
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create note');
-      }
-
-      const newNote = await response.json();
+      const newNote = response.data;
       setNotes(prev => [newNote, ...prev]);
       setDialogOpen(false);
       setNewNoteText('');
@@ -117,21 +99,10 @@ function CustomerNotes() {
 
   const handleUpdateNote = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Notes/${editingNote.noteID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...editingNote,
-          notes: newNoteText
-        }),
+      await apiClient.put(`/Notes/${editingNote.noteID}`, {
+        ...editingNote,
+        notes: newNoteText
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update note');
-      }
-
       setNotes(prev => prev.map(note => 
         note.noteID === editingNote.noteID 
           ? { ...note, notes: newNoteText }
@@ -149,16 +120,8 @@ function CustomerNotes() {
     if (!window.confirm('Are you sure you want to delete this note?')) {
       return;
     }
-
     try {
-      const response = await fetch(`${baseUrl}/Notes/${noteId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete note');
-      }
-
+      await apiClient.delete(`/Notes/${noteId}`);
       setNotes(prev => prev.filter(note => note.noteID !== noteId));
     } catch (err) {
       setError(err.message);
