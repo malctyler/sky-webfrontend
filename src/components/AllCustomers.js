@@ -12,6 +12,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import './AllCustomers.css';
 import { baseUrl } from '../config';
+import apiClient from '../services/apiClient';
 
 function AllCustomers() {
   const { isDarkMode } = useTheme();
@@ -71,18 +72,12 @@ function AllCustomers() {
   const fetchCustomersAndNotes = async () => {
     try {
       const [customersResponse, notesResponse] = await Promise.all([
-        fetch(`${baseUrl}/Customers`),
-        fetch(`${baseUrl}/Notes`)
+        apiClient.get('/Customers'),
+        apiClient.get('/Notes')
       ]);
 
-      if (!customersResponse.ok || !notesResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const [customersData, notesData] = await Promise.all([
-        customersResponse.json(),
-        notesResponse.json()
-      ]);
+      const customersData = customersResponse.data;
+      const notesData = notesResponse.data;
 
       // Create a map of customer IDs to their note counts
       const notesMap = notesData.reduce((acc, note) => {
@@ -130,19 +125,8 @@ function AllCustomers() {
   const handleCreateCustomer = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${baseUrl}/Customers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create customer');
-      }
-
-      const newCustomer = await response.json();
+      const response = await apiClient.post('/Customers', formData);
+      const newCustomer = response.data;
       setCustomers(prev => [...prev, newCustomer]);
       setShowForm(false);
       resetForm();
@@ -165,14 +149,7 @@ function AllCustomers() {
 
   const handleDeleteCustomer = async () => {
     try {
-      const response = await fetch(`${baseUrl}/Customers/${customerToDelete.custID}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete customer');
-      }
-
+      await apiClient.delete(`/Customers/${customerToDelete.custID}`);
       setCustomers(prev => prev.filter(c => c.custID !== customerToDelete.custID));
       showSuccess('Customer deleted successfully');
       setDeleteDialogOpen(false);
