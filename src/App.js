@@ -20,6 +20,7 @@ import './components/CustomerNotes.css';
 import './components/PlantCategories.css';
 import './components/ManagePlant.css';
 import { baseUrl } from './config';
+import CustomerPlantHolding from './components/CustomerPlantHolding';
 
 function RandomForecast() {
   const [weatherData, setWeatherData] = useState(null);
@@ -113,30 +114,34 @@ function AppContent() {
           <div className="nav-links">
             <Link to="/" className="nav-link home-link">🏠 Home</Link>
             {user ? (
-              <>
-                <Link to="/all" className="nav-link">All Forecasts</Link>
-                <Link to="/customers" className="nav-link">All Customers</Link>
-                <div>
-                  <button className="nav-link plant-menu-button" onClick={handlePlantMenuOpen}>
-                    Plant
-                  </button>
-                  <Menu
-                    anchorEl={plantMenuAnchor}
-                    open={Boolean(plantMenuAnchor)}
-                    onClose={handlePlantMenuClose}
-                  >
-                    <MenuItem onClick={handlePlantMenuClose} component={Link} to="/plant-categories">
-                      Plant Categories
-                    </MenuItem>
-                    <MenuItem onClick={handlePlantMenuClose} component={Link} to="/manage-plant">
-                      Manage Plant
-                    </MenuItem>
-                  </Menu>
-                </div>
-                <Button onClick={handleLogout} color="inherit" className="nav-link">
-                  Logout
-                </Button>
-              </>
+              user.isCustomer ? (
+                <Link to="/plant-holding" className="nav-link">Plant Holding</Link>
+              ) : (
+                <>
+                  <Link to="/all" className="nav-link">All Forecasts</Link>
+                  <Link to="/customers" className="nav-link">All Customers</Link>
+                  <div>
+                    <button className="nav-link plant-menu-button" onClick={handlePlantMenuOpen}>
+                      Plant
+                    </button>
+                    <Menu
+                      anchorEl={plantMenuAnchor}
+                      open={Boolean(plantMenuAnchor)}
+                      onClose={handlePlantMenuClose}
+                    >
+                      <MenuItem onClick={handlePlantMenuClose} component={Link} to="/plant-categories">
+                        Plant Categories
+                      </MenuItem>
+                      <MenuItem onClick={handlePlantMenuClose} component={Link} to="/manage-plant">
+                        Manage Plant
+                      </MenuItem>
+                    </Menu>
+                  </div>
+                  <Button onClick={handleLogout} color="inherit" className="nav-link">
+                    Logout
+                  </Button>
+                </>
+              )
             ) : (
               <>
                 <Link to="/login" className="nav-link">Login</Link>
@@ -186,6 +191,11 @@ function AppContent() {
           <Route path="/certificate/:id" element={
             <ProtectedRoute>
               <CertificatePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/plant-holding" element={
+            <ProtectedRoute>
+              <CustomerPlantHolding />
             </ProtectedRoute>
           } />
         </Routes>
