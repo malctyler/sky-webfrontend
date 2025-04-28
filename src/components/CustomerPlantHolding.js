@@ -14,16 +14,22 @@ function CustomerPlantHolding() {
 
   useEffect(() => {
     if (user && user.isCustomer) {
-      fetchHoldings();
+      const customerId = user.customerId || user.customerID;
+      if (!customerId) {
+        setError('No customer ID found for this user.');
+        setLoading(false);
+        return;
+      }
+      fetchHoldings(customerId);
     }
     // eslint-disable-next-line
   }, [user]);
 
-  const fetchHoldings = async () => {
+  const fetchHoldings = async (customerId) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding/customer/${user.customerId || user.customerID || ''}`, {
+      const response = await fetch(`${baseUrl}/PlantHolding/customer/${customerId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch plant holdings');
@@ -52,7 +58,7 @@ function CustomerPlantHolding() {
       {error && (
         <div className="error-state">
           <p>⚠️ {error}</p>
-          <button onClick={fetchHoldings}>Try Again</button>
+          <button onClick={() => fetchHoldings(user.customerId || user.customerID)}>Try Again</button>
         </div>
       )}
       {!loading && !error && holdings.length === 0 && (
