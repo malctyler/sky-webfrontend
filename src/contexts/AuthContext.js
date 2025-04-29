@@ -12,12 +12,25 @@ export const AuthProvider = ({ children }) => {
         const checkAuth = async () => {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
-                setUser(JSON.parse(storedUser));
+                let parsedUser = JSON.parse(storedUser);
+                // Always decode token to ensure customerId is present
+                if (parsedUser.token) {
+                    try {
+                        const decoded = jwt_decode(parsedUser.token);
+                        parsedUser.customerId = decoded.CustomerId || decoded.customerId;
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+                setUser(parsedUser);
                 // Validate token with backend
                 const result = await validateToken();
                 if (!result.valid) {
                     setUser(null);
                     localStorage.removeItem('user');
+                } else {
+                    // Update localStorage in case customerId was missing before
+                    localStorage.setItem('user', JSON.stringify(parsedUser));
                 }
             }
             setLoading(false);
