@@ -115,7 +115,12 @@ function AppContent() {
             <Link to="/" className="nav-link home-link">🏠 Home</Link>
             {user ? (
               user.isCustomer ? (
-                <Link to="/plant-holding" className="nav-link">Plant Holding</Link>
+                <>
+                  <Link to="/plant-holding" className="nav-link">Plant Holding</Link>
+                  <Button onClick={handleLogout} color="inherit" className="nav-link">
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <>
                   <Link to="/all" className="nav-link">All Forecasts</Link>
