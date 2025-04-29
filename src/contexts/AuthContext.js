@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login as loginService, logout as logoutService, validateToken } from '../services/authService';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
 
@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
                 // Always decode token to ensure customerId is present
                 if (parsedUser.token) {
                     try {
-                        const decoded = jwt_decode(parsedUser.token);
+                        const decoded = jwtDecode(parsedUser.token);
                         parsedUser.customerId = decoded.CustomerId || decoded.customerId;
                     } catch (e) {
                         // ignore
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
         let customerId = undefined;
         if (response.token) {
             try {
-                const decoded = jwt_decode(response.token);
+                const decoded = jwtDecode(response.token);
                 // Accept both 'CustomerId' and 'customerId' just in case
                 customerId = decoded.CustomerId || decoded.customerId;
             } catch (e) {
