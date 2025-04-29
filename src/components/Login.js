@@ -13,11 +13,14 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
         try {
             await login(email, password);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to login');
+            // Show backend error message if present (e.g., email not confirmed)
+            const backendMsg = err?.response?.data?.message;
+            setError(backendMsg || 'Failed to login');
         }
     };
 
