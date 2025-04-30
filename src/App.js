@@ -21,6 +21,7 @@ import './components/PlantCategories.css';
 import './components/ManagePlant.css';
 import { baseUrl } from './config';
 import CustomerPlantHolding from './components/CustomerPlantHolding';
+import UserManagement from './components/UserManagement';
 
 function RandomForecast() {
   const [weatherData, setWeatherData] = useState(null);
@@ -142,6 +143,7 @@ function AppContent() {
                       </MenuItem>
                     </Menu>
                   </div>
+                  <Link to="/user-management" className="nav-link">User Management</Link>
                   <Button onClick={handleLogout} color="inherit" className="nav-link">
                     Logout
                   </Button>
@@ -201,6 +203,11 @@ function AppContent() {
           <Route path="/plant-holding" element={
             <ProtectedRoute>
               <CustomerPlantHolding />
+            </ProtectedRoute>
+          } />
+          <Route path="/user-management" element={
+            <ProtectedRoute>
+              {user && !user.isCustomer ? <UserManagement /> : <Navigate to="/" />}
             </ProtectedRoute>
           } />
         </Routes>
