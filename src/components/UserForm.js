@@ -16,7 +16,12 @@ const UserForm = ({ user, onSuccess }) => {
 
   useEffect(() => {
     if (user) {
-      setForm(f => ({ ...f, ...user, password: '' }));
+      setForm(f => ({
+        ...f,
+        ...user,
+        password: '',
+        emailConfirmed: user.emailConfirmed !== undefined ? user.emailConfirmed : false
+      }));
     }
   }, [user]);
 
@@ -47,7 +52,7 @@ const UserForm = ({ user, onSuccess }) => {
       <TextField label="Last Name" name="lastName" value={form.lastName} onChange={handleChange} fullWidth margin="normal" required />
       <FormControlLabel control={<Checkbox checked={form.isCustomer} onChange={handleChange} name="isCustomer" />} label="Is Customer" />
       <TextField label="Customer ID" name="customerId" value={form.customerId} onChange={handleChange} fullWidth margin="normal" />
-      <FormControlLabel control={<Checkbox checked={form.emailConfirmed} onChange={handleChange} name="emailConfirmed" />} label="Email Confirmed" />
+      <FormControlLabel control={<Checkbox checked={!!form.emailConfirmed} onChange={handleChange} name="emailConfirmed" />} label="Email Confirmed" />
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <Button type="submit" variant="contained" color="primary">Save</Button>
     </form>

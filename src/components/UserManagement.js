@@ -4,6 +4,7 @@ import UserForm from './UserForm';
 import RoleManagement from './RoleManagement';
 import ClaimManagement from './ClaimManagement';
 import userService from '../services/userService';
+import RoleAdmin from './RoleAdmin';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -11,6 +12,7 @@ const UserManagement = () => {
   const [openForm, setOpenForm] = useState(false);
   const [openRoles, setOpenRoles] = useState(false);
   const [openClaims, setOpenClaims] = useState(false);
+  const [openRoleAdmin, setOpenRoleAdmin] = useState(false);
 
   const fetchUsers = async () => {
     const data = await userService.getUsers();
@@ -48,6 +50,7 @@ const UserManagement = () => {
     <Paper sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom>User Management</Typography>
       <Button variant="contained" onClick={handleAdd} sx={{ mb: 2 }}>Add User</Button>
+      <Button variant="outlined" onClick={() => setOpenRoleAdmin(true)} sx={{ mb: 2, ml: 2 }}>Manage All Roles</Button>
       <TableContainer>
         <Table>
           <TableHead>
@@ -99,6 +102,15 @@ const UserManagement = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenClaims(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openRoleAdmin} onClose={() => setOpenRoleAdmin(false)}>
+        <DialogTitle>All Roles</DialogTitle>
+        <DialogContent>
+          <RoleAdmin />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenRoleAdmin(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Paper>
