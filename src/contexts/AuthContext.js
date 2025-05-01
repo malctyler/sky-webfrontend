@@ -8,6 +8,19 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const getRolesFromToken = (decoded) => {
+        // Look for role claims in the token (http://schemas.microsoft.com/ws/2008/06/identity/claims/role)
+        const roleClaims = Object.entries(decoded).filter(([key]) => 
+            key === 'role' || key === 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+        );
+
+        if (roleClaims.length > 0) {
+            const roleValues = roleClaims[0][1]; // Get the first role claim's value
+            return Array.isArray(roleValues) ? roleValues : [roleValues];
+        }
+        return [];
+    };
+
     useEffect(() => {
         const checkAuth = async () => {
             const storedUser = localStorage.getItem('user');
@@ -17,10 +30,7 @@ export const AuthProvider = ({ children }) => {
                     try {
                         const decoded = jwtDecode(parsedUser.token);
                         // Get user roles from token
-                        parsedUser.roles = decoded.role || [];
-                        if (typeof parsedUser.roles === 'string') {
-                            parsedUser.roles = [parsedUser.roles];
-                        }
+                        parsedUser.roles = getRolesFromToken(decoded);
                         parsedUser.customerId = decoded.CustomerId || decoded.customerId;
                     } catch (e) {
                         console.error('Error decoding token:', e);
@@ -50,11 +60,7 @@ export const AuthProvider = ({ children }) => {
         if (response.token) {
             try {
                 const decoded = jwtDecode(response.token);
-                // Get roles from token
-                roles = decoded.role || [];
-                if (typeof roles === 'string') {
-                    roles = [roles];
-                }
+                roles = getRolesFromToken(decoded);
                 customerId = decoded.CustomerId || decoded.customerId;
             } catch (e) {
                 console.error('Error decoding token:', e);
