@@ -13,13 +13,18 @@ export const AuthProvider = ({ children }) => {
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 let parsedUser = JSON.parse(storedUser);
-                // Always decode token to ensure customerId is present
                 if (parsedUser.token) {
                     try {
                         const decoded = jwtDecode(parsedUser.token);
+                        // Get user roles from token
+                        parsedUser.roles = decoded.role || [];
+                        if (typeof parsedUser.roles === 'string') {
+                            parsedUser.roles = [parsedUser.roles];
+                        }
                         parsedUser.customerId = decoded.CustomerId || decoded.customerId;
                     } catch (e) {
-                        // ignore
+                        console.error('Error decoding token:', e);
+                        parsedUser.roles = [];
                     }
                 }
                 setUser(parsedUser);
@@ -29,7 +34,7 @@ export const AuthProvider = ({ children }) => {
                     setUser(null);
                     localStorage.removeItem('user');
                 } else {
-                    // Update localStorage in case customerId was missing before
+                    // Update localStorage in case roles were missing before
                     localStorage.setItem('user', JSON.stringify(parsedUser));
                 }
             }
@@ -41,20 +46,26 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const response = await loginService(email, password);
         let customerId = undefined;
+        let roles = [];
         if (response.token) {
             try {
                 const decoded = jwtDecode(response.token);
-                // Accept both 'CustomerId' and 'customerId' just in case
+                // Get roles from token
+                roles = decoded.role || [];
+                if (typeof roles === 'string') {
+                    roles = [roles];
+                }
                 customerId = decoded.CustomerId || decoded.customerId;
             } catch (e) {
-                // ignore
+                console.error('Error decoding token:', e);
             }
         }
         const userData = {
             email: response.email,
             token: response.token,
             isCustomer: response.isCustomer,
-            customerId // may be undefined if not present
+            customerId,
+            roles
         };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -67,8 +78,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
     };
 
+    const hasRole = (role) => {
+        return user?.roles?.includes(role) || false;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, hasRole }}>
             {children}
         </AuthContext.Provider>
     );

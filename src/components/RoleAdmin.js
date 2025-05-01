@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Button, List, ListItem, ListItemText, TextField, Alert } from '@mui/material';
+import { Button, List, ListItem, ListItemText, TextField, Alert, Typography } from '@mui/material';
 import roleService from '../services/roleService';
+import { useAuth } from '../contexts/AuthContext';
 
 const RoleAdmin = () => {
   const [roles, setRoles] = useState([]);
   const [newRole, setNewRole] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { hasRole } = useAuth();
 
   const fetchRoles = async () => {
     try {
@@ -14,8 +16,8 @@ const RoleAdmin = () => {
       const data = await roleService.getRoles();
       setRoles(data);
     } catch (err) {
-      setError('Failed to fetch roles');
       console.error('Error fetching roles:', err);
+      setError(err.response?.data || 'Failed to fetch roles');
     }
   };
 
@@ -24,6 +26,11 @@ const RoleAdmin = () => {
   }, []);
 
   const handleAddRole = async () => {
+    if (!hasRole('Staff')) {
+      setError('You must be a Staff member to manage roles');
+      return;
+    }
+
     if (!newRole?.trim()) {
       setError('Role name cannot be empty');
       return;
@@ -44,6 +51,11 @@ const RoleAdmin = () => {
   };
 
   const handleDeleteRole = async (role) => {
+    if (!hasRole('Staff')) {
+      setError('You must be a Staff member to manage roles');
+      return;
+    }
+
     if (!window.confirm(`Are you sure you want to delete the role "${role.name}"?`)) {
       return;
     }
@@ -55,7 +67,7 @@ const RoleAdmin = () => {
       await fetchRoles();
     } catch (err) {
       console.error('Error deleting role:', err);
-      setError('Failed to delete role');
+      setError(err.response?.data || 'Failed to delete role');
     } finally {
       setLoading(false);
     }
@@ -67,8 +79,20 @@ const RoleAdmin = () => {
     }
   };
 
+  if (!hasRole('Staff')) {
+    return (
+      <Alert severity="error">
+        You must be a Staff member to access this page.
+      </Alert>
+    );
+  }
+
   return (
     <div>
+      <Typography variant="h6" gutterBottom>
+        Manage Roles
+      </Typography>
+      
       <div style={{ marginBottom: 16 }}>
         <TextField 
           label="New Role" 
