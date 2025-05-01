@@ -9,14 +9,18 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const getRolesFromToken = (decoded) => {
-        // Look for role claims in the token (http://schemas.microsoft.com/ws/2008/06/identity/claims/role)
-        const roleClaims = Object.entries(decoded).filter(([key]) => 
-            key === 'role' || key === 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
-        );
-
-        if (roleClaims.length > 0) {
-            const roleValues = roleClaims[0][1]; // Get the first role claim's value
-            return Array.isArray(roleValues) ? roleValues : [roleValues];
+        const roleKeys = [
+            'role',
+            'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'
+        ];
+        
+        for (const key of roleKeys) {
+            if (key in decoded) {
+                const roles = decoded[key];
+                // If roles is an array, return it, otherwise wrap it in an array
+                return Array.isArray(roles) ? roles : [roles];
+            }
         }
         return [];
     };
