@@ -5,8 +5,12 @@ const getRoles = async () => {
   return res.data;
 };
 
-const createRole = async (role) => {
-  const res = await apiClient.post('/Roles', role);
+const createRole = async (roleName) => {
+  const roleDto = {
+    id: '', // ID will be assigned by the server
+    name: roleName
+  };
+  const res = await apiClient.post('/Roles', roleDto);
   return res.data;
 };
 
@@ -36,5 +40,5 @@ export default {
   deleteRole,
   getUserRoles,
   assignRoleToUser,
-  removeRoleFromUser,
+  removeRoleFromUser
 };

@@ -39,7 +39,7 @@ const RoleAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      await roleService.createRole({ name: newRole.trim() });
+      await roleService.createRole(newRole.trim());
       setNewRole('');
       await fetchRoles();
     } catch (err) {
