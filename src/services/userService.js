@@ -21,19 +21,10 @@ const createUser = async (userData) => {
     lastName: userData.lastName,
     isCustomer: userData.isCustomer,
     customerId: customerId,
-    emailConfirmed: userData.emailConfirmed // Include emailConfirmed in the creation request
+    emailConfirmed: userData.emailConfirmed
   };
   
   const res = await apiClient.post('/Users', registerDto);
-  
-  // After creating the user, add the IsCustomer claim
-  if (res.data && res.data.id) {
-    await apiClient.post(`/Claims/${res.data.id}/claims`, {
-      type: "IsCustomer",
-      value: userData.isCustomer.toString()
-    });
-  }
-  
   return res.data;
 };
 
