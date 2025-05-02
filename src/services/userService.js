@@ -10,8 +10,20 @@ const getUser = async (id) => {
   return res.data;
 };
 
-const createUser = async (user) => {
-  const res = await apiClient.post('/Users', user);
+const createUser = async (userData) => {
+  // Convert customerId to number if it exists, null if empty
+  const customerId = userData.customerId ? parseInt(userData.customerId) : null;
+  
+  const registerDto = {
+    email: userData.email,
+    password: userData.password,
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    isCustomer: userData.isCustomer,
+    customerId: customerId
+  };
+  
+  const res = await apiClient.post('/Users', registerDto);
   return res.data;
 };
 

@@ -32,6 +32,26 @@ const UserForm = ({ user, onSuccess }) => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    setError('');
+
+    // Validate required fields
+    if (!form.email || !form.firstName || !form.lastName) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    // Ensure password is provided for new users
+    if (!user && !form.password) {
+      setError('Password is required for new users');
+      return;
+    }
+
+    // Validate customerId when user is a customer
+    if (form.isCustomer && !form.customerId) {
+      setError('Customer ID is required when registering as a customer');
+      return;
+    }
+
     try {
       if (user) {
         await userService.updateUser(user.id, form);
@@ -40,7 +60,8 @@ const UserForm = ({ user, onSuccess }) => {
       }
       onSuccess();
     } catch (err) {
-      setError('Failed to save user');
+      const backendMsg = err?.response?.data?.message || err?.response?.data?.errors?.join(', ');
+      setError(backendMsg || 'Failed to save user');
     }
   };
 
