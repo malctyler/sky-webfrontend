@@ -88,7 +88,7 @@ const UserManagement = () => {
       </Dialog>
       <Dialog open={openRoles} onClose={() => setOpenRoles(false)}>
         <DialogTitle>Manage Roles</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ minWidth: '400px' }}>
           <RoleManagement user={selectedUser} />
         </DialogContent>
         <DialogActions>
@@ -97,7 +97,7 @@ const UserManagement = () => {
       </Dialog>
       <Dialog open={openClaims} onClose={() => setOpenClaims(false)}>
         <DialogTitle>Manage Claims</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ minWidth: '400px' }}>
           <ClaimManagement user={selectedUser} />
         </DialogContent>
         <DialogActions>
@@ -106,7 +106,7 @@ const UserManagement = () => {
       </Dialog>
       <Dialog open={openRoleAdmin} onClose={() => setOpenRoleAdmin(false)}>
         <DialogTitle>All Roles</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ minWidth: '400px' }}>
           <RoleAdmin />
         </DialogContent>
         <DialogActions>
