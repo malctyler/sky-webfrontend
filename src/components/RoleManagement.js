@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Button, List, ListItem, ListItemText, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Button, List, ListItem, ListItemText, TextField, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import roleService from '../services/roleService';
 
 const RoleManagement = ({ user }) => {
@@ -8,6 +9,8 @@ const RoleManagement = ({ user }) => {
   const [selectedRole, setSelectedRole] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
 
   const fetchUserRoles = async () => {
     if (user) {
@@ -53,12 +56,19 @@ const RoleManagement = ({ user }) => {
     }
   };
 
-  const handleRemoveRole = async (roleName) => {
+  const openDeleteDialog = (role) => {
+    setRoleToDelete(role);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteRole = async () => {
     setLoading(true);
     setError('');
     try {
-      await roleService.removeRoleFromUser(user.id, roleName);
+      await roleService.removeRoleFromUser(user.id, roleToDelete);
       fetchUserRoles();
+      setDeleteDialogOpen(false);
+      setRoleToDelete(null);
     } catch (err) {
       setError('Failed to remove role from user');
     } finally {
@@ -87,11 +97,44 @@ const RoleManagement = ({ user }) => {
       {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
       <List>
         {userRoles.map(roleName => (
-          <ListItem key={roleName} secondaryAction={<Button color="error" onClick={() => handleRemoveRole(roleName)} disabled={loading}>Remove</Button>}>
+          <ListItem key={roleName} secondaryAction={<IconButton edge="end" aria-label="delete" onClick={() => openDeleteDialog(roleName)} disabled={loading}><DeleteIcon /></IconButton>}>
             <ListItemText primary={roleName} />
           </ListItem>
         ))}
       </List>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-role-dialog-title"
+      >
+        <DialogTitle id="delete-role-dialog-title">
+          Confirm Role Removal
+        </DialogTitle>
+        <DialogContent>
+          <div>
+            <p>Are you sure you want to remove this role from the user?</p>
+            {roleToDelete && (
+              <p><strong>Role:</strong> {roleToDelete}</p>
+            )}
+            <p style={{ color: '#d32f2f', marginTop: '1rem' }}>
+              This action will remove all permissions associated with this role from the user.
+            </p>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteRole}
+            color="error"
+            variant="contained"
+          >
+            Remove Role
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
