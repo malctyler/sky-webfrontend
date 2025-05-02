@@ -17,7 +17,7 @@ const ClaimManagement = ({ user }) => {
 
   const fetchClaims = async () => {
     try {
-      const response = await apiClient.get(`/Claims/${user.id}/claims`);
+      const response = await apiClient.get(`/Claims/${user.id}`);
       setClaims(response.data);
     } catch (err) {
       console.error('Error fetching claims:', err);
@@ -31,9 +31,7 @@ const ClaimManagement = ({ user }) => {
 
   const handleDeleteClaim = async () => {
     try {
-      await apiClient.delete(`/Claims/${user.id}/claims`, { 
-        data: { type: claimToDelete.type, value: claimToDelete.value }
-      });
+      await apiClient.delete(`/Claims/${user.id}/claims/${claimToDelete.type}`);
       setClaims(claims.filter(c => 
         !(c.type === claimToDelete.type && c.value === claimToDelete.value)
       ));
