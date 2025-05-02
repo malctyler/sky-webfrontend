@@ -33,9 +33,10 @@ export const AuthProvider = ({ children }) => {
                 if (parsedUser.token) {
                     try {
                         const decoded = jwtDecode(parsedUser.token);
-                        // Get user roles from token
+                        // Get user roles and email confirmation status from token
                         parsedUser.roles = getRolesFromToken(decoded);
                         parsedUser.customerId = decoded.CustomerId || decoded.customerId;
+                        parsedUser.emailConfirmed = decoded.EmailConfirmed === 'True';
                     } catch (e) {
                         console.error('Error decoding token:', e);
                         parsedUser.roles = [];
@@ -61,11 +62,14 @@ export const AuthProvider = ({ children }) => {
         const response = await loginService(email, password);
         let customerId = undefined;
         let roles = [];
+        let emailConfirmed = false;
+
         if (response.token) {
             try {
                 const decoded = jwtDecode(response.token);
                 roles = getRolesFromToken(decoded);
                 customerId = decoded.CustomerId || decoded.customerId;
+                emailConfirmed = decoded.EmailConfirmed === 'True';
             } catch (e) {
                 console.error('Error decoding token:', e);
             }
@@ -75,7 +79,8 @@ export const AuthProvider = ({ children }) => {
             token: response.token,
             isCustomer: response.isCustomer,
             customerId,
-            roles
+            roles,
+            emailConfirmed
         };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -92,8 +97,12 @@ export const AuthProvider = ({ children }) => {
         return user?.roles?.includes(role) || false;
     };
 
+    const isEmailConfirmed = () => {
+        return user?.emailConfirmed || false;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, hasRole }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, hasRole, isEmailConfirmed }}>
             {children}
         </AuthContext.Provider>
     );
