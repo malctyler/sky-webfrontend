@@ -77,7 +77,8 @@ function RandomForecast() {
   );
 }
 
-const ProtectedRoute = ({ children }) => {
+// Update the ProtectedRoute component
+const ProtectedRoute = ({ children, requireAdmin }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -87,6 +88,11 @@ const ProtectedRoute = ({ children }) => {
   if (!user) {
     return <Navigate to="/login" />;
   }
+
+  // Check if admin role is required and user doesn't have it
+  if (requireAdmin && !user.roles.includes('Admin')) {
+    return <Navigate to="/" />;
+  }
   
   return children;
 };
@@ -94,19 +100,21 @@ const ProtectedRoute = ({ children }) => {
 function AppContent() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const [plantMenuAnchor, setPlantMenuAnchor] = useState(null);
+  const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
   
-  const handlePlantMenuOpen = (event) => {
-    setPlantMenuAnchor(event.currentTarget);
+  const handleAdminMenuOpen = (event) => {
+    setAdminMenuAnchor(event.currentTarget);
   };
 
-  const handlePlantMenuClose = () => {
-    setPlantMenuAnchor(null);
+  const handleAdminMenuClose = () => {
+    setAdminMenuAnchor(null);
   };
 
   const handleLogout = async () => {
     await logout();
   };
+
+  const isAdmin = user?.roles?.includes('Admin');
   
   return (
     <div className={`App ${isDarkMode ? 'dark' : 'light'}`}>
@@ -126,24 +134,28 @@ function AppContent() {
                 <>
                   <Link to="/all" className="nav-link">All Forecasts</Link>
                   <Link to="/customers" className="nav-link">All Customers</Link>
-                  <div>
-                    <button className="nav-link plant-menu-button" onClick={handlePlantMenuOpen}>
-                      Plant
-                    </button>
-                    <Menu
-                      anchorEl={plantMenuAnchor}
-                      open={Boolean(plantMenuAnchor)}
-                      onClose={handlePlantMenuClose}
-                    >
-                      <MenuItem onClick={handlePlantMenuClose} component={Link} to="/plant-categories">
-                        Plant Categories
-                      </MenuItem>
-                      <MenuItem onClick={handlePlantMenuClose} component={Link} to="/manage-plant">
-                        Manage Plant
-                      </MenuItem>
-                    </Menu>
-                  </div>
-                  <Link to="/user-management" className="nav-link">User Management</Link>
+                  {isAdmin && (
+                    <div>
+                      <button className="nav-link admin-menu-button" onClick={handleAdminMenuOpen}>
+                        Admin
+                      </button>
+                      <Menu
+                        anchorEl={adminMenuAnchor}
+                        open={Boolean(adminMenuAnchor)}
+                        onClose={handleAdminMenuClose}
+                      >
+                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/user-management">
+                          User Management
+                        </MenuItem>
+                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/plant-categories">
+                          Plant Categories
+                        </MenuItem>
+                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/manage-plant">
+                          Manage Plant
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  )}
                   <Button onClick={handleLogout} color="inherit" className="nav-link">
                     Logout
                   </Button>
@@ -186,12 +198,12 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="/plant-categories" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <PlantCategories />
             </ProtectedRoute>
           } />
           <Route path="/manage-plant" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
               <ManagePlant />
             </ProtectedRoute>
           } />
@@ -206,8 +218,8 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="/user-management" element={
-            <ProtectedRoute>
-              {user && !user.isCustomer ? <UserManagement /> : <Navigate to="/" />}
+            <ProtectedRoute requireAdmin={true}>
+              <UserManagement />
             </ProtectedRoute>
           } />
         </Routes>
