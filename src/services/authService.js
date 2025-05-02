@@ -23,3 +23,8 @@ export const validateToken = async () => {
         return { valid: false };
     }
 };
+
+export const checkEmailConfirmation = async (email) => {
+    const response = await apiClient.get(`/Auth/check-email-confirmation/${email}`);
+    return response.data;
+};

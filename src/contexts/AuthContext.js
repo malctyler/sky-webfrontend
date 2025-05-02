@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login as loginService, logout as logoutService, validateToken } from '../services/authService';
+import { login as loginService, logout as logoutService, validateToken, checkEmailConfirmation } from '../services/authService';
 import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
@@ -37,6 +37,19 @@ export const AuthProvider = ({ children }) => {
                         parsedUser.roles = getRolesFromToken(decoded);
                         parsedUser.customerId = decoded.CustomerId || decoded.customerId;
                         parsedUser.emailConfirmed = decoded.EmailConfirmed === 'True';
+
+                        // Check if email is now confirmed
+                        if (!parsedUser.emailConfirmed) {
+                            const confirmationStatus = await checkEmailConfirmation(parsedUser.email);
+                            if (confirmationStatus.token) {
+                                // Update user with new token and status
+                                parsedUser = {
+                                    ...parsedUser,
+                                    token: confirmationStatus.token,
+                                    emailConfirmed: true
+                                };
+                            }
+                        }
                     } catch (e) {
                         console.error('Error decoding token:', e);
                         parsedUser.roles = [];
@@ -49,7 +62,7 @@ export const AuthProvider = ({ children }) => {
                     setUser(null);
                     localStorage.removeItem('user');
                 } else {
-                    // Update localStorage in case roles were missing before
+                    // Update localStorage with possibly updated user data
                     localStorage.setItem('user', JSON.stringify(parsedUser));
                 }
             }
@@ -57,6 +70,27 @@ export const AuthProvider = ({ children }) => {
         };
         checkAuth();
     }, []);
+
+    const refreshEmailConfirmation = async () => {
+        if (user?.email) {
+            try {
+                const confirmationStatus = await checkEmailConfirmation(user.email);
+                if (confirmationStatus.token) {
+                    const updatedUser = {
+                        ...user,
+                        token: confirmationStatus.token,
+                        emailConfirmed: true
+                    };
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error refreshing email confirmation status:', error);
+            }
+        }
+        return false;
+    };
 
     const login = async (email, password) => {
         const response = await loginService(email, password);
@@ -102,7 +136,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, hasRole, isEmailConfirmed }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            login, 
+            logout, 
+            loading, 
+            hasRole, 
+            isEmailConfirmed, 
+            refreshEmailConfirmation 
+        }}>
             {children}
         </AuthContext.Provider>
     );
