@@ -21,8 +21,9 @@ import { baseUrl } from './config';
 import CustomerPlantHolding from './components/CustomerPlantHolding';
 import UserManagement from './components/UserManagement';
 
-function RandomForecast() {
-  const [weatherData, setWeatherData] = useState(null);
+function LocalForecast() {
+  const [currentWeather, setCurrentWeather] = useState(null);
+  const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -33,12 +34,22 @@ function RandomForecast() {
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/Weather`);
-      if (!response.ok) {
+      const [currentResponse, forecastResponse] = await Promise.all([
+        fetch(`${baseUrl}/Weather`),
+        fetch(`${baseUrl}/Weather/forecast`)
+      ]);
+
+      if (!currentResponse.ok || !forecastResponse.ok) {
         throw new Error('Failed to fetch weather data');
       }
-      const data = await response.json();
-      setWeatherData(data);
+
+      const [current, forecast] = await Promise.all([
+        currentResponse.json(),
+        forecastResponse.json()
+      ]);
+
+      setCurrentWeather(current);
+      setForecastData(forecast);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -47,8 +58,17 @@ function RandomForecast() {
     }
   };
 
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <div className="random-forecast">
+    <div className="local-forecast">
       <h1>Weather in Mayfield</h1>
       {loading && (
         <div className="loading-state">
@@ -62,25 +82,49 @@ function RandomForecast() {
           <button onClick={fetchWeatherData}>Try Again</button>
         </div>
       )}
-      {!loading && !error && weatherData && (
-        <div className="forecast-card">
-          <h3>Current Weather</h3>
-          <p className="description">{weatherData.description}</p>
-          <div className="weather-details">
-            <p>Temperature: {Math.round(weatherData.temperature)}°C</p>
-            <p>Feels like: {Math.round(weatherData.feelsLike)}°C</p>
-            <p>Humidity: {weatherData.humidity}%</p>
-            <p>Wind Speed: {Math.round(weatherData.windSpeed * 2.237)}mph</p>
+      {!loading && !error && currentWeather && (
+        <>
+          <div className="forecast-card current-weather">
+            <h3>Current Weather</h3>
+            <p className="description">{currentWeather.description}</p>
+            <div className="weather-details">
+              <p>Temperature: {Math.round(currentWeather.temperature)}°C</p>
+              <p>Feels like: {Math.round(currentWeather.feelsLike)}°C</p>
+              <p>Humidity: {currentWeather.humidity}%</p>
+              <p>Wind Speed: {Math.round(currentWeather.windSpeed * 2.237)}mph</p>
+            </div>
+            {currentWeather.icon && (
+              <img 
+                src={`https://openweathermap.org/img/w/${currentWeather.icon}.png`}
+                alt="Weather icon"
+                className="weather-icon"
+              />
+            )}
           </div>
-          {weatherData.icon && (
-            <img 
-              src={`https://openweathermap.org/img/w/${weatherData.icon}.png`}
-              alt="Weather icon"
-              className="weather-icon"
-            />
+
+          {forecastData && (
+            <div className="forecast-section">
+              <h3>5-Day Forecast</h3>
+              <div className="forecast-grid">
+                {forecastData.items.slice(0, 8).map((item, index) => (
+                  <div key={index} className="forecast-item">
+                    <p className="forecast-time">{formatDate(item.dtTxt)}</p>
+                    <img 
+                      src={`https://openweathermap.org/img/w/${item.weather[0].icon}.png`}
+                      alt={item.weather[0].description}
+                      className="weather-icon-small"
+                    />
+                    <p className="forecast-temp">{Math.round(item.main.temp)}°C</p>
+                    <p className="forecast-desc">{item.weather[0].description}</p>
+                    <p className="forecast-wind">Wind: {Math.round(item.wind.speed * 2.237)}mph</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
+          
           <button onClick={fetchWeatherData} className="refresh-button">Refresh</button>
-        </div>
+        </>
       )}
     </div>
   );
@@ -184,7 +228,7 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<RandomForecast />} />
+          <Route path="/" element={<LocalForecast />} />
           <Route path="/customers" element={
             <ProtectedRoute>
               <AllCustomers />
