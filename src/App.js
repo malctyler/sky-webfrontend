@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { IconButton, Menu, MenuItem, CssBaseline, Button } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import './App.css';
-import AllForecasts from './components/AllForecasts';
 import AllCustomers from './components/AllCustomers';
 import CustomerNotes from './components/CustomerNotes';
 import CustomerSummary from './components/CustomerSummary';
@@ -14,7 +13,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { ThemeProvider as CustomThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import './components/AllForecasts.css';
 import './components/AllCustomers.css';
 import './components/CustomerNotes.css';
 import './components/PlantCategories.css';
@@ -35,13 +33,12 @@ function RandomForecast() {
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/Summaries`);
+      const response = await fetch(`${baseUrl}/Weather`);
       if (!response.ok) {
         throw new Error('Failed to fetch weather data');
       }
       const data = await response.json();
-      const randomIndex = Math.floor(Math.random() * data.length);
-      setWeatherData(data[randomIndex]);
+      setWeatherData(data);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -52,7 +49,7 @@ function RandomForecast() {
 
   return (
     <div className="random-forecast">
-      <h1>Today's Weather</h1>
+      <h1>Weather in Mayfield</h1>
       {loading && (
         <div className="loading-state">
           <div className="spinner"></div>
@@ -67,10 +64,22 @@ function RandomForecast() {
       )}
       {!loading && !error && weatherData && (
         <div className="forecast-card">
-          <h3>Weather Type</h3>
+          <h3>Current Weather</h3>
           <p className="description">{weatherData.description}</p>
-          {weatherData.title && <p className="title">{weatherData.title}</p>}
-          <button onClick={fetchWeatherData}>Get New Forecast</button>
+          <div className="weather-details">
+            <p>Temperature: {Math.round(weatherData.temperature)}°C</p>
+            <p>Feels like: {Math.round(weatherData.feelsLike)}°C</p>
+            <p>Humidity: {weatherData.humidity}%</p>
+            <p>Wind Speed: {Math.round(weatherData.windSpeed * 2.237)}mph</p>
+          </div>
+          {weatherData.icon && (
+            <img 
+              src={`https://openweathermap.org/img/w/${weatherData.icon}.png`}
+              alt="Weather icon"
+              className="weather-icon"
+            />
+          )}
+          <button onClick={fetchWeatherData} className="refresh-button">Refresh</button>
         </div>
       )}
     </div>
@@ -132,7 +141,6 @@ function AppContent() {
                 </>
               ) : (
                 <>
-                  <Link to="/all" className="nav-link">All Forecasts</Link>
                   <Link to="/customers" className="nav-link">All Customers</Link>
                   {isAdmin && (
                     <div>
@@ -177,11 +185,6 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<RandomForecast />} />
-          <Route path="/all" element={
-            <ProtectedRoute>
-              <AllForecasts />
-            </ProtectedRoute>
-          } />
           <Route path="/customers" element={
             <ProtectedRoute>
               <AllCustomers />
