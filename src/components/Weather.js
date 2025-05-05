@@ -137,7 +137,11 @@ function Weather() {
               <h3>5-Day Forecast</h3>
               <div className={styles['daily-forecast-grid']}>
                 {Object.entries(dailyForecasts).map(([dayKey, forecast]) => (
-                  <div key={dayKey} className={styles['daily-forecast-card']} onClick={() => toggleDayExpansion(dayKey)}>
+                  <div 
+                    key={dayKey} 
+                    className={`${styles['daily-forecast-card']} ${expandedDay === dayKey ? styles.expanded : ''}`}
+                    onClick={() => toggleDayExpansion(dayKey)}
+                  >
                     <div className={styles['daily-summary']}>
                       <h4>{formatDate(forecast.date)}</h4>
                       <img 

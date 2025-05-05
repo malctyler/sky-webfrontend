@@ -80,6 +80,30 @@
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-forecast-card.expanded {
+  grid-column: span 5;
+}
+
+@media (max-width: 1200px) {
+  .daily-forecast-card.expanded {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .daily-forecast-card.expanded {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .daily-forecast-card.expanded {
+    grid-column: span 1;
+  }
 }
 
 .daily-forecast-card:hover {
