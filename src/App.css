@@ -406,3 +406,21 @@ button:hover {
     color: #888;
   }
 }
+
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weather-icon-link {
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.weather-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}

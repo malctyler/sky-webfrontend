@@ -1,29 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { IconButton, Menu, MenuItem, CssBaseline, Button } from '@mui/material';
-import { Brightness4, Brightness7, Cloud } from '@mui/icons-material';
-import './App.css';
-import AllCustomers from './components/AllCustomers';
-import CustomerNotes from './components/CustomerNotes';
-import CustomerSummary from './components/CustomerSummary';
-import PlantCategories from './components/PlantCategories';
-import ManagePlant from './components/ManagePlant';
-import CertificatePage from './components/CertificatePage';
-import Login from './components/Login';
-import Register from './components/Register';
-import { ThemeProvider as CustomThemeProvider, useTheme } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import './components/AllCustomers.css';
-import './components/CustomerNotes.css';
-import './components/PlantCategories.css';
-import './components/ManagePlant.css';
-import { baseUrl } from './config';
-import CustomerPlantHolding from './components/CustomerPlantHolding';
-import UserManagement from './components/UserManagement';
-import Home from './components/Home';
-import Weather from './components/Weather';
+import { baseUrl } from '../config';
 
-function LocalForecast() {
+function Weather() {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +48,6 @@ function LocalForecast() {
         day: 'numeric'
       });
     }
-    // Format for hourly display
     return date.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit'
@@ -120,7 +97,7 @@ function LocalForecast() {
   const dailyForecasts = groupForecastByDay(forecastData?.items);
 
   return (
-    <div className="local-forecast">
+    <div className="weather-page">
       <h1>Weather in Mayfield</h1>
       {loading && (
         <div className="loading-state">
@@ -212,170 +189,4 @@ function LocalForecast() {
   );
 }
 
-// Update the ProtectedRoute component
-const ProtectedRoute = ({ children, requireAdmin }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  // Check if admin role is required and user doesn't have it
-  if (requireAdmin && !user.roles.includes('Admin')) {
-    return <Navigate to="/" />;
-  }
-  
-  return children;
-};
-
-function AppContent() {
-  const { isDarkMode, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
-  const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
-  
-  const handleAdminMenuOpen = (event) => {
-    setAdminMenuAnchor(event.currentTarget);
-  };
-
-  const handleAdminMenuClose = () => {
-    setAdminMenuAnchor(null);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  const isAdmin = user?.roles?.includes('Admin');
-  
-  return (
-    <div className={`App ${isDarkMode ? 'dark' : 'light'}`}>
-      <header className="App-header">
-        <nav>
-          <div className="nav-links">
-            <Link to="/" className="nav-link home-link">🏠 Home</Link>
-            {user ? (
-              user.isCustomer ? (
-                <>
-                  <Link to="/plant-holding" className="nav-link">Plant Holding</Link>
-                  <Button onClick={handleLogout} color="inherit" className="nav-link">
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link to="/customers" className="nav-link">All Customers</Link>
-                  {isAdmin && (
-                    <div>
-                      <button className="nav-link admin-menu-button" onClick={handleAdminMenuOpen}>
-                        Admin
-                      </button>
-                      <Menu
-                        anchorEl={adminMenuAnchor}
-                        open={Boolean(adminMenuAnchor)}
-                        onClose={handleAdminMenuClose}
-                      >
-                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/user-management">
-                          User Management
-                        </MenuItem>
-                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/plant-categories">
-                          Plant Categories
-                        </MenuItem>
-                        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/manage-plant">
-                          Manage Plant
-                        </MenuItem>
-                      </Menu>
-                    </div>
-                  )}
-                  <Button onClick={handleLogout} color="inherit" className="nav-link">
-                    Logout
-                  </Button>
-                </>
-              )
-            ) : (
-              <>
-                <Link to="/login" className="nav-link">Login</Link>
-                <Link to="/register" className="nav-link">Register</Link>
-              </>
-            )}
-          </div>
-          <div className="nav-icons">
-            <Link to="/weather" className="weather-icon-link">
-              <IconButton color="inherit">
-                <Cloud />
-              </IconButton>
-            </Link>
-            <IconButton onClick={toggleTheme} color="inherit" className="theme-toggle">
-              {isDarkMode ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
-          </div>
-        </nav>
-        
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/weather" element={<Weather />} />
-          <Route path="/customers" element={
-            <ProtectedRoute>
-              <AllCustomers />
-            </ProtectedRoute>
-          } />
-          <Route path="/customers/:custId" element={
-            <ProtectedRoute>
-              <CustomerSummary />
-            </ProtectedRoute>
-          } />
-          <Route path="/customers/:custId/notes" element={
-            <ProtectedRoute>
-              <CustomerNotes />
-            </ProtectedRoute>
-          } />
-          <Route path="/plant-categories" element={
-            <ProtectedRoute requireAdmin={true}>
-              <PlantCategories />
-            </ProtectedRoute>
-          } />
-          <Route path="/manage-plant" element={
-            <ProtectedRoute requireAdmin={true}>
-              <ManagePlant />
-            </ProtectedRoute>
-          } />
-          <Route path="/certificate/:id" element={
-            <ProtectedRoute>
-              <CertificatePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/plant-holding" element={
-            <ProtectedRoute>
-              <CustomerPlantHolding />
-            </ProtectedRoute>
-          } />
-          <Route path="/user-management" element={
-            <ProtectedRoute requireAdmin={true}>
-              <UserManagement />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </header>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <CustomThemeProvider>
-      <AuthProvider>
-        <CssBaseline />
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
-    </CustomThemeProvider>
-  );
-}
-
-export default App;
+export default Weather;
