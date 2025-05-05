@@ -68,8 +68,8 @@ function LocalForecast() {
         day: 'numeric'
       });
     }
-    return date.toLocaleDateString('en-GB', {
-      weekday: 'short',
+    // Format for hourly display
+    return date.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -183,7 +183,7 @@ function LocalForecast() {
                         <div className="hourly-grid">
                           {forecast.items.map((item, index) => (
                             <div key={index} className="hourly-item">
-                              <p className="hourly-time">{formatDate(item.dtTxt)}</p>
+                              <p className="hourly-time">{formatDate(item.dtTxt, 'time')}</p>
                               <img 
                                 src={`https://openweathermap.org/img/w/${item.weather[0].icon}.png`}
                                 alt={item.weather[0].description}
