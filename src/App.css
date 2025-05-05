@@ -296,4 +296,113 @@ button:hover {
     color: #ff6b6b;
     margin: 40px 0;
   }
+
+  .daily-forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+  }
+
+  .daily-forecast-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .daily-forecast-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .daily-summary {
+    text-align: center;
+  }
+
+  .daily-summary h4 {
+    margin: 0 0 10px;
+    font-size: 1.2em;
+  }
+
+  .weather-icon-medium {
+    width: 75px;
+    height: 75px;
+    margin: 10px 0;
+  }
+
+  .temp-range {
+    font-size: 1.5em;
+    margin: 10px 0;
+  }
+
+  .max-temp {
+    color: #ff6b6b;
+    font-weight: bold;
+  }
+
+  .temp-separator {
+    margin: 0 5px;
+    color: #888;
+  }
+
+  .min-temp {
+    color: #4dabf7;
+    font-weight: bold;
+  }
+
+  .daily-description {
+    text-transform: capitalize;
+    margin: 8px 0;
+  }
+
+  .daily-wind {
+    font-size: 0.9em;
+    color: #888;
+  }
+
+  .hourly-breakdown {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .hourly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .hourly-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .hourly-time {
+    font-size: 0.9em;
+    color: #888;
+    margin-bottom: 5px;
+  }
+
+  .hourly-temp {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 5px 0;
+  }
+
+  .hourly-desc {
+    text-transform: capitalize;
+    font-size: 0.9em;
+    margin: 5px 0;
+  }
+
+  .hourly-wind {
+    font-size: 0.8em;
+    color: #888;
+  }
 }

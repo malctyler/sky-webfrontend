@@ -26,6 +26,7 @@ function LocalForecast() {
   const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedDay, setExpandedDay] = useState(null);
 
   useEffect(() => {
     fetchWeatherData();
@@ -58,14 +59,63 @@ function LocalForecast() {
     }
   };
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr, format = 'short') => {
     const date = new Date(dateStr);
+    if (format === 'short') {
+      return date.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
     return date.toLocaleDateString('en-GB', {
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
+
+  const groupForecastByDay = (items) => {
+    const grouped = {};
+    
+    items?.forEach(item => {
+      const date = new Date(item.dtTxt);
+      const dayKey = date.toISOString().split('T')[0];
+      
+      if (!grouped[dayKey]) {
+        grouped[dayKey] = {
+          date: date,
+          items: [],
+          summary: {
+            maxTemp: -Infinity,
+            minTemp: Infinity,
+            icons: new Set(),
+            descriptions: new Set(),
+            maxWind: 0
+          }
+        };
+      }
+      
+      grouped[dayKey].items.push(item);
+      grouped[dayKey].summary.maxTemp = Math.max(grouped[dayKey].summary.maxTemp, item.main.temp);
+      grouped[dayKey].summary.minTemp = Math.min(grouped[dayKey].summary.minTemp, item.main.temp);
+      grouped[dayKey].summary.icons.add(item.weather[0].icon);
+      grouped[dayKey].summary.descriptions.add(item.weather[0].description);
+      grouped[dayKey].summary.maxWind = Math.max(grouped[dayKey].summary.maxWind, item.wind.speed);
+    });
+
+    return grouped;
+  };
+
+  const toggleDayExpansion = (dayKey) => {
+    setExpandedDay(expandedDay === dayKey ? null : dayKey);
+  };
+
+  const getMostCommonIcon = (icons) => {
+    return Array.from(icons)[0];
+  };
+
+  const dailyForecasts = groupForecastByDay(forecastData?.items);
 
   return (
     <div className="local-forecast">
@@ -105,18 +155,48 @@ function LocalForecast() {
           {forecastData && (
             <div className="forecast-section">
               <h3>5-Day Forecast</h3>
-              <div className="forecast-grid">
-                {forecastData.items.slice(0, 8).map((item, index) => (
-                  <div key={index} className="forecast-item">
-                    <p className="forecast-time">{formatDate(item.dtTxt)}</p>
-                    <img 
-                      src={`https://openweathermap.org/img/w/${item.weather[0].icon}.png`}
-                      alt={item.weather[0].description}
-                      className="weather-icon-small"
-                    />
-                    <p className="forecast-temp">{Math.round(item.main.temp)}°C</p>
-                    <p className="forecast-desc">{item.weather[0].description}</p>
-                    <p className="forecast-wind">Wind: {Math.round(item.wind.speed * 2.237)}mph</p>
+              <div className="daily-forecast-grid">
+                {Object.entries(dailyForecasts).map(([dayKey, forecast]) => (
+                  <div key={dayKey} className="daily-forecast-card" onClick={() => toggleDayExpansion(dayKey)}>
+                    <div className="daily-summary">
+                      <h4>{formatDate(forecast.date)}</h4>
+                      <img 
+                        src={`https://openweathermap.org/img/w/${getMostCommonIcon(forecast.summary.icons)}.png`}
+                        alt="Weather icon"
+                        className="weather-icon-medium"
+                      />
+                      <div className="temp-range">
+                        <span className="max-temp">{Math.round(forecast.summary.maxTemp)}°</span>
+                        <span className="temp-separator">/</span>
+                        <span className="min-temp">{Math.round(forecast.summary.minTemp)}°</span>
+                      </div>
+                      <p className="daily-description">
+                        {Array.from(forecast.summary.descriptions)[0]}
+                      </p>
+                      <p className="daily-wind">
+                        Max wind: {Math.round(forecast.summary.maxWind * 2.237)}mph
+                      </p>
+                    </div>
+
+                    {expandedDay === dayKey && (
+                      <div className="hourly-breakdown">
+                        <div className="hourly-grid">
+                          {forecast.items.map((item, index) => (
+                            <div key={index} className="hourly-item">
+                              <p className="hourly-time">{formatDate(item.dtTxt)}</p>
+                              <img 
+                                src={`https://openweathermap.org/img/w/${item.weather[0].icon}.png`}
+                                alt={item.weather[0].description}
+                                className="weather-icon-small"
+                              />
+                              <p className="hourly-temp">{Math.round(item.main.temp)}°C</p>
+                              <p className="hourly-desc">{item.weather[0].description}</p>
+                              <p className="hourly-wind">Wind: {Math.round(item.wind.speed * 2.237)}mph</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
