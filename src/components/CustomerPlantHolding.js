@@ -71,6 +71,8 @@ function CustomerPlantHolding() {
             <p><strong>Serial Number:</strong> {holding.serialNumber}</p>
             <p><strong>Status:</strong> {holding.statusDescription}</p>
             <p><strong>SWL:</strong> {holding.swl}</p>
+            <p><strong>Inspection Frequency:</strong> {holding.inspectionFrequency || '6 Months'}</p>
+            <p><strong>Inspection Fee:</strong> £{holding.inspectionFee || '0.00'}</p>
             <button onClick={() => toggleExpand(holding.holdingID)} style={{marginTop:8}}>
               {expanded === holding.holdingID ? 'Hide Inspections' : 'Show Inspections'}
             </button>
