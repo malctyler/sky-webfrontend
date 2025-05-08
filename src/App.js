@@ -11,7 +11,8 @@ import CertificatePage from './components/CertificatePage';
 import Login from './components/Login';
 import Register from './components/Register';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LayoutProvider } from './contexts/LayoutContext';
 import CustomerPlantHolding from './components/CustomerPlantHolding';
 import UserManagement from './components/UserManagement';
 import Home from './components/Home';
@@ -43,86 +44,89 @@ function App() {
   return (
     <CustomThemeProvider>
       <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={
-              <AuthLayout>
-                <Login />
-              </AuthLayout>
-            } />
-            <Route path="/register" element={
-              <AuthLayout>
-                <Register />
-              </AuthLayout>
-            } />
-            <Route path="/" element={
-              <MainLayout>
-                <Home />
-              </MainLayout>
-            } />
-            <Route path="/weather" element={
-              <MainLayout>
-                <Weather />
-              </MainLayout>
-            } />
-            <Route path="/customers" element={
-              <ProtectedRoute>
+        <LayoutProvider>
+          <Router>
+            <CssBaseline />
+            <Routes>
+              <Route path="/login" element={
+                <AuthLayout>
+                  <Login />
+                </AuthLayout>
+              } />
+              <Route path="/register" element={
+                <AuthLayout>
+                  <Register />
+                </AuthLayout>
+              } />
+              <Route path="/" element={
                 <MainLayout>
-                  <AllCustomers />
+                  <Home />
                 </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/customers/:custId" element={
-              <ProtectedRoute>
+              } />
+              <Route path="/weather" element={
                 <MainLayout>
-                  <CustomerSummary />
+                  <Weather />
                 </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/customers/:custId/notes" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CustomerNotes />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/plant-categories" element={
-              <ProtectedRoute requireAdmin={true}>
-                <MainLayout>
-                  <PlantCategories />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/manage-plant" element={
-              <ProtectedRoute requireAdmin={true}>
-                <MainLayout>
-                  <ManagePlant />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/certificate/:id" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CertificatePage />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/plant-holding" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CustomerPlantHolding />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/user-management" element={
-              <ProtectedRoute requireAdmin={true}>
-                <MainLayout>
-                  <UserManagement />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </Router>
+              } />
+              <Route path="/customers" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AllCustomers />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/:custId" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <CustomerSummary />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/:custId/notes" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <CustomerNotes />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/plant-categories" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <MainLayout>
+                    <PlantCategories />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/manage-plant" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <MainLayout>
+                    <ManagePlant />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/certificate/:id" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <CertificatePage />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/plant-holding" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <CustomerPlantHolding />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/user-management" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <MainLayout>
+                    <UserManagement />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Router>
+        </LayoutProvider>
       </AuthProvider>
     </CustomThemeProvider>
   );
