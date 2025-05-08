@@ -1,0 +1,113 @@
+.MuiDrawer-paper {
+  background-color: var(--nav-bg) !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+.dark .MuiDrawer-paper {
+  background-color: #1a1e24 !important;
+}
+
+.MuiListItemButton-root {
+  border-radius: 5px;
+  margin: 2px 12px;
+  padding: 8px 16px;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.MuiListItemButton-root:hover {
+  background-color: rgba(var(--link-color-rgb), 0.08) !important;
+  transform: translateX(3px);
+}
+
+.MuiListItemButton-root.Mui-selected {
+  background-color: rgba(var(--link-color-rgb), 0.12) !important;
+  position: relative;
+}
+
+.MuiListItemButton-root.Mui-selected::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--link-color);
+  border-radius: 0 3px 3px 0;
+}
+
+.dark .MuiListItemButton-root.Mui-selected {
+  background-color: rgba(102, 179, 255, 0.12) !important;
+}
+
+.MuiListItemIcon-root {
+  color: var(--text-muted) !important;
+  min-width: 40px !important;
+  transition: color 0.2s ease-in-out;
+}
+
+.Mui-selected .MuiListItemIcon-root,
+.Mui-selected .MuiListItemText-primary {
+  color: var(--link-color) !important;
+}
+
+.sidebar-header {
+  background: linear-gradient(45deg, var(--link-color), var(--link-color-dark));
+  padding: 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark .sidebar-header {
+  background: linear-gradient(45deg, #1a1e24, #282c34);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-section {
+  padding: 16px 0;
+}
+
+.nav-section-title {
+  padding: 8px 24px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-logo {
+  padding: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.MuiToolbar-root {
+  background: linear-gradient(135deg, var(--link-color) 0%, var(--link-color-dark) 100%);
+  min-height: 70px !important;
+}
+
+.dark .MuiToolbar-root {
+  background: linear-gradient(135deg, #1a1e24 0%, #282c34 100%);
+}
+
+.MuiAppBar-root {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark .MuiAppBar-root {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:root {
+  --link-color-rgb: 0, 86, 193;
+  --link-color-dark: #003b85;
+}
+
+.dark {
+  --link-color-rgb: 102, 179, 255;
+  --link-color-dark: #4f82d1;
+}
