@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { IconButton, Menu, MenuItem, CssBaseline, Button } from '@mui/material';
+import { IconButton, Menu, MenuItem, CssBaseline, Button, useTheme as useMuiTheme } from '@mui/material';
 import { Brightness4, Brightness7, Cloud } from '@mui/icons-material';
 import './App.css';
 import AllCustomers from './components/AllCustomers';
@@ -234,6 +234,7 @@ const ProtectedRoute = ({ children, requireAdmin }) => {
 
 function AppContent() {
   const { isDarkMode, toggleTheme } = useTheme();
+  const muiTheme = useMuiTheme(); // Get access to the MUI theme
   const { user, logout } = useAuth();
   const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
   
@@ -253,6 +254,7 @@ function AppContent() {
   
   return (
     <div className={`App ${isDarkMode ? 'dark' : 'light'}`}>
+      <CssBaseline /> {/* Ensure CssBaseline is inside ThemeProvider but at the root of the app */}
       <header className="App-header">
         <nav>
           <div className="nav-links">
@@ -369,7 +371,6 @@ function App() {
   return (
     <CustomThemeProvider>
       <AuthProvider>
-        <CssBaseline />
         <Router>
           <AppContent />
         </Router>

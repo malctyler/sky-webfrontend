@@ -1,0 +1,123 @@
+//
+// quilljs-editor.scss
+//
+ 
+.ql-container {
+    font-family: $font-family-base;
+
+    &.ql-snow {
+        border-color: $input-border-color;
+    }
+}
+
+
+.ql-container {
+    min-height: 200px !important;
+}
+
+.ql-bubble {
+    border: $input-border-width solid $input-border-color;
+    border-radius: $input-border-radius;
+}
+
+.ql-toolbar {
+    font-family: $font-family-base !important;
+    span {
+        outline: none !important;
+        color: $dropdown-link-color;
+
+        &:hover {
+            color: $primary !important;
+        }
+    }
+
+    &.ql-snow {
+        border-color: $input-border-color;
+
+        .ql-picker.ql-expanded {
+            .ql-picker-label {
+                border-color: transparent;
+            }
+        }
+        .ql-formats {
+            margin-right: 15px;
+            margin-left: 0;
+        }
+    }
+}
+
+.ql-snow {
+    .ql-stroke,
+    .ql-script,
+    .ql-strike svg {
+        stroke: $dropdown-link-color;
+    }
+    .ql-fill {
+        fill: $dropdown-link-color;
+    }
+}
+
+.ql-snow {
+    .ql-picker-options {
+        background-color: $dropdown-bg;
+        border-color: $dropdown-border-color !important;
+    }
+}
+
+.ql-editor {
+    text-align: left;
+}
+
+.ql-snow .ql-picker:not(.ql-color-picker):not(.ql-icon-picker) svg {
+    position: absolute;
+    margin-top: -9px;
+    right: 0;
+    left: auto;
+    top: 50%;
+    width: 18px;
+}
+
+// simplemde editor
+
+.EasyMDEContainer {
+    .CodeMirror {
+        background: $input-bg !important;
+        border-color: $input-border-color !important;
+    }
+
+    .editor-toolbar {
+        border-color: $input-border-color !important;
+
+        i.separator {
+            border-color: $input-border-color !important;
+        }
+
+        button {
+            color: var(--#{$prefix}dark) !important;
+
+            &:hover {
+                background: var(--#{$prefix}gray-100) !important;
+                border-color: transparent !important;
+            }
+        }
+    }
+
+    .CodeMirror-lines {
+        .CodeMirror-cursors {
+            .CodeMirror-cursor {
+                border-color: var(--#{$prefix}dark);
+            }
+        }
+
+        .CodeMirror-code {
+            .CodeMirror-line {
+                color: var(--#{$prefix}dark);
+
+                .cm-null {
+                    background: transparent !important;
+                    color: $input-color !important;
+                }
+            }
+        }
+    }
+}

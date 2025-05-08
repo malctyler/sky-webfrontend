@@ -1,0 +1,418 @@
+//
+// Datepicker
+//
+.datepicker {
+  padding: 10px !important;
+  animation: none;
+
+  td,
+  th {
+    width: 30px;
+    height: 30px;
+  }
+
+  table {
+    tr {
+      td {
+        &.active.active,
+        &.active.disabled,
+        &.active.disabled.active,
+        &.active.disabled.disabled,
+        &.active.disabled:active,
+        &.active.disabled:hover,
+        &.active.disabled:hover.active,
+        &.active.disabled:hover.disabled,
+        &.active.disabled:hover:active,
+        &.active.disabled:hover:hover,
+        .active.disabled:hover[disabled],
+        .active.disabled[disabled],
+        .active:active,
+        .active:hover,
+        .active:hover.active,
+        .active:hover.disabled,
+        .active:hover:active,
+        .active:hover:hover,
+        .active:hover[disabled],
+        .active[disabled],
+        span.active.active,
+        span.active.disabled,
+        span.active.disabled.active,
+        span.active.disabled.disabled,
+        span.active.disabled:active,
+        span.active.disabled:hover,
+        span.active.disabled:hover.active,
+        span.active.disabled:hover.disabled,
+        span.active.disabled:hover:active,
+        span.active.disabled:hover:hover,
+        span.active.disabled:hover[disabled],
+        span.active.disabled[disabled],
+        span.active:active,
+        span.active:hover,
+        span.active:hover.active,
+        span.active:hover.disabled,
+        span.active:hover:active,
+        span.active:hover:hover,
+        span.active:hover[disabled],
+        span.active[disabled],
+        &.today,
+        &.today.disabled,
+        &.today.disabled:hover,
+        &.today:hover {
+          background-color: $primary !important;
+          background-image: none !important;
+          color: $white;
+        }
+
+        &.day.focused,
+        &.day:hover,
+        span.focused,
+        span:hover {
+          background: var(--#{$prefix}gray-200);
+        }
+
+        &.new,
+        &.old,
+        span.new,
+        span.old {
+          color: var(--#{$prefix}gray-700);
+          opacity: 0.4;
+        }
+      }
+    }
+  }
+
+  .datepicker-switch:hover,
+  .next:hover,
+  .prev:hover,
+  tfoot tr th:hover {
+    background: var(--#{$prefix}gray-200);
+  }
+
+  .datepicker-switch {
+    &:hover {
+      background: none;
+    }
+  }
+}
+
+.datepicker-dropdown {
+
+  &:after {
+    border-bottom: 6px solid $dropdown-bg;
+  }
+
+  &:before {
+    border-bottom-color: $dropdown-border-color;
+  }
+
+  &.datepicker-orient-top {
+    &:before {
+      border-top: 7px solid $dropdown-border-color;
+    }
+
+    &:after {
+      border-top: 6px solid $dropdown-bg;
+    }
+  }
+}
+
+.react-datepicker {
+  border: 1px solid $dropdown-border-color;
+}
+
+
+.react-datepicker {
+  background-color: $dropdown-bg;
+  color: $dropdown-color;
+  border: 1px solid var(--#{$prefix}border-color);
+}
+
+
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle {
+  fill: var(--#{$prefix}light);
+  color: var(--#{$prefix}light);
+}
+
+.react-datepicker-popper[data-placement^=top] .react-datepicker__triangle {
+  fill: #fff;
+  color: #fff;
+}
+
+.react-datepicker__header {
+  background-color: var(--#{$prefix}light);
+  border-bottom: 1px solid var(--#{$prefix}border-color);
+}
+
+
+.react-datepicker__navigation:hover *::before {
+  border-color: rgb(165.75, 165.75, 165.75);
+}
+
+.react-datepicker__time-container {
+  border-left: 1px solid var(--#{$prefix}border-color);
+}
+
+.react-datepicker__time-container--with-today-button {
+  border: 1px solid var(--#{$prefix}border-color);
+}
+
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item:hover {
+  background-color: var(--#{$prefix}light);
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected {
+  background-color: $primary;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected:hover {
+  background-color: $primary;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--disabled {
+  color: #ccc;
+}
+
+
+.react-datepicker__week-number {
+  color: #ccc;
+}
+
+
+.react-datepicker__week-number.react-datepicker__week-number--clickable:not(.react-datepicker__week-number--selected):hover {
+  background-color: var(--#{$prefix}light);
+}
+
+.react-datepicker__week-number--selected {
+  background-color: $primary;
+  color: #fff;
+}
+
+.react-datepicker__week-number--selected:hover {
+  background-color: rgb(28.75, 93.2196969697, 143.75);
+}
+
+[data-bs-theme="dark"] {
+  .react-datepicker__day-name,
+  .react-datepicker__day,
+  .react-datepicker__time-name {
+    color: var(--#{$prefix}heading-color);
+  }
+}
+
+
+.react-datepicker__day:not([aria-disabled=true]):hover,
+.react-datepicker__month-text:not([aria-disabled=true]):hover,
+.react-datepicker__quarter-text:not([aria-disabled=true]):hover,
+.react-datepicker__year-text:not([aria-disabled=true]):hover {
+  background-color: var(--#{$prefix}light);
+}
+
+
+.react-datepicker__day--highlighted,
+.react-datepicker__month-text--highlighted,
+.react-datepicker__quarter-text--highlighted,
+.react-datepicker__year-text--highlighted {
+  background-color: #3dcc4a;
+  color: #fff;
+}
+
+
+.react-datepicker__day--highlighted-custom-1,
+.react-datepicker__month-text--highlighted-custom-1,
+.react-datepicker__quarter-text--highlighted-custom-1,
+.react-datepicker__year-text--highlighted-custom-1 {
+  color: magenta;
+}
+
+.react-datepicker__day--highlighted-custom-2,
+.react-datepicker__month-text--highlighted-custom-2,
+.react-datepicker__quarter-text--highlighted-custom-2,
+.react-datepicker__year-text--highlighted-custom-2 {
+  color: green;
+}
+
+.react-datepicker__day--holidays,
+.react-datepicker__month-text--holidays,
+.react-datepicker__quarter-text--holidays,
+.react-datepicker__year-text--holidays {
+  background-color: #ff6803;
+  color: #fff;
+}
+
+
+.react-datepicker__day--holidays:hover .overlay,
+.react-datepicker__month-text--holidays:hover .overlay,
+.react-datepicker__quarter-text--holidays:hover .overlay,
+.react-datepicker__year-text--holidays:hover .overlay {
+  visibility: visible;
+  opacity: 1;
+}
+
+.react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range,
+.react-datepicker__month-text--selected,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--selected,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__quarter-text--in-range,
+.react-datepicker__year-text--selected,
+.react-datepicker__year-text--in-selecting-range,
+.react-datepicker__year-text--in-range {
+  border-radius: 0.3rem;
+  background-color: $primary;
+  color: #fff;
+}
+
+.react-datepicker__day--selected:not([aria-disabled=true]):hover, .react-datepicker__day--in-selecting-range:not([aria-disabled=true]):hover, .react-datepicker__day--in-range:not([aria-disabled=true]):hover,
+.react-datepicker__month-text--selected:not([aria-disabled=true]):hover,
+.react-datepicker__month-text--in-selecting-range:not([aria-disabled=true]):hover,
+.react-datepicker__month-text--in-range:not([aria-disabled=true]):hover,
+.react-datepicker__quarter-text--selected:not([aria-disabled=true]):hover,
+.react-datepicker__quarter-text--in-selecting-range:not([aria-disabled=true]):hover,
+.react-datepicker__quarter-text--in-range:not([aria-disabled=true]):hover,
+.react-datepicker__year-text--selected:not([aria-disabled=true]):hover,
+.react-datepicker__year-text--in-selecting-range:not([aria-disabled=true]):hover,
+.react-datepicker__year-text--in-range:not([aria-disabled=true]):hover {
+  background-color: rgb(28.75, 93.2196969697, 143.75);
+}
+
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__month-text--keyboard-selected,
+.react-datepicker__quarter-text--keyboard-selected,
+.react-datepicker__year-text--keyboard-selected {
+  border-radius: 0.3rem;
+  background-color: rgb(186.25, 217.0833333333, 241.25);
+  color: rgb(0, 0, 0);
+}
+
+.react-datepicker__day--keyboard-selected:not([aria-disabled=true]):hover,
+.react-datepicker__month-text--keyboard-selected:not([aria-disabled=true]):hover,
+.react-datepicker__quarter-text--keyboard-selected:not([aria-disabled=true]):hover,
+.react-datepicker__year-text--keyboard-selected:not([aria-disabled=true]):hover {
+  background-color: rgb(28.75, 93.2196969697, 143.75);
+}
+
+.react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--in-range,
+.react-datepicker__year-text--in-range),
+.react-datepicker__month-text--in-selecting-range:not(.react-datepicker__day--in-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--in-range,
+.react-datepicker__year-text--in-range),
+.react-datepicker__quarter-text--in-selecting-range:not(.react-datepicker__day--in-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--in-range,
+.react-datepicker__year-text--in-range),
+.react-datepicker__year-text--in-selecting-range:not(.react-datepicker__day--in-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--in-range,
+.react-datepicker__year-text--in-range) {
+  background-color: rgba(33, 107, 165, 0.5);
+}
+
+.react-datepicker__month--selecting-range .react-datepicker__day--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range), .react-datepicker__year--selecting-range .react-datepicker__day--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__month--selecting-range .react-datepicker__month-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__year--selecting-range .react-datepicker__month-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__month--selecting-range .react-datepicker__quarter-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__year--selecting-range .react-datepicker__quarter-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__month--selecting-range .react-datepicker__year-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range),
+.react-datepicker__year--selecting-range .react-datepicker__year-text--in-range:not(.react-datepicker__day--in-selecting-range,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__year-text--in-selecting-range) {
+  background-color: var(--#{$prefix}light);
+  color: var(--#{$prefix}heading-color);
+}
+
+.react-datepicker__day--disabled,
+.react-datepicker__month-text--disabled,
+.react-datepicker__quarter-text--disabled,
+.react-datepicker__year-text--disabled {
+  color: #ccc;
+}
+
+.react-datepicker__day--disabled .overlay,
+.react-datepicker__month-text--disabled .overlay,
+.react-datepicker__quarter-text--disabled .overlay,
+.react-datepicker__year-text--disabled .overlay {
+  background-color: #333;
+  color: #fff;
+}
+
+.react-datepicker__year-read-view:hover .react-datepicker__year-read-view--down-arrow,
+.react-datepicker__year-read-view:hover .react-datepicker__month-read-view--down-arrow,
+.react-datepicker__month-read-view:hover .react-datepicker__year-read-view--down-arrow,
+.react-datepicker__month-read-view:hover .react-datepicker__month-read-view--down-arrow,
+.react-datepicker__month-year-read-view:hover .react-datepicker__year-read-view--down-arrow,
+.react-datepicker__month-year-read-view:hover .react-datepicker__month-read-view--down-arrow {
+  border-top-color: rgb(178.5, 178.5, 178.5);
+}
+
+.react-datepicker__year-dropdown,
+.react-datepicker__month-dropdown,
+.react-datepicker__month-year-dropdown {
+  background-color: var(--#{$prefix}light);
+  border: 1px solid var(--#{$prefix}border-color);
+}
+
+.react-datepicker__year-option:hover,
+.react-datepicker__month-option:hover,
+.react-datepicker__month-year-option:hover {
+  background-color: #ccc;
+}
+
+.react-datepicker__year-option:hover .react-datepicker__navigation--years-upcoming,
+.react-datepicker__month-option:hover .react-datepicker__navigation--years-upcoming,
+.react-datepicker__month-year-option:hover .react-datepicker__navigation--years-upcoming {
+  border-bottom-color: rgb(178.5, 178.5, 178.5);
+}
+
+.react-datepicker__year-option:hover .react-datepicker__navigation--years-previous,
+.react-datepicker__month-option:hover .react-datepicker__navigation--years-previous,
+.react-datepicker__month-year-option:hover .react-datepicker__navigation--years-previous {
+  border-top-color: rgb(178.5, 178.5, 178.5);
+}
+
+.react-datepicker__close-icon::after {
+  background-color: $primary;
+  color: #fff;
+}
+
+.react-datepicker__close-icon--disabled::after {
+  background-color: #ccc;
+}
+
+.react-datepicker__today-button {
+  background: var(--#{$prefix}light);
+  border-top: 1px solid var(--#{$prefix}border-color);
+}
+
+.react-datepicker__portal {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+
+
