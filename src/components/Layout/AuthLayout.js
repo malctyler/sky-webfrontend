@@ -1,19 +1,19 @@
 import React from 'react';
-import { Container, Row, Col, Card } from '@mui/material';
-import { useTheme } from '../../contexts/ThemeContext';
-import { AuthLayout as MintonAuthLayout } from '../../themes/minton/React.js/JS/src/components';
+import { Container, Box } from '@mui/material';
 
-function AuthLayout({ children }) {
-  const { isDarkMode } = useTheme();
-
-  return (
-    <MintonAuthLayout
-      helpText="Welcome to Sky Technical Services"
-      bottomLinks={null}
+const AuthLayout = ({ children }) => (
+  <Container component="main" maxWidth="xs">
+    <Box
+      sx={{
+        marginTop: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
     >
       {children}
-    </MintonAuthLayout>
-  );
-}
+    </Box>
+  </Container>
+);
 
 export default AuthLayout;

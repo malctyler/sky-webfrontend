@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar } from '@mui/material';
+import { Box, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Paper, Typography, CircularProgress } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import MuiAlert from '@mui/material/Alert';
 import './PlantCategories.css';
 import { baseUrl } from '../config';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 
 function PlantCategories() {
+  const { user } = useAuth(); // Get user from AuthContext, which includes the token
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,26 +21,38 @@ function PlantCategories() {
     message: '',
     severity: 'success'
   });
-  const { isDarkMode } = useTheme();
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${user?.token}`,
+  });
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/PlantCategories`);
+      const response = await fetch(`${baseUrl}/PlantCategories`, {
+        headers: getAuthHeaders(), // Add Authorization header
+      });
       if (!response.ok) {
-        throw new Error('Failed to fetch categories');
+        if (response.status === 401) throw new Error('Unauthorized: Please check login and permissions.');
+        throw new Error(`Failed to fetch categories (status: ${response.status})`);
       }
       const data = await response.json();
       setCategories(data);
-      setLoading(false);
+      setError(null); // Clear previous errors
     } catch (err) {
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.token) { // Only fetch if token is available
+      fetchCategories();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.token]); // Re-fetch if token changes (e.g., after login)
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -62,19 +75,22 @@ function PlantCategories() {
   };
 
   const handleCreateCategory = async () => {
+    if (!categoryDescription.trim()) {
+      showError('Category description cannot be empty.');
+      return;
+    }
     try {
       const response = await fetch(`${baseUrl}/PlantCategories`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(), // Add Authorization header
         body: JSON.stringify({
           categoryDescription: categoryDescription
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create category');
+        const errorData = await response.text();
+        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to create category');
       }
 
       const newCategory = await response.json();
@@ -88,12 +104,14 @@ function PlantCategories() {
   };
 
   const handleUpdateCategory = async () => {
+    if (!categoryDescription.trim()) {
+      showError('Category description cannot be empty.');
+      return;
+    }
     try {
       const response = await fetch(`${baseUrl}/PlantCategories/${editingCategory.categoryID}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(), // Add Authorization header
         body: JSON.stringify({
           ...editingCategory,
           categoryDescription
@@ -101,9 +119,10 @@ function PlantCategories() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update category');
+        const errorData = await response.text();
+        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to update category');
       }
-
+      // No content expected for PUT, so no need to await response.json() unless API returns updated obj
       setCategories(prev => prev.map(cat => 
         cat.categoryID === editingCategory.categoryID 
           ? { ...cat, categoryDescription: categoryDescription }
@@ -125,15 +144,18 @@ function PlantCategories() {
   };
 
   const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
     try {
       const response = await fetch(`${baseUrl}/PlantCategories/${categoryToDelete.categoryID}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(), // Add Authorization header
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete category');
+        const errorData = await response.text();
+        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to delete category');
       }
-
+      // No content expected for DELETE
       setCategories(prev => prev.filter(cat => cat.categoryID !== categoryToDelete.categoryID));
       showSuccess('Category deleted successfully');
       setDeleteDialogOpen(false);
@@ -157,52 +179,50 @@ function PlantCategories() {
 
   if (loading) {
     return (
-      <div className={`categories-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading categories...</p>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, height: 'calc(100vh - 128px)' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading categories...</Typography>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <div className={`categories-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="error-state">
-          <p>⚠️ {error}</p>
-          <Button variant="contained" onClick={fetchCategories}>Try Again</Button>
-        </div>
-      </div>
+      <Box sx={{ textAlign: 'center', p: 3 }}>
+        <Typography color="error" paragraph>⚠️ {error}</Typography>
+        <Button variant="contained" onClick={fetchCategories}>Try Again</Button>
+      </Box>
     );
   }
 
   return (
-    <div className={`categories-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="categories-header">
-        <h2>Plant Categories</h2>
-        <Button variant="contained" color="primary" onClick={openCreateDialog}>
-          Add Category
-        </Button>
-      </div>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" component="h2">Plant Categories</Typography>
+          <Button variant="contained" color="primary" onClick={openCreateDialog}>
+            Add Category
+          </Button>
+        </Box>
+      </Paper>
 
       <div className="categories-grid">
         {categories.map(category => (
-          <div key={category.categoryID} className="category-card">
-            <div className="category-actions">
-              <IconButton onClick={() => openEditDialog(category)} size="small">
+          <Paper key={category.categoryID} elevation={3} className="category-card" sx={{ p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Typography variant="h6" component="h3" sx={{ mb: 1, flexGrow: 1 }}>{category.categoryDescription}</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <IconButton onClick={() => openEditDialog(category)} size="small" aria-label="edit category">
                 <EditIcon />
               </IconButton>
-              <IconButton onClick={() => openDeleteDialog(category.categoryID)} size="small">
+              <IconButton onClick={() => openDeleteDialog(category.categoryID)} size="small" aria-label="delete category">
                 <DeleteIcon />
               </IconButton>
-            </div>
-            <h3>{category.categoryDescription}</h3>
-          </div>
+            </Box>
+          </Paper>
         ))}
       </div>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
           {editingCategory ? 'Edit Category' : 'New Category'}
         </DialogTitle>
@@ -272,7 +292,7 @@ function PlantCategories() {
           {snackbar.message}
         </MuiAlert>
       </Snackbar>
-    </div>
+    </Box>
   );
 }
 

@@ -259,16 +259,14 @@ function CustomerSummary() {
         ...newPlantHolding,
         custID: parseInt(custId),
         plantNameID: parseInt(newPlantHolding.plantNameID),
-        statusID: parseInt(newPlantHolding.statusID),
-        inspectionFee: newPlantHolding.inspectionFee ? parseFloat(newPlantHolding.inspectionFee) : null
+        statusID: parseInt(newPlantHolding.statusID)
       });
       const createdHolding = response.data;
       setPlantHoldings(prev => [...prev, createdHolding]);
       setPlantHoldingDialogOpen(false);
       resetPlantHoldingForm();
-      showSuccess('Plant holding created successfully');
     } catch (err) {
-      showError(err.message);
+      setError(err.message);
     }
   };
 
@@ -279,8 +277,7 @@ function CustomerSummary() {
         holdingID: editingPlantHolding.holdingID,
         custID: parseInt(custId),
         plantNameID: parseInt(newPlantHolding.plantNameID),
-        statusID: parseInt(newPlantHolding.statusID),
-        inspectionFee: newPlantHolding.inspectionFee ? parseFloat(newPlantHolding.inspectionFee) : null
+        statusID: parseInt(newPlantHolding.statusID)
       });
       const updatedHolding = response.data;
       setPlantHoldings(prev => prev.map(holding => 
@@ -290,9 +287,8 @@ function CustomerSummary() {
       ));
       setPlantHoldingDialogOpen(false);
       resetPlantHoldingForm();
-      showSuccess('Plant holding updated successfully');
     } catch (err) {
-      showError(err.message);
+      setError(err.message);
     }
   };
 
@@ -337,9 +333,7 @@ function CustomerSummary() {
       plantNameID: holding.plantNameID?.toString() || '',
       serialNumber: holding.serialNumber || '',
       statusID: holding.statusID?.toString() || '',
-      swl: holding.swl || '',
-      inspectionFrequency: holding.inspectionFrequency || '6 Months',
-      inspectionFee: holding.inspectionFee?.toString() || ''
+      swl: holding.swl || ''
     });
     setPlantHoldingDialogOpen(true);
   };
@@ -350,9 +344,7 @@ function CustomerSummary() {
       plantNameID: '',
       serialNumber: '',
       statusID: '',
-      swl: '',
-      inspectionFrequency: '6 Months',
-      inspectionFee: ''
+      swl: ''
     });
   };
 
@@ -481,8 +473,6 @@ function CustomerSummary() {
                     <TableCell>Serial Number</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>SWL</TableCell>
-                    <TableCell>Inspection Frequency</TableCell>
-                    <TableCell>Inspection Fee</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -494,8 +484,6 @@ function CustomerSummary() {
                         <TableCell>{holding.serialNumber}</TableCell>
                         <TableCell>{holding.statusDescription || 'N/A'}</TableCell>
                         <TableCell>{holding.swl}</TableCell>
-                        <TableCell>{holding.inspectionFrequency || '6 Months'}</TableCell>
-                        <TableCell>£{holding.inspectionFee || '0.00'}</TableCell>
                         <TableCell align="right">
                           <IconButton size="small" onClick={() => toggleHoldingExpand(holding.holdingID)}>
                             {expandedHolding === holding.holdingID ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -509,7 +497,7 @@ function CustomerSummary() {
                         </TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={7} style={{ paddingBottom: 0, paddingTop: 0 }}>
+                        <TableCell colSpan={5} style={{ paddingBottom: 0, paddingTop: 0 }}>
                           <Collapse in={expandedHolding === holding.holdingID} timeout="auto" unmountOnExit>
                             <div className="p-4 w-full">
                               <InspectionList holdingId={holding.holdingID} />
@@ -713,27 +701,6 @@ function CustomerSummary() {
               onChange={handlePlantHoldingChange}
               fullWidth
               margin="normal"
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Inspection Frequency</InputLabel>
-              <Select
-                name="inspectionFrequency"
-                value={newPlantHolding.inspectionFrequency}
-                onChange={handlePlantHoldingChange}
-              >
-                <MenuItem value="6 Months">6 Months</MenuItem>
-                <MenuItem value="12 Months">12 Months</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Inspection Fee"
-              name="inspectionFee"
-              value={newPlantHolding.inspectionFee}
-              onChange={handlePlantHoldingChange}
-              fullWidth
-              margin="normal"
-              type="number"
-              inputProps={{ step: "0.01" }}
             />
           </div>
         </DialogContent>
