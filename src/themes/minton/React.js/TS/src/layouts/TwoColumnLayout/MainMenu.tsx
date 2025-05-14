@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from "react";
 import {Collapse} from "react-bootstrap";
 import { Link } from "react-router-dom";
@@ -11,6 +10,7 @@ import {MenuItemTypes} from "@/constants/menu";
 import {UserBox} from "../LeftSidebar";
 import SimpleBar from "simplebar-react";
 import {useLayoutContext} from "@/context/useLayoutContext";
+import { useAuthContext } from "@/context/useAuthContext";
 
 interface SubMenus {
     item: MenuItemTypes;
@@ -155,18 +155,24 @@ const MainMenu = ({
                       activeMenuItems,
                   }: MainMenuProps) => {
 
-    const {showUserInfo} = useLayoutContext()
+    const { showUserInfo } = useLayoutContext();
+    const { user } = useAuthContext(); // Access user roles
 
     return (
         <>
             {activeMenuItems && (
                 <div className="sidebar-main-menu">
                     <div id="two-col-menu" className="h-100">
-                        <SimpleBar style={{maxHeight: "100%"}} scrollbarMaxSize={320}>
+                        <SimpleBar style={{ maxHeight: "100%" }} scrollbarMaxSize={320}>
 
-                            {showUserInfo && <UserBox/>}
+                            {showUserInfo && <UserBox />}
 
                             {(menuItems || []).map((menuItem, key) => {
+                                // Conditionally render "Customers" menu item
+                                if (menuItem.label === "Customers" && !user?.roles?.includes("Staff") && !user?.roles?.includes("Admin")) {
+                                    return null;
+                                }
+
                                 const activeParent = activeMenuItems && activeMenuItems.length && activeMenuItems[activeMenuItems.length - 1] === menuItem["key"];
                                 return (
                                     <div

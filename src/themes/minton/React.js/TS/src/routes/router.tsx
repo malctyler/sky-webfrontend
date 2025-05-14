@@ -5,7 +5,7 @@ import DefaultLayout from "@/layouts/Default"
 import { useAuthContext } from "@/context/useAuthContext"
 
 const AppRouter = (props: RouteProps) => {
-    const { isAuthenticated } = useAuthContext()
+    const { isAuthenticated, user } = useAuthContext()
     return (
         <Routes>
         {(authRoutes || []).map((route, idx) => (
@@ -18,7 +18,11 @@ const AppRouter = (props: RouteProps) => {
             path={route.path}
             element={
               isAuthenticated ? (
-                <MainLayout {...props}>{route.element}</MainLayout>
+                route.path === "/customers" && (!user?.roles?.includes("Staff") && !user?.roles?.includes("Admin")) ? (
+                  <Navigate to="/unauthorized" />
+                ) : (
+                  <MainLayout {...props}>{route.element}</MainLayout>
+                )
               ) : (
                 <Navigate
                   to={{
