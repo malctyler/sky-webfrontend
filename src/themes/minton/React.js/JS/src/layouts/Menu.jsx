@@ -8,6 +8,8 @@ import { findAllParent, findMenuItem, getMenuItemFromURL } from '@/helpers/menu'
 // constants
 
 import { Link, useLocation } from "react-router-dom";
+import { useAuthContext } from '@/context/useAuthContext';
+
 const MenuItemWithChildren = ({
   item,
   linkClassName,
@@ -91,6 +93,28 @@ const AppMenu = ({
     pathname
   } = useLocation();
   const menuRef = useRef(null);
+  const { user } = useAuthContext();
+  const isStaff = user?.roles?.includes('Staff') || user?.roles?.includes('Admin');
+  const isCustomer = user?.isCustomer;
+
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.staffOnly && !isStaff) return false;
+    if (item.customerOnly && !isCustomer) return false;
+    
+    // For items with children, filter the children as well
+    if (item.children) {
+        item.children = item.children.filter(child => {
+            if (child.staffOnly && !isStaff) return false;
+            if (child.customerOnly && !isCustomer) return false;
+            return true;
+        });
+        // Only include the parent if it has visible children
+        if (item.children.length === 0) return false;
+    }
+    
+    return true;
+  });
 
   /*
    * toggle the menus
@@ -151,7 +175,7 @@ const AppMenu = ({
     activeMenu();
   }, [activeMenu]);
   return <ul className="side-menu" ref={menuRef} id="side-menu">
-      {(menuItems || []).map((item, idx) => {
+      {(filteredMenuItems || []).map((item, idx) => {
       return <React.Fragment key={idx}>
             {item.isTitle ? <li className={classNames("menu-title", {
           "mt-2": idx !== 0
