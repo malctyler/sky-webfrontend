@@ -169,7 +169,7 @@ const MainMenu = ({
 
                             {(menuItems || []).map((menuItem, key) => {
                                 // Conditionally render "Customers" menu item
-                                if (menuItem.label === "Customers" && !user?.roles?.includes("Staff") && !user?.roles?.includes("Admin")) {
+                                if (menuItem.label === "Customers" && user?.role !== "Staff" && user?.role !== "Admin") {
                                     return null;
                                 }
 
