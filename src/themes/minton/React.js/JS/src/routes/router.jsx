@@ -18,11 +18,15 @@ const AppRouter = props => {
       ))}
 
       {(appRoutes || []).map((route, idx) => {
-        // Check if this is a customer route
-        const isCustomerRoute = route.path.startsWith('/customers');
-        // Block customers from accessing customer list, but allow them to access their own customer page
-        const isCustomerAccessDenied = user?.isCustomer && isCustomerRoute && 
-          (route.path === '/customers' || (route.path.startsWith('/customers/') && !route.path.includes(user.customerId?.toString())));
+        // Check various access conditions
+        const isCustomerRoute = route.customerOnly;
+        const isStaffRoute = route.staffOnly;
+        const isStaff = user?.roles?.includes('Staff') || user?.roles?.includes('Admin');
+        
+        // Determine if access should be denied
+        const accessDenied = (isCustomerRoute && !user?.isCustomer) || 
+                           (isStaffRoute && !isStaff) ||
+                           (!isCustomerRoute && !isStaffRoute && user?.isCustomer);
 
         return (
           <Route
@@ -30,8 +34,8 @@ const AppRouter = props => {
             path={route.path}
             element={
               isAuthenticated ? (
-                isCustomerAccessDenied ? (
-                  <Navigate to="/" replace />
+                accessDenied ? (
+                  <Navigate to={user?.isCustomer ? "/" : "/dashboard"} replace />
                 ) : (
                   <MainLayout {...props}>{route.element}</MainLayout>
                 )

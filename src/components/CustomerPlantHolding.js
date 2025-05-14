@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { baseUrl } from '../config';
+import { Button, Card, CardContent, Typography, Grid, Box } from '@mui/material';
 import './ManagePlant.css';
 
 function CustomerPlantHolding() {
@@ -10,7 +11,6 @@ function CustomerPlantHolding() {
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     if (user && user.isCustomer) {
@@ -22,7 +22,6 @@ function CustomerPlantHolding() {
       }
       fetchHoldings(customerId);
     }
-    // eslint-disable-next-line
   }, [user]);
 
   const fetchHoldings = async (customerId) => {
@@ -30,9 +29,14 @@ function CustomerPlantHolding() {
     setError(null);
     try {
       const response = await fetch(`${baseUrl}/PlantHolding/customer/${customerId}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { 
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
       if (!response.ok) throw new Error('Failed to fetch plant holdings');
+      
       const data = await response.json();
       setHoldings(data);
     } catch (err) {
@@ -42,93 +46,67 @@ function CustomerPlantHolding() {
     }
   };
 
-  const toggleExpand = (id) => {
-    setExpanded(expanded === id ? null : id);
-  };
-
-  return (
-    <div className={`plants-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <h2>My Plant Holdings</h2>
-      {loading && (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading plant holdings...</p>
-        </div>
-      )}
-      {error && (
-        <div className="error-state">
-          <p>⚠️ {error}</p>
-          <button onClick={() => fetchHoldings(user.customerId || user.customerID)}>Try Again</button>
-        </div>
-      )}
-      {!loading && !error && holdings.length === 0 && (
-        <p>No plant holdings found.</p>
-      )}
-      <div className="plants-grid">
-        {holdings.map(holding => (
-          <div key={holding.holdingID} className="plant-card">
-            <h3>{holding.plantDescription}</h3>
-            <p><strong>Serial Number:</strong> {holding.serialNumber}</p>
-            <p><strong>Status:</strong> {holding.statusDescription}</p>
-            <p><strong>SWL:</strong> {holding.swl}</p>
-            <button onClick={() => toggleExpand(holding.holdingID)} style={{marginTop:8}}>
-              {expanded === holding.holdingID ? 'Hide Inspections' : 'Show Inspections'}
-            </button>
-            {expanded === holding.holdingID && <ReadOnlyInspectionList holdingId={holding.holdingID} />}
-          </div>
-        ))}
-      </div>
-    </div>
+  if (loading) return (
+    <Box sx={{ padding: 3, textAlign: 'center' }}>
+      <Typography>Loading your plant holdings...</Typography>
+    </Box>
   );
-}
 
-function ReadOnlyInspectionList({ holdingId }) {
-  const { user } = useAuth();
-  const [inspections, setInspections] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchInspections();
-    // eslint-disable-next-line
-  }, [holdingId]);
-
-  const fetchInspections = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${baseUrl}/inspection/plantholding/${holdingId}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      if (!response.ok) throw new Error('Failed to fetch inspections');
-      const data = await response.json();
-      setInspections(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) return <div className="loading-state"><div className="spinner"></div><p>Loading inspections...</p></div>;
-  if (error) return <div className="error-state"><p>⚠️ {error}</p><button onClick={fetchInspections}>Try Again</button></div>;
-  if (inspections.length === 0) return <p>No inspections found for this holding.</p>;
+  if (error) return (
+    <Box sx={{ padding: 3, textAlign: 'center' }}>
+      <Typography color="error">Error: {error}</Typography>
+      <Button 
+        variant="contained" 
+        onClick={() => fetchHoldings(user.customerId || user.customerID)}
+        sx={{ mt: 2 }}
+      >
+        Try Again
+      </Button>
+    </Box>
+  );
 
   return (
-    <div style={{marginTop:16}}>
-      <h4>Inspections</h4>
-      <ul>
-        {inspections.map(insp => (
-          <li key={insp.uniqueRef} style={{marginBottom:8}}>
-            <strong>Date:</strong> {insp.inspectionDate ? new Date(insp.inspectionDate).toLocaleDateString() : 'N/A'}<br/>
-            <strong>Location:</strong> {insp.location}<br/>
-            <strong>Safe Working:</strong> {insp.safeWorking}<br/>
-            <strong>Defects:</strong> {insp.defects || 'None'}
-            {/* Add more fields as needed, but no edit/delete */}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Welcome, {user.email}
+      </Typography>
+      
+      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+        Your Plant Holdings
+      </Typography>
+      
+      {holdings.length === 0 ? (
+        <Typography>You currently have no plant holdings.</Typography>
+      ) : (
+        <Grid container spacing={3}>
+          {holdings.map((holding) => (
+            <Grid item xs={12} md={6} lg={4} key={holding.holdingID}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    {holding.plantDescription || 'Unnamed Plant'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Serial Number: {holding.serialNumber || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Status: {holding.statusDescription || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    SWL: {holding.swl || 'N/A'}
+                  </Typography>
+                  {holding.inspectionFrequency && (
+                    <Typography variant="body2" color="textSecondary">
+                      Inspection Frequency: {holding.inspectionFrequency}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
   );
 }
 
