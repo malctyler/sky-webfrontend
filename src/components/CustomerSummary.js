@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { baseUrl } from '../config';
 import {
   Button,
@@ -42,6 +43,7 @@ function CustomerSummary() {
   const { custId } = useParams();
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  const { user, hasRole } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [customer, setCustomer] = useState(null);
   const [notes, setNotes] = useState([]);
@@ -124,10 +126,16 @@ function CustomerSummary() {
   }, []);
 
   useEffect(() => {
+    // Restrict access if user is customer and not viewing their own data
+    if (user?.isCustomer && user?.customerId !== parseInt(custId)) {
+      navigate('/');
+      return;
+    }
+    
     fetchCustomerAndNotes();
     fetchPlantHoldings();
     fetchPlantAndStatusOptions();
-  }, [fetchCustomerAndNotes, fetchPlantHoldings, fetchPlantAndStatusOptions]);
+  }, [fetchCustomerAndNotes, fetchPlantHoldings, fetchPlantAndStatusOptions, user, custId, navigate]);
 
   const handleBack = () => {
     navigate('/customers');

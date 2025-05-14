@@ -641,6 +641,14 @@ const MENU_ITEMS = [{
     url: "/",
     parentKey: "menu-levels"
   }]
+}, {
+  key: "apps-customers",
+  label: "Customers",
+  isTitle: false,
+  icon: "ri-user-line",
+  url: "/customers",
+  staffOnly: true,
+  parentKey: "apps"
 }];
 const HORIZONTAL_MENU_ITEMS = [{
   key: "dashboards",

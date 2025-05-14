@@ -9,6 +9,8 @@ import classNames from "classnames";
 import { UserBox } from "../LeftSidebar";
 import SimpleBar from "simplebar-react";
 import { useLayoutContext } from "@/context/useLayoutContext";
+import { useAuthContext } from "@/context/useAuthContext";
+
 const MenuItemWithChildren = ({
   item,
   linkClassName,
@@ -89,6 +91,9 @@ const MainMenu = ({
   const {
     showUserInfo
   } = useLayoutContext();
+  const { user } = useAuthContext();
+  const isStaff = user?.roles?.includes('Staff') || user?.roles?.includes('Admin');
+
   return <>
             {activeMenuItems && <div className="sidebar-main-menu">
                     <div id="two-col-menu" className="h-100">
@@ -98,7 +103,12 @@ const MainMenu = ({
 
                             {showUserInfo && <UserBox />}
 
-                            {(menuItems || []).map((menuItem, key) => {
+                            {menuItems.map((menuItem, key) => {
+            // Skip staff-only items for non-staff users
+            if (menuItem.staffOnly && !isStaff) {
+              return null;
+            }
+
             const activeParent = activeMenuItems && activeMenuItems.length && activeMenuItems[activeMenuItems.length - 1] === menuItem["key"];
             return <div key={key} className={classNames("twocolumn-menu-item", {
               "d-block": activeParent
@@ -107,6 +117,11 @@ const MainMenu = ({
                                             {menuItem.isTitle && <h5 className="menu-title">{menuItem.label}</h5>}
                                             <ul className="nav flex-column">
                                                 {(menuItem.children || []).map((item, idx) => {
+                    // Skip child items that shouldn't be visible
+                    if (!isItemVisible(item)) {
+                      return null;
+                    }
+
                     return <React.Fragment key={idx}>
                                                             {item.children ? <MenuItemWithChildren item={item} toggleMenu={toggleMenu} subMenuClassNames="nav-second-level" activeMenuItems={activeMenuItems} linkClassName="side-nav-link" /> : <MenuItem item={item} linkClassName="side-nav-link" className={activeMenuItems.includes(item.key) ? "menuitem-active" : ""} />}
                                                         </React.Fragment>;
