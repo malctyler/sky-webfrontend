@@ -36,6 +36,40 @@ import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 const openedDrawerWidth = 240;
 const closedDrawerWidth = 60; // Adjusted for icon-only view
 
+const getMenuItems = (user) => {
+  // Base menu items that all users can see
+  const baseItems = [
+  
+  ];
+
+  // Add customer-specific items
+  if (user?.isCustomer) {
+    baseItems.push(
+      { text: 'My Plant Holdings', icon: <CategoryIcon />, path: '/plant-holding' }
+    );
+    return baseItems;
+  }
+
+  // Add staff/admin items
+  if (user?.roles?.includes('Staff') || user?.roles?.includes('Admin')) {
+    baseItems.push(
+      { text: 'Weather', icon: <CloudIcon />, path: '/weather' },
+      { text: 'Home', icon: <HomeIcon />, path: '/' },
+      { text: 'Customers', icon: <PeopleIcon />, path: '/customers' }
+    );
+  }
+
+  // Add admin-only items
+  if (user?.roles?.includes('Admin')) {
+    baseItems.push(
+      { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories' },
+      { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' }
+    );
+  }
+
+  return baseItems;
+};
+
 const MainLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -70,12 +104,8 @@ const MainLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const menuItems = [
-    { text: 'Home', icon: <HomeIcon />, path: '/' },
-    { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
-    { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories', adminOnly: true },
-    { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management', adminOnly: true }, // Added User Management
-  ];
+  // Get menu items based on user role
+  const menuItems = getMenuItems(user);
 
   const drawerContent = (
     <div>
@@ -91,32 +121,46 @@ const MainLayout = ({ children }) => {
       </Toolbar>
       <List sx={{ pt: 0 }}> {/* Remove default top padding from List */}
         {menuItems.map((item) => (
-          (!item.adminOnly || (user?.roles && user.roles.includes('Admin'))) && (
-            <ListItem
-              button
-              key={item.text}
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) {
-                  setMobileOpen(false); // Close mobile drawer on item click
+          <ListItem
+            button
+            key={item.text}
+            onClick={() => {
+              navigate(item.path);
+              if (isMobile) {
+                setMobileOpen(false); // Close mobile drawer on item click
+              }
+            }}
+            selected={window.location.pathname === item.path}
+            sx={{ 
+              pl: isMobile || isDrawerOpen ? 2.5 : (closedDrawerWidth - muiTheme.spacing(7)) / 2 + 1, // Center icon when closed
+              pr: isMobile || isDrawerOpen ? 2.5 : 0,
+              justifyContent: isMobile || isDrawerOpen ? 'initial' : 'center',
+              mb: 1, // Add some margin between items
+              '&.Mui-selected': {
+                backgroundColor: `rgba(${muiTheme.palette.primary.main}, 0.08)`,
+                '&:hover': {
+                  backgroundColor: `rgba(${muiTheme.palette.primary.main}, 0.12)`
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  backgroundColor: muiTheme.palette.primary.main
                 }
-              }}
-              sx={{ 
-                pl: isMobile || isDrawerOpen ? 2.5 : (closedDrawerWidth - muiTheme.spacing(7)) / 2 + 1, // Center icon when closed
-                pr: isMobile || isDrawerOpen ? 2.5 : 0,
-                justifyContent: isMobile || isDrawerOpen ? 'initial' : 'center',
-                mb: 1, // Add some margin between items
-              }}
-            >
-              <ListItemIcon sx={{ 
-                minWidth: 0, 
-                mr: isMobile || isDrawerOpen ? 3 : 'auto', 
-                justifyContent: 'center',
-                color: muiTheme.palette.text.secondary, // Use theme color for icons
-              }}>{item.icon}</ListItemIcon>
-              {(isMobile || isDrawerOpen) && <ListItemText primary={item.text} sx={{ color: muiTheme.palette.text.primary }} />}
-            </ListItem>
-          )
+              }
+            }}
+          >
+            <ListItemIcon sx={{ 
+              minWidth: 0, 
+              mr: isMobile || isDrawerOpen ? 3 : 'auto', 
+              justifyContent: 'center',
+              color: window.location.pathname === item.path ? muiTheme.palette.primary.main : muiTheme.palette.text.secondary
+            }}>{item.icon}</ListItemIcon>
+            {(isMobile || isDrawerOpen) && <ListItemText primary={item.text} sx={{ color: window.location.pathname === item.path ? muiTheme.palette.primary.main : muiTheme.palette.text.primary }} />}
+          </ListItem>
         ))}
       </List>
     </div>
@@ -155,9 +199,11 @@ const MainLayout = ({ children }) => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton color="inherit" onClick={() => navigate('/weather')}>
-              <CloudIcon />
-            </IconButton>
+            {(user?.roles?.includes('Staff') || user?.roles?.includes('Admin')) && (
+              <IconButton color="inherit" onClick={() => navigate('/weather')}>
+                <CloudIcon />
+              </IconButton>
+            )}
             <IconButton color="inherit" onClick={toggleTheme}>
               {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>

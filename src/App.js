@@ -214,21 +214,44 @@ function LocalForecast() {
   );
 }
 
-// Update the ProtectedRoute component
-const ProtectedRoute = ({ children, requireAdmin }) => {
+const ProtectedRoute = ({ children, requireAdmin, requireStaffOrAdmin }) => {
   const { user, loading } = useAuth();
+  const currentPath = window.location.pathname;
   
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: 'var(--background-default)'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
   }
   
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  // Check if admin role is required and user doesn't have it
-  if (requireAdmin && !user.roles.includes('Admin')) {
-    return <Navigate to="/" />;
+  // If the user is a customer, only allow access to specific routes
+  if (user.isCustomer) {
+    const allowedCustomerPaths = ['/plant-holding', '/weather'];
+    if (!allowedCustomerPaths.includes(currentPath)) {
+      return <Navigate to="/plant-holding" replace state={{ from: currentPath }} />;
+    }
+  }
+
+  // Check if admin role is required
+  if (requireAdmin && !user.roles?.includes('Admin')) {
+    return <Navigate to={user.isCustomer ? '/plant-holding' : '/'} replace state={{ from: currentPath }} />;
+  }
+
+  // Check if staff/admin role is required
+  if (requireStaffOrAdmin && !(user.roles?.includes('Staff') || user.roles?.includes('Admin'))) {
+    return <Navigate to={user.isCustomer ? '/plant-holding' : '/'} replace state={{ from: currentPath }} />;
   }
   
   return children;
@@ -243,38 +266,24 @@ function App() {
           <Routes>
             <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
             <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/weather" element={<Weather />} />
-                    <Route path="/customers" element={<AllCustomers />} />
-                    <Route path="/customers/:custId" element={<CustomerSummary />} />
-                    <Route path="/customers/:custId/notes" element={<CustomerNotes />} />
-                    <Route path="/plant-holding" element={<CustomerPlantHolding />} />
-                    {/* Admin Routes */}
-                    <Route path="/plant-categories" element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <PlantCategories />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/manage-plant" element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <ManagePlant />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/user-management" element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <UserManagement />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/certificate/:id" element={<CertificatePage />} />
-                    {/* Add other routes that should use MainLayout here */}
-                  </Routes>
-                </MainLayout>
-              </ProtectedRoute>
-            } />
+            
+            {/* Protected routes */}
+            <Route path="/" element={<ProtectedRoute><MainLayout><Home /></MainLayout></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute><MainLayout><Home /></MainLayout></ProtectedRoute>} />
+            <Route path="/weather" element={<ProtectedRoute><MainLayout><Weather /></MainLayout></ProtectedRoute>} />
+            <Route path="/plant-holding" element={<ProtectedRoute><MainLayout><CustomerPlantHolding /></MainLayout></ProtectedRoute>} />
+            
+            {/* Admin/Staff Only Routes */}
+            <Route path="/customers" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><AllCustomers /></MainLayout></ProtectedRoute>} />
+            <Route path="/customers/:custId" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><CustomerSummary /></MainLayout></ProtectedRoute>} />
+            <Route path="/customers/:custId/notes" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><CustomerNotes /></MainLayout></ProtectedRoute>} />
+            <Route path="/plant-categories" element={<ProtectedRoute requireAdmin={true}><MainLayout><PlantCategories /></MainLayout></ProtectedRoute>} />
+            <Route path="/manage-plant" element={<ProtectedRoute requireAdmin={true}><MainLayout><ManagePlant /></MainLayout></ProtectedRoute>} />
+            <Route path="/user-management" element={<ProtectedRoute requireAdmin={true}><MainLayout><UserManagement /></MainLayout></ProtectedRoute>} />
+            <Route path="/certificate/:id" element={<CertificatePage />} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

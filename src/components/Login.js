@@ -18,17 +18,26 @@ const Login = () => {
         setLoading(true);
         try {
             // Try logging in
-            await login(email, password);
-            navigate('/');
+            const userData = await login(email, password);
+            // Navigate based on user type after successful login
+            if (userData.isCustomer) {
+                navigate('/plant-holding');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             // If the error is about unconfirmed email, try refreshing the confirmation status
             if (err?.response?.data?.message?.includes('confirm your email')) {
                 try {
                     const confirmed = await refreshEmailConfirmation();
                     if (confirmed) {
-                        // If email is now confirmed, try logging in again
-                        await login(email, password);
-                        navigate('/');
+                        // If email is now confirmed, try logging in again with same user type check
+                        const userData = await login(email, password);
+                        if (userData.isCustomer) {
+                            navigate('/plant-holding');
+                        } else {
+                            navigate('/');
+                        }
                         return;
                     }
                 } catch (refreshError) {

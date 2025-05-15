@@ -18,7 +18,7 @@ const AppRouter = (props: RouteProps) => {
             path={route.path}
             element={
               isAuthenticated ? (
-                route.path === "/customers" && (user?.role !== "Staff" && user?.role !== "Admin") ? (
+                route.path === "/customers" && (!user?.roles?.includes("Staff") && !user?.roles?.includes("Admin")) ? (
                   <Navigate to="/unauthorized" />
                 ) : (
                   <MainLayout {...props}>{route.element}</MainLayout>
