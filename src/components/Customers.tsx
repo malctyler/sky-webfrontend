@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { httpClient } from '../services/httpClient';
 
-export const Customers = () => {
+export const Customers: React.FC = () => {
   const [customers, setCustomers] = useState([]);
   const [error, setError] = useState('');
 
@@ -29,3 +29,5 @@ export const Customers = () => {
     </div>
   );
 };
+
+export default Customers;

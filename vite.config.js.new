@@ -1,16 +1,11 @@
+// filepath: d:\workingrepos\TheTylers2\sky-webfrontend\vite.config.js
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import reactSwc from '@vitejs/plugin-react-swc'
 
 export default defineConfig({
   plugins: [
-    react({
-      // Include JSX in JS files
-      include: /\.(js|jsx|ts|tsx)$/,
-      babel: {
-        plugins: [
-          // Add any babel plugins here
-        ],
-      }
+    reactSwc({
+      tsDecorators: true,
     })
   ],
   server: {
@@ -23,9 +18,6 @@ export default defineConfig({
       }
     }
   },
-  resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx']
-  },
   build: {
     outDir: 'build', // Match Azure Static Web Apps expected directory
     chunkSizeWarningLimit: 2200, // Increase chunk size warning limit
@@ -36,10 +28,29 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          mui: ['@mui/material', '@mui/icons-material']
+          mui: ['@mui/material', '@mui/icons-material'],
+          pdf: ['@react-pdf/renderer', 'pdf-lib']
         }
       }
     }
+  },
+  esbuild: {
+    // Loosen type checking for the build
+    tsconfigRaw: {
+      compilerOptions: {
+        strict: false,
+        noImplicitAny: false,
+        noUnusedLocals: false,
+        noUnusedParameters: false,
+        skipLibCheck: true,
+        isolatedModules: false
+      }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -48,7 +59,11 @@ export default defineConfig({
         '.jsx': 'jsx',
         '.ts': 'tsx',
         '.tsx': 'tsx',
-      }
-    }
+      },
+      include: /src\/.*\.(jsx?|tsx?)$/,
+    },
+  },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx']
   }
 })

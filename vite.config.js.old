@@ -1,0 +1,64 @@
+import { defineConfig } from 'vite'
+import reactSwc from '@vitejs/plugin-react-swc'
+
+export default defineConfig({
+  plugins: [
+    reactSwc({
+      tsDecorators: true,
+    })
+  ],  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+      },
+    },
+  },
+  esbuild: {
+    // Loosen type checking for the build
+    tsconfigRaw: {
+      compilerOptions: {
+        strict: false,
+        noImplicitAny: false,
+        noUnusedLocals: false,
+        noUnusedParameters: false,
+        skipLibCheck: true,
+        isolatedModules: false
+      }
+    }
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net',
+        changeOrigin: true,
+        secure: true
+      }
+    }
+  },
+  build: {
+    outDir: 'build', // Match Azure Static Web Apps expected directory
+    chunkSizeWarningLimit: 2200, // Increase chunk size warning limit
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/icons-material'],
+          pdf: ['@react-pdf/renderer', 'pdf-lib']
+        }
+      }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+      include: /src\/.*\.jsx?$/,
+    },
+  },
+})

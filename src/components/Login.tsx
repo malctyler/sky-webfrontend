@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE_URL } from '../services/api';
 
-export const Login = () => {
+const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [error, setError] = useState('');
@@ -38,5 +38,30 @@ export const Login = () => {
     }
   };
 
-  // ...rest of component JSX...
+  return (
+    <div className="login-container">
+      <form onSubmit={handleSubmit}>
+        {error && <div className="error-message">{error}</div>}
+        <div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+          />
+        </div>
+        <div>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+          />
+        </div>
+        <button type="submit">Log In</button>
+      </form>
+    </div>
+  );
 };
+
+export default Login;

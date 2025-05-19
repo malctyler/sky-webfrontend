@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { IconButton } from '@mui/material';
+import { IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import './AllCustomers.css';
-import { baseUrl } from '../config';
 import apiClient from '../services/apiClient';
+import './AllCustomers.css';
 
 function AllCustomers() {
   const { isDarkMode } = useTheme();
@@ -70,26 +64,33 @@ function AllCustomers() {
   }, [searchTerm, customers]);
 
   const fetchCustomersAndNotes = async () => {
-    try {
+    try {      
       const [customersResponse, notesResponse] = await Promise.all([
         apiClient.get('/Customers'),
         apiClient.get('/Notes')
       ]);
-
+      
       const customersData = customersResponse.data;
       const notesData = notesResponse.data;
-
-      // Create a map of customer IDs to their note counts
-      const notesMap = notesData.reduce((acc, note) => {
-        acc[note.custID] = (acc[note.custID] || 0) + 1;
-        return acc;
-      }, {});
+      
+      // Use a plain JavaScript object to store the counts
+      const notesMap = {};
+      
+      // Count notes by customer ID
+      if (Array.isArray(notesData)) {
+        notesData.forEach(note => {
+          if (note && typeof note === 'object' && 'custID' in note) {
+            const custID = note.custID;
+            notesMap[custID] = (notesMap[custID] || 0) + 1;
+          }
+        });
+      }
 
       setCustomers(customersData);
       setCustomerNotes(notesMap);
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };
@@ -132,7 +133,7 @@ function AllCustomers() {
       resetForm();
       showSuccess('Customer created successfully');
     } catch (err) {
-      showError(err.message);
+      showError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -141,13 +142,17 @@ function AllCustomers() {
   };
 
   const openDeleteDialog = (custId, e) => {
-    e.stopPropagation(); // Prevent customer card click
+    e.stopPropagation();
     const customer = customers.find(c => c.custID === custId);
-    setCustomerToDelete(customer);
-    setDeleteDialogOpen(true);
+    if (customer) {
+      setCustomerToDelete(customer);
+      setDeleteDialogOpen(true);
+    }
   };
 
   const handleDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+
     try {
       await apiClient.delete(`/Customers/${customerToDelete.custID}`);
       setCustomers(prev => prev.filter(c => c.custID !== customerToDelete.custID));
@@ -155,7 +160,7 @@ function AllCustomers() {
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
     } catch (err) {
-      showError(err.message);
+      showError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -339,6 +344,7 @@ function AllCustomers() {
       ) : (
         <p className="no-results">No customers found matching your search.</p>
       )}
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -389,9 +395,10 @@ function AllCustomers() {
             Delete Customer
           </Button>
         </DialogActions>
-      </Dialog>
-    </div>
+      </Dialog>    </div>
   );
 }
 
+// Make sure to export as both default and named export
+export { AllCustomers };
 export default AllCustomers;
