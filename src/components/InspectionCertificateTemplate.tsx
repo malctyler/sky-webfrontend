@@ -2,6 +2,7 @@ import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, Image, pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { baseUrl } from '../config';
+import { InspectionCertificate } from '../types/inspectionTypes';
 
 Font.register({
     family: 'Helvetica',
@@ -14,7 +15,8 @@ Font.register({
     ]
 });
 
-const styles = StyleSheet.create({    page: {
+const styles = StyleSheet.create({
+    page: {
         padding: 30,
         fontFamily: 'Helvetica',
         fontSize: 9
@@ -113,32 +115,37 @@ const styles = StyleSheet.create({    page: {
     inspectorDetails: {
         marginTop: 5,
         marginBottom: 5
-    },    signature: {
+    },
+    signature: {
         marginTop: 5,
         marginBottom: 5,
         width: 150,
         height: 60,
         alignSelf: 'flex-start'
     },
-    mailto:{
+    mailto: {
         color: 'blue',
         textDecoration: 'underline'
     }
 });
 
-const InspectionCertificateTemplate = ({ inspection }) => {    
+interface InspectionCertificateTemplateProps {
+    inspection: InspectionCertificate;
+}
+
+const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps> = ({ inspection }) => {    
     const currentDate = new Date();
     const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID}/${inspection.uniqueRef}`;    
-    // Get signature from secure API endpoint
+    
     const signaturePath = inspection.inspectorsName 
         ? `${baseUrl}/Signature/${encodeURIComponent(inspection.inspectorsName)}`
         : '';
 
-    const formatDate = (date) => {
+    const formatDate = (date: string | null): string => {
         return date ? format(new Date(date), 'dd/MM/yyyy') : '';
     };
 
-    const formatAddress = () => {
+    const formatAddress = (): string => {
         const lines = [
             inspection.companyName,
             inspection.line1,
@@ -146,7 +153,7 @@ const InspectionCertificateTemplate = ({ inspection }) => {
             inspection.line3,
             inspection.line4,
             inspection.postcode
-        ].filter(line => line);
+        ].filter(Boolean);
         
         return lines.join('\n');
     };
@@ -300,7 +307,8 @@ const InspectionCertificateTemplate = ({ inspection }) => {
                     </View>
                     <View style={styles.declaration}>
                         <Text style={styles.bold}>Signature or other identification</Text>
-                    </View>                    <View style={styles.inspectorDetails}>
+                    </View>
+                    <View style={styles.inspectorDetails}>
                         {signaturePath && (
                             <Image
                                 src={signaturePath}
@@ -329,15 +337,15 @@ const InspectionCertificateTemplate = ({ inspection }) => {
     );
 };
 
-export const generatePdfBlob = async (inspection) => {
+export const generatePdfBlob = async (inspection: InspectionCertificate): Promise<Blob> => {
     const doc = <InspectionCertificateTemplate inspection={inspection} />;
     const blob = await pdf(doc).toBlob();
     return blob;
 };
 
-export const getPdfFileName = (inspection) => {
+export const getPdfFileName = (inspection: InspectionCertificate): string => {
     const dateStr = inspection.inspectionDate ? format(new Date(inspection.inspectionDate), 'dd-MM-yyyy') : '';
-    const safeName = (str) => str?.replace(/[^a-z0-9-]/gi, '-').toLowerCase() || '';
+    const safeName = (str: string | undefined): string => str?.replace(/[^a-z0-9-]/gi, '-').toLowerCase() || '';
     
     return `${safeName(inspection.companyName)}-${safeName(inspection.plantDescription)}-${safeName(inspection.serialNumber)}-${dateStr}.pdf`;
 };

@@ -1,15 +1,16 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 import { baseUrl } from '../config';
+import { ApiClientConfig, User } from '../types/apiTypes';
 
 const apiClient: AxiosInstance = axios.create({
     baseURL: baseUrl
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config: ApiClientConfig) => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
         try {
-            const user = JSON.parse(userStr);
+            const user: User = JSON.parse(userStr);
             if (user?.token) {
                 config.headers.Authorization = `Bearer ${user.token}`;
             }
@@ -20,14 +21,14 @@ apiClient.interceptors.request.use((config) => {
         }
     }
     return config;
-}, (error) => {
+}, (error: AxiosError) => {
     return Promise.reject(error);
 });
 
 // Add response interceptor to handle 401 Unauthorized
 apiClient.interceptors.response.use(
     (response) => response,
-    (error) => {
+    (error: AxiosError) => {
         if (error.response?.status === 401) {
             // Clear invalid token
             localStorage.removeItem('user');

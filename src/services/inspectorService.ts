@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { baseUrl } from '../config';
+import { CreateInspectorDto, Inspector, InspectorResponse, InspectorsResponse, UpdateInspectorDto } from '../types/inspectorTypes';
 
-const getToken = () => {
+const getToken = (): string | null => {
   const user = localStorage.getItem('user');
   if (!user) return null;
   try {
@@ -11,9 +12,9 @@ const getToken = () => {
   }
 };
 
-const getAll = async () => {
+const getAll = async (): Promise<Inspector[]> => {
   const token = getToken();
-  const response = await axios.get(`${baseUrl}/inspectors`, {
+  const response = await axios.get<InspectorsResponse>(`${baseUrl}/inspectors`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -21,9 +22,9 @@ const getAll = async () => {
   return response.data;
 };
 
-const getById = async (id) => {
+const getById = async (id: number): Promise<Inspector> => {
   const token = getToken();
-  const response = await axios.get(`${baseUrl}/inspectors/${id}`, {
+  const response = await axios.get<InspectorResponse>(`${baseUrl}/inspectors/${id}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -31,9 +32,9 @@ const getById = async (id) => {
   return response.data;
 };
 
-const create = async (inspector) => {
+const create = async (inspector: CreateInspectorDto): Promise<Inspector> => {
   const token = getToken();
-  const response = await axios.post(`${baseUrl}/inspectors`, inspector, {
+  const response = await axios.post<InspectorResponse>(`${baseUrl}/inspectors`, inspector, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -41,9 +42,9 @@ const create = async (inspector) => {
   return response.data;
 };
 
-const update = async (id, inspector) => {
+const update = async (id: number, inspector: UpdateInspectorDto): Promise<Inspector> => {
   const token = getToken();
-  const response = await axios.put(`${baseUrl}/inspectors/${id}`, inspector, {
+  const response = await axios.put<InspectorResponse>(`${baseUrl}/inspectors/${id}`, inspector, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -51,7 +52,7 @@ const update = async (id, inspector) => {
   return response.data;
 };
 
-const remove = async (id) => {
+const remove = async (id: number): Promise<void> => {
   const token = getToken();
   await axios.delete(`${baseUrl}/inspectors/${id}`, {
     headers: {

@@ -1,22 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { 
+  Button, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  Typography, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogContentText, 
+  DialogActions 
+} from '@mui/material';
 import UserForm from './UserForm';
 import RoleManagement from './RoleManagement';
 import ClaimManagement from './ClaimManagement';
 import userService from '../services/userService';
 import RoleAdmin from './RoleAdmin';
 
-const UserManagement = () => {
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [openForm, setOpenForm] = useState(false);
-  const [openRoles, setOpenRoles] = useState(false);
-  const [openClaims, setOpenClaims] = useState(false);
-  const [openRoleAdmin, setOpenRoleAdmin] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isCustomer: boolean;
+}
 
-  const fetchUsers = async () => {
+const UserManagement: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [openForm, setOpenForm] = useState<boolean>(false);
+  const [openRoles, setOpenRoles] = useState<boolean>(false);
+  const [openClaims, setOpenClaims] = useState<boolean>(false);
+  const [openRoleAdmin, setOpenRoleAdmin] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  const fetchUsers = async (): Promise<void> => {
     const data = await userService.getUsers();
     setUsers(data);
   };
@@ -25,22 +48,24 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const handleAdd = () => {
+  const handleAdd = (): void => {
     setSelectedUser(null);
     setOpenForm(true);
   };
 
-  const handleEdit = (user) => {
+  const handleEdit = (user: User): void => {
     setSelectedUser(user);
     setOpenForm(true);
   };
 
-  const openDeleteDialog = (user) => {
+  const openDeleteDialog = (user: User): void => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
+    if (!userToDelete) return;
+
     try {
       await userService.deleteUser(userToDelete.id);
       await fetchUsers();
@@ -51,12 +76,12 @@ const UserManagement = () => {
     }
   };
 
-  const handleRoles = (user) => {
+  const handleRoles = (user: User): void => {
     setSelectedUser(user);
     setOpenRoles(true);
   };
 
-  const handleClaims = (user) => {
+  const handleClaims = (user: User): void => {
     setSelectedUser(user);
     setOpenClaims(true);
   };
@@ -99,34 +124,35 @@ const UserManagement = () => {
 
       <Dialog open={openForm} onClose={() => setOpenForm(false)}>
         <DialogTitle>{selectedUser ? 'Edit User' : 'Add User'}</DialogTitle>
-        <DialogContent>
-          <UserForm user={selectedUser} onSuccess={() => { setOpenForm(false); fetchUsers(); }} />
+        <DialogContent>          <UserForm
+            user={selectedUser}
+            onSuccess={async () => {
+              await fetchUsers();
+              setOpenForm(false);
+            }}
+            onCancel={() => setOpenForm(false)}
+          />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openRoles} onClose={() => setOpenRoles(false)}>
-        <DialogTitle>Manage Roles</DialogTitle>
-        <DialogContent sx={{ minWidth: '400px' }}>
-          <RoleManagement user={selectedUser} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenRoles(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openClaims} onClose={() => setOpenClaims(false)}>
-        <DialogTitle>Manage Claims</DialogTitle>
-        <DialogContent sx={{ minWidth: '400px' }}>
-          <ClaimManagement user={selectedUser} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenClaims(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      {selectedUser && (
+        <RoleManagement
+          open={openRoles}
+          onClose={() => setOpenRoles(false)}
+          userId={selectedUser.id}
+          userName={`${selectedUser.firstName} ${selectedUser.lastName}`}
+        />
+      )}      {selectedUser && (
+        <ClaimManagement
+          user={selectedUser}
+          open={openClaims}
+          onClose={() => setOpenClaims(false)}
+        />
+      )}
 
       <Dialog open={openRoleAdmin} onClose={() => setOpenRoleAdmin(false)}>
-        <DialogTitle>All Roles</DialogTitle>
-        <DialogContent sx={{ minWidth: '400px' }}>
+        <DialogTitle>Manage System Roles</DialogTitle>
+        <DialogContent>
           <RoleAdmin />
         </DialogContent>
         <DialogActions>
@@ -134,39 +160,21 @@ const UserManagement = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog 
+      <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        aria-labelledby="delete-dialog-title"
       >
-        <DialogTitle id="delete-dialog-title">
-          Confirm User Deletion
-        </DialogTitle>
+        <DialogTitle>Delete User</DialogTitle>
         <DialogContent>
-          <div>
-            <p>Are you sure you want to delete this user?</p>
-            {userToDelete && (
-              <>
-                <p><strong>Email:</strong> {userToDelete.email}</p>
-                <p><strong>Name:</strong> {userToDelete.firstName} {userToDelete.lastName}</p>
-                <p><strong>Customer:</strong> {userToDelete.isCustomer ? 'Yes' : 'No'}</p>
-              </>
-            )}
-            <p style={{ color: '#d32f2f', marginTop: '1rem' }}>
-              This action cannot be undone. All associated roles and claims will also be deleted.
-            </p>
-          </div>
+          <DialogContentText>
+            Are you sure you want to delete {userToDelete?.email}?
+            This action cannot be undone.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-          >
-            Delete User
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

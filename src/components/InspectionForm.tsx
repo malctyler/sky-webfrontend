@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import "react-datepicker/dist/react-datepicker.css";
 import "./InspectionForm.css";
 import inspectorService from '../services/inspectorService';
+import { Inspection, InspectionFormData } from '../types/inspectionTypes';
+import { Inspector } from '../types/inspectorTypes';
 
-const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
-    const [formData, setFormData] = useState({
-        holdingID: holdingId || '',
+interface InspectionFormProps {
+    inspection: Inspection | null;
+    onSubmit: (data: InspectionFormData) => void;
+    onCancel: () => void;
+    holdingId: number;
+}
+
+const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, onCancel, holdingId }) => {
+    const [formData, setFormData] = useState<InspectionFormData>({
+        holdingID: holdingId || 0,
         inspectionDate: null,
         location: '',
         recentCheck: '',
@@ -21,7 +30,7 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
         inspectorID: null
     });
 
-    const [inspectors, setInspectors] = useState([]);
+    const [inspectors, setInspectors] = useState<Inspector[]>([]);
 
     useEffect(() => {
         const fetchInspectors = async () => {
@@ -36,7 +45,8 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
 
         fetchInspectors();
 
-        if (inspection) {            setFormData({
+        if (inspection) {
+            setFormData({
                 ...inspection,
                 inspectionDate: inspection.inspectionDate ? new Date(inspection.inspectionDate) : null,
                 latestDate: inspection.latestDate ? new Date(inspection.latestDate) : null,
@@ -50,15 +60,16 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
         }
     }, [inspection, holdingId]);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        const inputElement = e.target as HTMLInputElement;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: type === 'checkbox' ? inputElement.checked : value
         }));
     };
 
-    const handleDateChange = (date, fieldName) => {
+    const handleDateChange = (date: Date | null, fieldName: keyof Pick<InspectionFormData, 'inspectionDate' | 'latestDate'>) => {
         setFormData(prev => ({
             ...prev,
             [fieldName]: date
@@ -66,7 +77,7 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
     };
 
     return (
-        <form onSubmit={(e) => {
+        <form onSubmit={(e: FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             onSubmit(formData);
         }}>
@@ -74,7 +85,7 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
             <DatePicker
                 id="inspectionDate"
                 selected={formData.inspectionDate}
-                onChange={(date) => handleDateChange(date, 'inspectionDate')}
+                onChange={(date: Date | null) => handleDateChange(date, 'inspectionDate')}
                 dateFormat="yyyy-MM-dd"
                 required
             />
@@ -146,18 +157,20 @@ const InspectionForm = ({ inspection, onSubmit, onCancel, holdingId }) => {
                 name="miscNotes"
                 value={formData.miscNotes}
                 onChange={handleChange}
-            />            <label htmlFor="inspectorID">Inspector:</label>            
+            />
+
+            <label htmlFor="inspectorID">Inspector:</label>            
             <select
                 id="inspectorID"
                 name="inspectorID"
-                value={formData.inspectorID || ""}
+                value={formData.inspectorID?.toString() || ""}
                 onChange={handleChange}
                 required
             >
                 <option value="">Select an inspector</option>
                 {inspectors.length > 0 ? (
                     inspectors.map((inspector) => (
-                        <option key={inspector.inspectorID} value={inspector.inspectorID}>
+                        <option key={inspector.inspectorId} value={inspector.inspectorId.toString()}>
                             {inspector.inspectorsName}
                         </option>
                     ))

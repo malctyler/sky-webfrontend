@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, KeyboardEvent, ChangeEvent } from 'react';
 import { Button, List, ListItem, ListItemText, TextField, Alert, Typography } from '@mui/material';
 import roleService from '../services/roleService';
 import { useAuth } from '../contexts/AuthContext';
+import { Role } from '../types/roleTypes';
 
-const RoleAdmin = () => {
-  const [roles, setRoles] = useState([]);
-  const [newRole, setNewRole] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+const RoleAdmin: React.FC = () => {
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [newRole, setNewRole] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const { hasRole } = useAuth();
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (): Promise<void> => {
     try {
       setError('');
       const data = await roleService.getRoles();
       setRoles(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching roles:', err);
       setError(err.response?.data || 'Failed to fetch roles');
     }
@@ -25,7 +26,7 @@ const RoleAdmin = () => {
     fetchRoles();
   }, []);
 
-  const handleAddRole = async () => {
+  const handleAddRole = async (): Promise<void> => {
     if (!hasRole('Staff')) {
       setError('You must be a Staff member to manage roles');
       return;
@@ -42,7 +43,7 @@ const RoleAdmin = () => {
       await roleService.createRole(newRole.trim());
       setNewRole('');
       await fetchRoles();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding role:', err);
       setError(err.response?.data || 'Failed to add role');
     } finally {
@@ -50,7 +51,7 @@ const RoleAdmin = () => {
     }
   };
 
-  const handleDeleteRole = async (role) => {
+  const handleDeleteRole = async (role: Role): Promise<void> => {
     if (!hasRole('Staff')) {
       setError('You must be a Staff member to manage roles');
       return;
@@ -65,7 +66,7 @@ const RoleAdmin = () => {
     try {
       await roleService.deleteRole(role.id);
       await fetchRoles();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting role:', err);
       setError(err.response?.data || 'Failed to delete role');
     } finally {
@@ -73,7 +74,7 @@ const RoleAdmin = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Enter' && newRole.trim()) {
       handleAddRole();
     }
@@ -97,37 +98,38 @@ const RoleAdmin = () => {
         <TextField 
           label="New Role" 
           value={newRole} 
-          onChange={e => setNewRole(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setNewRole(e.target.value)}
           onKeyPress={handleKeyPress}
-          error={!!error && error.includes('empty')}
-          helperText={error && error.includes('empty') ? error : ''}
           disabled={loading}
+          error={!!error}
+          helperText={error}
           fullWidth
         />
         <Button 
-          onClick={handleAddRole} 
-          disabled={loading || !newRole.trim()} 
           variant="contained" 
+          onClick={handleAddRole} 
+          disabled={loading || !newRole.trim()}
           sx={{ mt: 1 }}
-          fullWidth
         >
-          {loading ? 'Adding...' : 'Add Role'}
+          Add Role
         </Button>
       </div>
-      
-      {error && !error.includes('empty') && (
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
       )}
 
       <List>
-        {roles.map(role => (
+        {roles.map((role) => (
           <ListItem 
-            key={role.id} 
+            key={role.id}
             secondaryAction={
               <Button 
-                color="error" 
-                onClick={() => handleDeleteRole(role)} 
+                onClick={() => handleDeleteRole(role)}
                 disabled={loading}
+                color="error"
               >
                 Delete
               </Button>

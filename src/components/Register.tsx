@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { TextField, Button, Paper, Typography, Box, FormControlLabel, Checkbox } from '@mui/material';
+import { AxiosError } from 'axios';
 import { register } from '../services/authService';
 import './Register.css';
 
-const Register = () => {
-    const [formData, setFormData] = useState({
+interface FormData {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    isCustomer: boolean;
+    customerId: string;
+}
+
+interface ErrorResponse {
+    message?: string;
+}
+
+const Register: React.FC = () => {
+    const [formData, setFormData] = useState<FormData>({
         email: '',
         password: '',
         firstName: '',
@@ -13,27 +27,28 @@ const Register = () => {
         isCustomer: false,
         customerId: ''
     });
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string>('');
     const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { name, value, checked } = e.target;
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value, checked, type } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'isCustomer' ? checked : value
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             await register({
                 ...formData,
-                customerId: formData.customerId ? parseInt(formData.customerId) : null
+                customerId: formData.customerId ? parseInt(formData.customerId, 10) : null
             });
             navigate('/login');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to register');
+            const axiosError = err as AxiosError<ErrorResponse>;
+            setError(axiosError.response?.data?.message || 'Failed to register');
         }
     };
 
@@ -107,18 +122,32 @@ const Register = () => {
                             onChange={handleChange}
                             margin="normal"
                             required
+                            inputProps={{ min: 0 }}
                         />
-                    )}
-                    <Button
+                    )}                    <Button
                         type="submit"
                         variant="contained"
                         color="primary"
                         fullWidth
-                        sx={{ mt: 2 }}
+                        sx={{ mt: 2, mb: 2 }}
                     >
                         Register
                     </Button>
                 </form>
+                <Box sx={{ textAlign: 'center', mt: 1 }}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                        Already have an account?
+                    </Typography>
+                    <Button
+                        component={Link}
+                        to="/login"
+                        variant="outlined"
+                        color="primary"
+                        fullWidth
+                    >
+                        Back to Login
+                    </Button>
+                </Box>
             </Paper>
         </Box>
     );

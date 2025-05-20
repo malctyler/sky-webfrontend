@@ -1,37 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Box, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Paper, Typography, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box,
+  IconButton,
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Paper,
+  Typography,
+  CircularProgress 
+} from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import MuiAlert from '@mui/material/Alert';
+import { AlertColor } from '@mui/material';
 import './PlantCategories.css';
 import { baseUrl } from '../config';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import { useAuth } from '../contexts/AuthContext';
 
-function PlantCategories() {
-  const { user } = useAuth(); // Get user from AuthContext, which includes the token
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [categoryDescription, setCategoryDescription] = useState('');
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [snackbar, setSnackbar] = useState({
+interface PlantCategory {
+  categoryID: number;
+  categoryDescription: string;
+}
+
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: AlertColor;
+}
+
+const PlantCategories: React.FC = () => {
+  const { user } = useAuth();
+  const [categories, setCategories] = useState<PlantCategory[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<PlantCategory | null>(null);
+  const [categoryDescription, setCategoryDescription] = useState<string>('');
+  const [editingCategory, setEditingCategory] = useState<PlantCategory | null>(null);
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  const getAuthHeaders = () => ({
+  const getAuthHeaders = (): HeadersInit => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${user?.token}`,
   });
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await fetch(`${baseUrl}/PlantCategories`, {
-        headers: getAuthHeaders(), // Add Authorization header
+        headers: getAuthHeaders(),
       });
       if (!response.ok) {
         if (response.status === 401) throw new Error('Unauthorized: Please check login and permissions.');
@@ -39,26 +64,25 @@ function PlantCategories() {
       }
       const data = await response.json();
       setCategories(data);
-      setError(null); // Clear previous errors
+      setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.token) { // Only fetch if token is available
+    if (user?.token) {
       fetchCategories();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.token]); // Re-fetch if token changes (e.g., after login)
+  }, [user?.token]);
 
-  const handleSnackbarClose = () => {
+  const handleSnackbarClose = (): void => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const showSuccess = (message) => {
+  const showSuccess = (message: string): void => {
     setSnackbar({
       open: true,
       message,
@@ -66,7 +90,7 @@ function PlantCategories() {
     });
   };
 
-  const showError = (message) => {
+  const showError = (message: string): void => {
     setSnackbar({
       open: true,
       message,
@@ -74,7 +98,7 @@ function PlantCategories() {
     });
   };
 
-  const handleCreateCategory = async () => {
+  const handleCreateCategory = async (): Promise<void> => {
     if (!categoryDescription.trim()) {
       showError('Category description cannot be empty.');
       return;
@@ -82,7 +106,7 @@ function PlantCategories() {
     try {
       const response = await fetch(`${baseUrl}/PlantCategories`, {
         method: 'POST',
-        headers: getAuthHeaders(), // Add Authorization header
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           categoryDescription: categoryDescription
         }),
@@ -99,19 +123,19 @@ function PlantCategories() {
       setDialogOpen(false);
       showSuccess('Category created successfully');
     } catch (err) {
-      showError(err.message);
+      showError(err instanceof Error ? err.message : 'Failed to create category');
     }
   };
 
-  const handleUpdateCategory = async () => {
-    if (!categoryDescription.trim()) {
+  const handleUpdateCategory = async (): Promise<void> => {
+    if (!categoryDescription.trim() || !editingCategory) {
       showError('Category description cannot be empty.');
       return;
     }
     try {
       const response = await fetch(`${baseUrl}/PlantCategories/${editingCategory.categoryID}`, {
         method: 'PUT',
-        headers: getAuthHeaders(), // Add Authorization header
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...editingCategory,
           categoryDescription
@@ -122,7 +146,6 @@ function PlantCategories() {
         const errorData = await response.text();
         throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to update category');
       }
-      // No content expected for PUT, so no need to await response.json() unless API returns updated obj
       setCategories(prev => prev.map(cat => 
         cat.categoryID === editingCategory.categoryID 
           ? { ...cat, categoryDescription: categoryDescription }
@@ -133,45 +156,46 @@ function PlantCategories() {
       setDialogOpen(false);
       showSuccess('Category updated successfully');
     } catch (err) {
-      showError(err.message);
+      showError(err instanceof Error ? err.message : 'Failed to update category');
     }
   };
 
-  const openDeleteDialog = (categoryId) => {
+  const openDeleteDialog = (categoryId: number): void => {
     const category = categories.find(cat => cat.categoryID === categoryId);
-    setCategoryToDelete(category);
-    setDeleteDialogOpen(true);
+    if (category) {
+      setCategoryToDelete(category);
+      setDeleteDialogOpen(true);
+    }
   };
 
-  const handleDeleteCategory = async () => {
+  const handleDeleteCategory = async (): Promise<void> => {
     if (!categoryToDelete) return;
     try {
       const response = await fetch(`${baseUrl}/PlantCategories/${categoryToDelete.categoryID}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(), // Add Authorization header
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to delete category');
       }
-      // No content expected for DELETE
       setCategories(prev => prev.filter(cat => cat.categoryID !== categoryToDelete.categoryID));
       showSuccess('Category deleted successfully');
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     } catch (err) {
-      showError(err.message);
+      showError(err instanceof Error ? err.message : 'Failed to delete category');
     }
   };
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (): void => {
     setEditingCategory(null);
     setCategoryDescription('');
     setDialogOpen(true);
   };
 
-  const openEditDialog = (category) => {
+  const openEditDialog = (category: PlantCategory): void => {
     setEditingCategory(category);
     setCategoryDescription(category.categoryDescription);
     setDialogOpen(true);
@@ -294,6 +318,6 @@ function PlantCategories() {
       </Snackbar>
     </Box>
   );
-}
+};
 
 export default PlantCategories;

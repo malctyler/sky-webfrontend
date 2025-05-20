@@ -16,26 +16,38 @@ import {
     DialogContentText,
     DialogActions,
     Snackbar,
-    Alert
+    Alert,
+    AlertColor
 } from '@mui/material';
 import { Delete as DeleteIcon, Assignment as CertificateIcon, Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
 import { baseUrl } from '../config';
 import inspectionService from '../services/inspectionService';
 import InspectionForm from './InspectionForm';
 import { format } from 'date-fns';
-import './InspectionList.css';  // Import the CSS file
+import { Inspection, InspectionFormData } from '../types/inspectionTypes';
+import './InspectionList.css';
 
-const InspectionList = ({ holdingId }) => {
+interface InspectionListProps {
+    holdingId: number;
+}
+
+interface SnackbarState {
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+}
+
+const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
     const { isDarkMode } = useTheme();
-    const [inspections, setInspections] = useState([]);
-    const [showForm, setShowForm] = useState(false);
-    const [selectedInspection, setSelectedInspection] = useState(null);
-    const [error, setError] = useState(null);
-    const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-    const [emailingInspection, setEmailingInspection] = useState(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [inspectionToDelete, setInspectionToDelete] = useState(null);
-    const [snackbar, setSnackbar] = useState({
+    const [inspections, setInspections] = useState<Inspection[]>([]);
+    const [showForm, setShowForm] = useState<boolean>(false);
+    const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
+    const [emailingInspection, setEmailingInspection] = useState<Inspection | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+    const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
+    const [snackbar, setSnackbar] = useState<SnackbarState>({
         open: false,
         message: '',
         severity: 'success'
@@ -68,18 +80,20 @@ const InspectionList = ({ holdingId }) => {
         setError(null);
     };
 
-    const handleEdit = (inspection) => {
+    const handleEdit = (inspection: Inspection) => {
         setSelectedInspection(inspection);
         setShowForm(true);
         setError(null);
     };
 
-    const openDeleteDialog = (inspection) => {
+    const openDeleteDialog = (inspection: Inspection) => {
         setInspectionToDelete(inspection);
         setDeleteDialogOpen(true);
     };
 
     const handleDeleteInspection = async () => {
+        if (!inspectionToDelete) return;
+        
         try {
             const response = await fetch(`${baseUrl}/api/Inspection/${inspectionToDelete.uniqueRef}`, {
                 method: 'DELETE'
@@ -104,13 +118,13 @@ const InspectionList = ({ holdingId }) => {
             console.error('Error deleting inspection:', error);
             setSnackbar({
                 open: true,
-                message: `Error deleting inspection: ${error.message}`,
+                message: error instanceof Error ? error.message : 'Error deleting inspection',
                 severity: 'error'
             });
         }
     };
 
-    const handleSubmit = async (formData) => {
+    const handleSubmit = async (formData: InspectionFormData) => {
         try {
             const submissionData = {
                 ...formData,
@@ -131,22 +145,23 @@ const InspectionList = ({ holdingId }) => {
         }
     };
 
-    const formatDate = (date) => {
+    const formatDate = (date: string | null): string => {
         if (!date) return '';
         return format(new Date(date), 'dd/MM/yyyy');
     };
 
-    const handleShowCertificate = (inspection) => {
-        // Open in a new window, using 'popup' to ensure it opens as a separate window
+    const handleShowCertificate = (inspection: Inspection) => {
         window.open(`/certificate/${inspection.uniqueRef}`, 'certificate', 'popup,width=800,height=600');
     };
 
-    const handleEmailClick = (inspection) => {
+    const handleEmailClick = (inspection: Inspection) => {
         setEmailingInspection(inspection);
         setEmailDialogOpen(true);
     };
 
     const handleEmailConfirm = async () => {
+        if (!emailingInspection) return;
+        
         try {
             await inspectionService.emailCertificate(emailingInspection.uniqueRef);
             setEmailDialogOpen(false);
@@ -318,7 +333,7 @@ const InspectionList = ({ holdingId }) => {
                         {inspectionToDelete && (
                             <>
                                 <p><strong>Serial Number:</strong> {inspectionToDelete.serialNumber}</p>
-                                <p><strong>Date:</strong> {new Date(inspectionToDelete.inspDate).toLocaleDateString()}</p>
+                                <p><strong>Date:</strong> {formatDate(inspectionToDelete.inspectionDate)}</p>
                                 <p><strong>Status:</strong> {inspectionToDelete.status}</p>
                             </>
                         )}
