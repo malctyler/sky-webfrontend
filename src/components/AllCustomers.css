@@ -172,13 +172,14 @@
 .notes-link {
   display: inline-block;
   margin-top: 10px;
-  color: #0066cc;
   text-decoration: none;
   border-radius: 4px;
   padding: 0.5rem 1rem;
-  background-color: var(--link-color);
+  background-color: #0066cc;
   color: white;
+  cursor: pointer;
   transition: background-color 0.2s, transform 0.2s;
+  user-select: none;
 }
 
 .notes-link:hover {

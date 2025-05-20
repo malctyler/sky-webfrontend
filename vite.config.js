@@ -1,17 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tsconfigPaths from 'vite-tsconfig-paths'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
     react({
-      // Include JSX in JS files
+      // Include JSX and TSX files
       include: /\.(js|jsx|ts|tsx)$/,
       babel: {
         plugins: [
           // Add any babel plugins here
         ],
       }
-    })
+    }),
+    tsconfigPaths()
   ],
   server: {
     port: 3000,
@@ -24,7 +27,10 @@ export default defineConfig({
     }
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx']
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
   },
   build: {
     outDir: 'build', // Match Azure Static Web Apps expected directory

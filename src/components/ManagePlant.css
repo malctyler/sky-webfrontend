@@ -1,26 +1,21 @@
-.plants-container {
+.manage-plant-container {
   padding: 2rem;
   min-height: calc(100vh - 200px);
 }
 
-.plants-container.dark {
+.manage-plant-container.dark {
   background-color: #282c34;
   color: white;
 }
 
-.plants-container.light {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.plants-header {
+.manage-plant-container .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.plants-grid {
+.manage-plant-container .plants-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
@@ -28,27 +23,84 @@
 }
 
 .plant-card {
-  background-color: var(--nav-bg);
+  background-color: var(--background-paper);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: visible;
+  cursor: pointer;
 }
 
 .plant-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.plant-actions {
+.card-actions {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   display: flex;
   gap: 0.5rem;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
 }
 
-.loading-state, .error-state {
+.plant-card:hover .card-actions {
+  opacity: 1;
+}
+
+.dark .card-actions {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.card-actions .MuiIconButton-root {
+  backdrop-filter: blur(2px);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.card-actions .MuiIconButton-root:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.plant-info {
+  margin-top: 1rem;
+}
+
+.plant-info h3 {
+  margin: 0 0 0.5rem;
+}
+
+.plant-info p {
+  margin: 0.25rem 0;
+}
+
+.plant-info.incomplete {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px dashed #ffc107;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.plant-info .missing {
+  color: #ff5722;
+  font-style: italic;
+}
+
+.plant-info .warning {
+  color: #ffc107;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.loading-state,
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -69,4 +121,36 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.dark .plant-card {
+  background-color: #333;
+  color: white;
+}
+
+.light .plant-card {
+  background-color: white;
+  color: #333;
+}
+
+/* MUI Select overrides for dark mode */
+.manage-plant-container.dark .MuiSelect-select,
+.manage-plant-container.dark .MuiInputLabel-root,
+.manage-plant-container.dark .MuiMenuItem-root {
+  color: white !important;
+}
+
+.manage-plant-container.dark .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.manage-plant-container.dark .MuiSelect-icon {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* MUI Select overrides for light mode */
+.manage-plant-container.light .MuiSelect-select,
+.manage-plant-container.light .MuiInputLabel-root,
+.manage-plant-container.light .MuiMenuItem-root {
+  color: #333 !important;
 }

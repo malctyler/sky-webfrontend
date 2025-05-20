@@ -58,11 +58,11 @@ const getMenuItems = (user) => {
       { text: 'Customers', icon: <PeopleIcon />, path: '/customers' }
     );
   }
-
   // Add admin-only items
   if (user?.roles?.includes('Admin')) {
     baseItems.push(
       { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories' },
+      { text: 'Manage Plant', icon: <CategoryIcon />, path: '/manage-plant' },
       { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' }
     );
   }

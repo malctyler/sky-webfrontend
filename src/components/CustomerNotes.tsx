@@ -8,23 +8,29 @@ import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
 import { baseUrl } from '../config';
 import apiClient from '../services/apiClient';
+import { Note, Customer } from '../types/notes';
 
-function CustomerNotes() {
-  const { custId } = useParams();
+type RouterParams = {
+  custId: string;
+};
+
+const CustomerNotes: React.FC = () => {
+  const params = useParams();
+  const custId = params.custId;
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
-  const [notes, setNotes] = useState([]);
-  const [filteredNotes, setFilteredNotes] = useState([]);
-  const [customer, setCustomer] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [page, setPage] = useState(1);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState(null);
-  const [newNoteText, setNewNoteText] = useState('');
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState<string>('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [newNoteText, setNewNoteText] = useState<string>('');
   const notesPerPage = 6;
 
   useEffect(() => {
@@ -35,28 +41,28 @@ function CustomerNotes() {
     filterNotes();
   }, [notes, searchText, startDate, endDate]);
 
-  const fetchCustomerAndNotes = async () => {
+  const fetchCustomerAndNotes = async (): Promise<void> => {
     try {
       const [customerResponse, notesResponse] = await Promise.all([
-        apiClient.get(`/Customers/${custId}`),
-        apiClient.get('/Notes')
+        apiClient.get<Customer>(`/Customers/${custId}`),
+        apiClient.get<Note[]>('/Notes')
       ]);
       const customerData = customerResponse.data;
       const notesData = notesResponse.data;
       setCustomer(customerData);
       const customerNotes = notesData
-        .filter(note => note.custID === parseInt(custId))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .filter(note => note.custID === parseInt(custId as string))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setNotes(customerNotes);
       setFilteredNotes(customerNotes);
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };
 
-  const filterNotes = () => {
+  const filterNotes = (): void => {
     let filtered = [...notes];
 
     if (searchText) {
@@ -81,11 +87,11 @@ function CustomerNotes() {
     setPage(1);
   };
 
-  const handleCreateNote = async () => {
+  const handleCreateNote = async (): Promise<void> => {
     try {
-      const response = await apiClient.post('/Notes', {
-        custID: parseInt(custId),
-        date: new Date(),
+      const response = await apiClient.post<Note>('/Notes', {
+        custID: parseInt(custId as string),
+        date: new Date().toISOString(),
         notes: newNoteText
       });
       const newNote = response.data;
@@ -93,13 +99,15 @@ function CustomerNotes() {
       setDialogOpen(false);
       setNewNoteText('');
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
-  const handleUpdateNote = async () => {
+  const handleUpdateNote = async (): Promise<void> => {
+    if (!editingNote) return;
+    
     try {
-      await apiClient.put(`/Notes/${editingNote.noteID}`, {
+      await apiClient.put<Note>(`/Notes/${editingNote.noteID}`, {
         ...editingNote,
         notes: newNoteText
       });
@@ -112,11 +120,11 @@ function CustomerNotes() {
       setEditingNote(null);
       setNewNoteText('');
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
-  const handleDeleteNote = async (noteId) => {
+  const handleDeleteNote = async (noteId: number): Promise<void> => {
     if (!window.confirm('Are you sure you want to delete this note?')) {
       return;
     }
@@ -124,21 +132,21 @@ function CustomerNotes() {
       await apiClient.delete(`/Notes/${noteId}`);
       setNotes(prev => prev.filter(note => note.noteID !== noteId));
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     navigate('/customers');
   };
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (): void => {
     setEditingNote(null);
     setNewNoteText('');
     setDialogOpen(true);
   };
 
-  const openEditDialog = (note) => {
+  const openEditDialog = (note: Note): void => {
     setEditingNote(note);
     setNewNoteText(note.notes);
     setDialogOpen(true);
@@ -184,18 +192,17 @@ function CustomerNotes() {
               startAdornment: <SearchIcon />,
             }}
           />
-          <div className="date-filters">
-            <DatePicker
+          <div className="date-filters">            <DatePicker
               selected={startDate}
-              onChange={date => setStartDate(date)}
+              onChange={(date: Date | null) => setStartDate(date)}
               placeholderText="Start Date"
               maxDate={endDate || new Date()}
             />
             <DatePicker
               selected={endDate}
-              onChange={date => setEndDate(date)}
+              onChange={(date: Date | null) => setEndDate(date)}
               placeholderText="End Date"
-              minDate={startDate}
+              minDate={startDate || undefined}
               maxDate={new Date()}
             />
           </div>

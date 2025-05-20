@@ -332,12 +332,15 @@ function AllCustomers() {
                 {customer.line3 && <p>{customer.line3}</p>}
                 {customer.line4 && <p>{customer.line4}</p>}
                 <p>{customer.postcode}</p>
+              </div>              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/customers/${customer.custID}/notes`);
+                }}
+                className="notes-link"
+              >
+                View Notes ({customerNotes[customer.custID] || 0})
               </div>
-              {customerNotes[customer.custID] > 0 && (
-                <div className="notes-count">
-                  Notes: {customerNotes[customer.custID]}
-                </div>
-              )}
             </div>
           ))}
         </div>
