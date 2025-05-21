@@ -24,6 +24,7 @@ import AuthLayout from './components/Layout/AuthLayout';
 
 
 
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;

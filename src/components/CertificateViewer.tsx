@@ -7,11 +7,11 @@ interface CertificateViewerProps {
     inspection: InspectionItem;
 }
 
-const CertificateViewer: React.FC<CertificateViewerProps> = ({ inspection }) => {
-    const viewerStyle: React.CSSProperties = {
+const CertificateViewer: React.FC<CertificateViewerProps> = ({ inspection }) => {    const viewerStyle = {
         width: '100%',
-        height: '80vh'
-    };
+        height: '80vh',
+        border: 'none'
+    } as const;
 
     return (
         <PDFViewer style={viewerStyle}>

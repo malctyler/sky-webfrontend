@@ -28,18 +28,23 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
         testDetails: '',
         miscNotes: '',
         inspectorID: null
-    });
-
-    const [inspectors, setInspectors] = useState<Inspector[]>([]);
-
-    useEffect(() => {
+    });    const [inspectors, setInspectors] = useState<Inspector[]>([]);
+      useEffect(() => {
         const fetchInspectors = async () => {
             try {
                 const data = await inspectorService.getAll();
-                console.log('Fetched inspectors:', data); // Debugging log
-                setInspectors(data);
+                console.log('Fetched inspectors:', data);
+                if (Array.isArray(data)) {
+                    setInspectors(data.filter(inspector => 
+                        inspector?.inspectorID && inspector?.inspectorsName
+                    ));
+                } else {
+                    console.error('Invalid inspector data format received:', data);
+                    setInspectors([]);
+                }
             } catch (error) {
                 console.error('Failed to fetch inspectors:', error);
+                setInspectors([]);
             }
         };
 
@@ -58,14 +63,14 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 holdingID: holdingId
             }));
         }
-    }, [inspection, holdingId]);
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    }, [inspection, holdingId]);    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         const inputElement = e.target as HTMLInputElement;
+        
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? inputElement.checked : value
+            [name]: name === 'inspectorID' ? (value ? parseInt(value, 10) : null) : 
+                    type === 'checkbox' ? inputElement.checked : value
         }));
     };
 
@@ -159,22 +164,21 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 onChange={handleChange}
             />
 
-            <label htmlFor="inspectorID">Inspector:</label>            
-            <select
+            <label htmlFor="inspectorID">Inspector:</label>              <select
                 id="inspectorID"
                 name="inspectorID"
                 value={formData.inspectorID?.toString() || ""}
                 onChange={handleChange}
                 required
             >
-                <option value="">Select an inspector</option>
-                {inspectors.length > 0 ? (
-                    inspectors.map((inspector) => (
-                        <option key={inspector.inspectorId} value={inspector.inspectorId.toString()}>
-                            {inspector.inspectorsName}
-                        </option>
-                    ))
-                ) : (
+                <option value="">Select an inspector</option>                {inspectors.map((inspector) => (
+                    <option 
+                        key={inspector.inspectorID} 
+                        value={inspector.inspectorID.toString()}>
+                        {inspector.inspectorsName || 'Unknown Inspector'}
+                    </option>
+                ))}
+                {inspectors.length === 0 && (
                     <option value="" disabled>No inspectors available</option>
                 )}
             </select>

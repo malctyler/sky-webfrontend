@@ -1,10 +1,8 @@
 import { BaseResponse } from './apiTypes';
 
 export interface Inspector {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  inspectorID: number;
+  inspectorsName: string;
 }
 
 export interface CreateInspectorDto {
