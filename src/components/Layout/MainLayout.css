@@ -86,7 +86,7 @@
 
 .MuiToolbar-root {
   background: linear-gradient(135deg, var(--link-color) 0%, var(--link-color-dark) 100%);
-  min-height: 70px !important;
+  min-height: 64px !important;
 }
 
 .dark .MuiToolbar-root {
@@ -110,4 +110,21 @@
 .dark {
   --link-color-rgb: 102, 179, 255;
   --link-color-dark: #4f82d1;
+}
+
+/* Add these new rules at the end of the file */
+.MuiBox-root[component="main"] {
+  padding: 8px 16px !important;
+}
+
+.MuiBox-root[component="main"] > .MuiBox-root {
+  margin-top: 0 !important;
+}
+
+.MuiBox-root[component="main"] > div:first-child {
+  display: none;
+}
+
+.MuiPaper-root {
+  margin-top: 0 !important;
 }

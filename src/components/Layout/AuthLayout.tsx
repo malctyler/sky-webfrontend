@@ -1,7 +1,11 @@
 import React from 'react';
 import { Container, Box } from '@mui/material';
 
-const AuthLayout = ({ children }) => (
+interface AuthLayoutProps {
+  children: React.ReactNode;
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => (
   <Container component="main" maxWidth="xs">
     <Box
       sx={{
