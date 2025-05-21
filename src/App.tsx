@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { IconButton, Menu, MenuItem, CssBaseline, Button } from '@mui/material';
-import { Brightness4, Brightness7, Cloud } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { CssBaseline } from '@mui/material';
 import './App.css';
 import AllCustomers from './components/AllCustomers';
 import CustomerNotes from './components/CustomerNotes';
@@ -25,12 +24,55 @@ import Weather from './components/Weather';
 import MainLayout from './components/Layout/MainLayout';
 import AuthLayout from './components/Layout/AuthLayout';
 
+interface WeatherData {
+  description: string;
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+}
+
+interface WeatherItem {
+  dtTxt: string;
+  main: {
+    temp: number;
+  };
+  weather: Array<{
+    icon: string;
+    description: string;
+  }>;
+  wind: {
+    speed: number;
+  };
+}
+
+interface ForecastData {
+  items: WeatherItem[];
+}
+
+interface DailyForecast {
+  date: Date;
+  items: WeatherItem[];
+  summary: {
+    maxTemp: number;
+    minTemp: number;
+    icons: Set<string>;
+    descriptions: Set<string>;
+    maxWind: number;
+  };
+}
+
+interface GroupedForecasts {
+  [key: string]: DailyForecast;
+}
+
 function LocalForecast() {
-  const [currentWeather, setCurrentWeather] = useState(null);
-  const [forecastData, setForecastData] = useState(null);
+  const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null);
+  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [expandedDay, setExpandedDay] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWeatherData();
@@ -55,15 +97,14 @@ function LocalForecast() {
 
       setCurrentWeather(current);
       setForecastData(forecast);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
+      setError(null);    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateStr, format = 'short') => {
+  const formatDate = (dateStr: string | Date, format: 'short' | 'time' = 'short'): string => {
     const date = new Date(dateStr);
     if (format === 'short') {
       return date.toLocaleDateString('en-GB', {
@@ -79,8 +120,8 @@ function LocalForecast() {
     });
   };
 
-  const groupForecastByDay = (items) => {
-    const grouped = {};
+  const groupForecastByDay = (items: WeatherItem[] | undefined): GroupedForecasts => {
+    const grouped: GroupedForecasts = {};
     
     items?.forEach(item => {
       const date = new Date(item.dtTxt);
@@ -88,13 +129,13 @@ function LocalForecast() {
       
       if (!grouped[dayKey]) {
         grouped[dayKey] = {
-          date: date,
+          date,
           items: [],
           summary: {
             maxTemp: -Infinity,
             minTemp: Infinity,
-            icons: new Set(),
-            descriptions: new Set(),
+            icons: new Set<string>(),
+            descriptions: new Set<string>(),
             maxWind: 0
           }
         };
@@ -111,11 +152,11 @@ function LocalForecast() {
     return grouped;
   };
 
-  const toggleDayExpansion = (dayKey) => {
+  const toggleDayExpansion = (dayKey: string): void => {
     setExpandedDay(expandedDay === dayKey ? null : dayKey);
   };
 
-  const getMostCommonIcon = (icons) => {
+  const getMostCommonIcon = (icons: Set<string>): string => {
     return Array.from(icons)[0];
   };
 
@@ -214,7 +255,17 @@ function LocalForecast() {
   );
 }
 
-const ProtectedRoute = ({ children, requireAdmin, requireStaffOrAdmin }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+  requireStaffOrAdmin?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requireAdmin = false, 
+  requireStaffOrAdmin = false 
+}) => {
   const { user, loading } = useAuth();
   const currentPath = window.location.pathname;
   
@@ -254,7 +305,7 @@ const ProtectedRoute = ({ children, requireAdmin, requireStaffOrAdmin }) => {
     return <Navigate to={user.isCustomer ? '/plant-holding' : '/'} replace state={{ from: currentPath }} />;
   }
   
-  return children;
+  return <>{children}</>;
 };
 
 function App() {
@@ -266,20 +317,18 @@ function App() {
           <Routes>
             <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
             <Route path="/register" element={<AuthLayout><Register /></AuthLayout>} />
-            
-            {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><MainLayout><Home /></MainLayout></ProtectedRoute>} />
-            <Route path="/home" element={<ProtectedRoute><MainLayout><Home /></MainLayout></ProtectedRoute>} />
-            <Route path="/weather" element={<ProtectedRoute><MainLayout><Weather /></MainLayout></ProtectedRoute>} />
-            <Route path="/plant-holding" element={<ProtectedRoute><MainLayout><CustomerPlantHolding /></MainLayout></ProtectedRoute>} />
-            
-            {/* Admin/Staff Only Routes */}
-            <Route path="/customers" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><AllCustomers /></MainLayout></ProtectedRoute>} />
-            <Route path="/customers/:custId" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><CustomerSummary /></MainLayout></ProtectedRoute>} />
-            <Route path="/customers/:custId/notes" element={<ProtectedRoute requireStaffOrAdmin={true}><MainLayout><CustomerNotes /></MainLayout></ProtectedRoute>} />
-            <Route path="/plant-categories" element={<ProtectedRoute requireAdmin={true}><MainLayout><PlantCategories /></MainLayout></ProtectedRoute>} />
-            <Route path="/manage-plant" element={<ProtectedRoute requireAdmin={true}><MainLayout><ManagePlant /></MainLayout></ProtectedRoute>} />
-            <Route path="/user-management" element={<ProtectedRoute requireAdmin={true}><MainLayout><UserManagement /></MainLayout></ProtectedRoute>} />
+              {/* Protected routes */}
+            <Route path="/" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={false}><MainLayout><Home /></MainLayout></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={false}><MainLayout><Home /></MainLayout></ProtectedRoute>} />
+            <Route path="/weather" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={false}><MainLayout><Weather /></MainLayout></ProtectedRoute>} />
+            <Route path="/plant-holding" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={false}><MainLayout><CustomerPlantHolding /></MainLayout></ProtectedRoute>} />
+              {/* Admin/Staff Only Routes */}
+            <Route path="/customers" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><MainLayout><AllCustomers /></MainLayout></ProtectedRoute>} />
+            <Route path="/customers/:custId" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><MainLayout><CustomerSummary /></MainLayout></ProtectedRoute>} />
+            <Route path="/customers/:custId/notes" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><MainLayout><CustomerNotes /></MainLayout></ProtectedRoute>} />
+            <Route path="/plant-categories" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><PlantCategories /></MainLayout></ProtectedRoute>} />
+            <Route path="/manage-plant" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><ManagePlant /></MainLayout></ProtectedRoute>} />
+            <Route path="/user-management" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><UserManagement /></MainLayout></ProtectedRoute>} />
             <Route path="/certificate/:id" element={<CertificatePage />} />
             
             {/* Catch-all route */}

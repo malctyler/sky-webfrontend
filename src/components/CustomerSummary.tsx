@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import {
   Button,
   IconButton,
@@ -48,7 +48,7 @@ type RouterParams = {
 const CustomerSummary: React.FC = () => {
   const { custId } = useParams<RouterParams>();
   const navigate = useNavigate();
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useCustomTheme();
   
   // State management
   const [activeTab, setActiveTab] = useState<number>(0);

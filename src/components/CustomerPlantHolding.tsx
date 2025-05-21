@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
 import { baseUrl } from '../config';
 import { PlantHolding } from '../types/plantholdingTypes';
@@ -12,7 +12,7 @@ interface LocationState {
 
 const CustomerPlantHolding: React.FC = () => {
   const { user } = useAuth();
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useCustomTheme();
   const location = useLocation();
   const [holdings, setHoldings] = useState<PlantHolding[]>([]);
   const [loading, setLoading] = useState(true);

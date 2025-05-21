@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import {
     Table,
     TableBody,
@@ -38,7 +38,7 @@ interface SnackbarState {
 }
 
 const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useCustomTheme();
     const [inspections, setInspections] = useState<Inspection[]>([]);
     const [showForm, setShowForm] = useState<boolean>(false);
     const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);

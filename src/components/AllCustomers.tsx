@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
@@ -15,7 +15,7 @@ import {
 import './AllCustomers.css';
 
 const AllCustomers: React.FC = () => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useCustomTheme();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [customerNotes, setCustomerNotes] = useState<CustomerNotes>({});

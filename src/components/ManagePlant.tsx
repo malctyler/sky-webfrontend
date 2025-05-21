@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { 
   IconButton, 
   Button, 
@@ -22,7 +22,7 @@ import './ManagePlant.css';
 import apiClient from '../services/apiClient';
 
 const ManagePlant: React.FC = () => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useCustomTheme();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [categories, setCategories] = useState<PlantCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -142,8 +142,7 @@ const ManagePlant: React.FC = () => {
       }
       console.error('Create plant error:', error);
     }
-  };
-  const handleUpdatePlant = async (): Promise<void> => {
+  };  const handleUpdatePlant = async (): Promise<void> => {
     if (!editingPlant) return;
 
     // Validate required fields
@@ -158,20 +157,19 @@ const ManagePlant: React.FC = () => {
     if (!plantData.normalPrice) {
       showError('Please enter a price');
       return;
-    }
-
-    try {
+    }    try {
       console.log('Updating plant with data:', plantData); // Debug log
-      const response = await apiClient.put(`/AllPlant/${editingPlant.plantNameID}`, {
-          plantNameID: editingPlant.plantNameID,
-          plantDescription: plantData.plantDescription.trim(),
-          plantCategory: parseInt(plantData.plantCategory),
-          normalPrice: plantData.normalPrice
-      });
-      const updatedPlant = response.data;
-      setPlants(prev => prev.map(plant => 
-        plant.plantNameID === editingPlant.plantNameID ? updatedPlant : plant
-      ));
+      const updatePayload = {
+        plantNameID: editingPlant.plantNameID,
+        plantDescription: plantData.plantDescription.trim(),
+        plantCategory: parseInt(plantData.plantCategory),
+        normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
+      };
+      
+      await apiClient.put(`/AllPlant/${editingPlant.plantNameID}`, updatePayload);
+      
+      // Fetch fresh data to ensure we have the correct state
+      await fetchPlants();
       setDialogOpen(false);
       resetForm();
       showSuccess('Plant updated successfully');
@@ -228,7 +226,7 @@ const ManagePlant: React.FC = () => {
       <div className={`manage-plant-container ${isDarkMode ? 'dark' : 'light'}`}>
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading plants...</p>
+          <p>Loading plant...</p>
         </div>
       </div>
     );
@@ -247,7 +245,7 @@ const ManagePlant: React.FC = () => {
   return (
     <div className={`manage-plant-container ${isDarkMode ? 'dark' : 'light'}`}>
       <div className="header">
-        <h2>Manage Plants</h2>
+        <h2>Manage Plant</h2>
         <Button
           variant="contained"
           color="primary"
@@ -286,23 +284,16 @@ const ManagePlant: React.FC = () => {
               >
                 <DeleteIcon />
               </IconButton>
-            </div>            <div className={`plant-info ${(!plant.plantDescription || !plant.plantCategory || !plant.normalPrice) ? 'incomplete' : ''}`}>
+            </div>            <div className="plant-info">
               <h3 key={`desc-${plant.plantNameID}`}>
-                {plant.plantDescription || <span className="missing">No Description</span>}
+                {plant.plantDescription}
               </h3>
               <p key={`cat-${plant.plantNameID}`}>
-                Category: {categories.find(c => c.categoryID === plant.plantCategory)?.categoryDescription || 
-                  <span className="missing">Not Categorized</span>}
+                Category: {categories.find(c => c.categoryID === plant.plantCategory)?.categoryDescription}
               </p>
               <p key={`price-${plant.plantNameID}`}>
-                Normal Price: {plant.normalPrice ? `£${Number(plant.normalPrice).toFixed(2)}` : 
-                  <span className="missing">No Price Set</span>}
+                Normal Price: £{Number(plant.normalPrice).toFixed(2)}
               </p>
-              {(!plant.plantDescription || !plant.plantCategory || !plant.normalPrice) && (
-                <p className="warning" key={`warning-${plant.plantNameID}`}>
-                  ⚠️ Incomplete Plant Entry
-                </p>
-              )}
             </div>
           </div>
         ))}
