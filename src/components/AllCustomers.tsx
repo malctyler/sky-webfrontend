@@ -169,7 +169,7 @@ const AllCustomers: React.FC = () => {
     }
   };
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string): void => {
+  const handleCloseSnackbar = (_?: React.SyntheticEvent | Event, reason?: string): void => {
     if (reason === 'clickaway') return;
     setSnackbar(prev => ({ ...prev, open: false }));
   };
