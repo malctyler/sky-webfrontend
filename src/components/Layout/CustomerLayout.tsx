@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Paper, Container, Typography } from '@mui/material';
-import MainLayout from '../components/Layout/MainLayout';
+import MainLayout from './MainLayout';
 
 interface CustomerLayoutProps {
   children: React.ReactNode;

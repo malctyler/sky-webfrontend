@@ -13,21 +13,9 @@ import {
   Typography
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
-import { baseUrl } from '../config';
+import claimService from '../services/claimService';
 import { User } from '../types/userTypes';
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr)?.token : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-interface Claim {
-  type: string;
-  value: string;
-}
+import { Claim, AddClaimDto, ClaimType } from '../types/claimTypes';
 
 interface ClaimManagementProps {
   user: User;
@@ -35,42 +23,43 @@ interface ClaimManagementProps {
   open: boolean;
 }
 
-const ClaimManagement: React.FC<ClaimManagementProps> = ({ user, onClose, open }) => {
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [newClaim, setNewClaim] = useState<Claim>({ type: '', value: '' });
+const ClaimManagement: React.FC<ClaimManagementProps> = ({ user, onClose, open }) => {  const [claims, setClaims] = useState<Claim[]>([]);
+  const [newClaim, setNewClaim] = useState<{ type: string; value: string }>({ type: '', value: '' });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const [claimToDelete, setClaimToDelete] = useState<Claim | null>(null);
+  const [claimToDelete, setClaimToDelete] = useState<{ type: string; value: string } | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchClaims();
     }
-  }, [user]);
-  const fetchClaims = async (): Promise<void> => {
+  }, [user]);  const fetchClaims = async (): Promise<void> => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.get(`${baseUrl}/Claims/${user.id}`, { headers });
-      setClaims(response.data);
+      const claims = await claimService.getClaims(user.id);
+      setClaims(claims);
     } catch (err) {
       console.error('Error fetching claims:', err);
     }
   };
+
   const handleAddClaim = async (): Promise<void> => {
     try {
-      const headers = getAuthHeaders();
-      await axios.post(`${baseUrl}/Claims/${user.id}`, newClaim, { headers });
+      const addClaimDto: AddClaimDto = {
+        type: newClaim.type,
+        value: newClaim.value
+      };
+      await claimService.addClaim(user.id, addClaimDto);
       await fetchClaims();
       setNewClaim({ type: '', value: '' });
     } catch (err) {
       console.error('Error adding claim:', err);
     }
   };
+
   const handleDeleteClaim = async (): Promise<void> => {
     if (!claimToDelete) return;
 
     try {
-      const headers = getAuthHeaders();
-      await axios.delete(`${baseUrl}/Claims/${user.id}/${claimToDelete.type}`, { headers });
+      await claimService.deleteClaim(user.id, claimToDelete.type as ClaimType);
       await fetchClaims();
       setDeleteDialogOpen(false);
       setClaimToDelete(null);

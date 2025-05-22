@@ -6,16 +6,9 @@ import { TextField, Button, IconButton, Dialog, DialogTitle, DialogContent, Dial
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
-import axios from 'axios';
-import { baseUrl } from '../config';
-import { Note, Customer } from '../types/notes';
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr)?.token : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import { customerService } from '../services/customerService';
+import { customerNotesService } from '../services/customerNotesService';
+import { Customer, Note } from '../types/customerTypes';
 
 const CustomerNotes: React.FC = () => {
   const params = useParams();
@@ -43,22 +36,20 @@ const CustomerNotes: React.FC = () => {
   useEffect(() => {
     filterNotes();
   }, [notes, searchText, startDate, endDate]);
-
   const fetchCustomerAndNotes = async (): Promise<void> => {
+    if (!custId) return;
     try {
-      const headers = getAuthHeaders();
-      const [customerResponse, notesResponse] = await Promise.all([
-        axios.get<Customer>(`${baseUrl}/Customers/${custId}`, { headers }),
-        axios.get<Note[]>(`${baseUrl}/Notes`, { headers })
+      const [customerData, notesData] = await Promise.all([
+        customerService.getById(parseInt(custId)),
+        customerNotesService.getAllNotes(parseInt(custId))
       ]);
-      const customerData = customerResponse.data;
-      const notesData = notesResponse.data;
+      
       setCustomer(customerData);
-      const customerNotes = notesData
-        .filter((note: Note) => note.custID === parseInt(custId as string))
-        .sort((a: Note, b: Note) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setNotes(customerNotes);
-      setFilteredNotes(customerNotes);
+      const sortedNotes = notesData.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setNotes(sortedNotes);
+      setFilteredNotes(sortedNotes);
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -90,16 +81,14 @@ const CustomerNotes: React.FC = () => {
     setFilteredNotes(filtered);
     setPage(1);
   };
-
   const handleCreateNote = async (): Promise<void> => {
+    if (!custId) return;
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.post<Note>(`${baseUrl}/Notes`, {
-        custID: parseInt(custId as string),
+      const newNote = await customerNotesService.createNote(parseInt(custId), {
+        custID: parseInt(custId),
         date: new Date().toISOString(),
         notes: newNoteText
-      }, { headers });
-      const newNote = response.data;
+      });
       setNotes(prev => [newNote, ...prev]);
       setDialogOpen(false);
       setNewNoteText('');
@@ -112,15 +101,12 @@ const CustomerNotes: React.FC = () => {
     if (!editingNote) return;
     
     try {
-      const headers = getAuthHeaders();
-      await axios.put<Note>(`${baseUrl}/Notes/${editingNote.noteID}`, {
+      const updatedNote = await customerNotesService.updateNote(editingNote.noteID, {
         ...editingNote,
         notes: newNoteText
-      }, { headers });
+      });
       setNotes(prev => prev.map(note => 
-        note.noteID === editingNote.noteID 
-          ? { ...note, notes: newNoteText }
-          : note
+        note.noteID === editingNote.noteID ? updatedNote : note
       ));
       setDialogOpen(false);
       setEditingNote(null);
@@ -135,8 +121,7 @@ const CustomerNotes: React.FC = () => {
       return;
     }
     try {
-      const headers = getAuthHeaders();
-      await axios.delete(`${baseUrl}/Notes/${noteId}`, { headers });
+      await customerNotesService.deleteNote(noteId);
       setNotes(prev => prev.filter(note => note.noteID !== noteId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
