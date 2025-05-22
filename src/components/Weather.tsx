@@ -1,81 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { baseUrl } from '../config';
 import style from './Weather.module.css';
+import { weatherService } from '../services/weatherService';
+import { CurrentWeather, WeatherForecastResponse, GroupedForecasts, WeatherItem } from '../types/weather';
 
 // Ensure type safety for CSS module
 const styles: { [key: string]: string } = style;
 
-interface CurrentWeather {
-    description: string;
-    temperature: number;
-    feelsLike: number;
-    humidity: number;
-    windSpeed: number;
-    icon: string;
-}
+// Using types from weather.ts
 
-interface WeatherItem {
-    dtTxt: string;
-    main: {
-        temp: number;
-    };
-    weather: Array<{
-        icon: string;
-        description: string;
-    }>;
-    wind: {
-        speed: number;
-    };
-}
 
-interface ForecastResponse {
-    items: WeatherItem[];
-}
 
-interface DailySummary {
-    maxTemp: number;
-    minTemp: number;
-    icons: Set<string>;
-    descriptions: Set<string>;
-    maxWind: number;
-}
-
-interface DailyForecast {
-    date: Date;
-    items: WeatherItem[];
-    summary: DailySummary;
-}
-
-interface GroupedForecasts {
-    [key: string]: DailyForecast;
-}
-
-const Weather: React.FC = () => {
-    const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(null);
-    const [forecastData, setForecastData] = useState<ForecastResponse | null>(null);
+const Weather: React.FC = () => {    const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(null);
+    const [forecastData, setForecastData] = useState<WeatherForecastResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
     useEffect(() => {
         fetchWeatherData();
-    }, []);
-
-    const fetchWeatherData = async (): Promise<void> => {
+    }, []);    const fetchWeatherData = async (): Promise<void> => {
         setLoading(true);
         try {
-            const [currentResponse, forecastResponse] = await Promise.all([
-                fetch(`${baseUrl}/Weather`),
-                fetch(`${baseUrl}/Weather/forecast`)
-            ]);
-
-            if (!currentResponse.ok || !forecastResponse.ok) {
-                throw new Error('Failed to fetch weather data');
-            }
-
             const [current, forecast] = await Promise.all([
-                currentResponse.json(),
-                forecastResponse.json()
+                weatherService.getCurrentWeather(),
+                weatherService.getFiveDayForecast()
             ]);
 
             setCurrentWeather(current);
