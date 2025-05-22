@@ -8,6 +8,7 @@ import './Register.css';
 interface FormData {
     email: string;
     password: string;
+    confirmPassword: string;
     firstName: string;
     lastName: string;
     isCustomer: boolean;
@@ -18,10 +19,10 @@ interface ErrorResponse {
     message?: string;
 }
 
-const Register: React.FC = () => {
-    const [formData, setFormData] = useState<FormData>({
+const Register: React.FC = () => {    const [formData, setFormData] = useState<FormData>({
         email: '',
         password: '',
+        confirmPassword: '',
         firstName: '',
         lastName: '',
         isCustomer: false,
@@ -36,14 +37,12 @@ const Register: React.FC = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-    };
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    };    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             await register({
                 ...formData,
-                customerId: formData.customerId ? parseInt(formData.customerId, 10) : null
+                customerId: formData.customerId || undefined
             });
             navigate('/login');
         } catch (err) {

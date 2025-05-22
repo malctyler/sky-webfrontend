@@ -20,14 +20,7 @@ import RoleManagement from './RoleManagement';
 import ClaimManagement from './ClaimManagement';
 import userService from '../services/userService';
 import RoleAdmin from './RoleAdmin';
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  isCustomer: boolean;
-}
+import { User } from '../types/userTypes';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -38,10 +31,18 @@ const UserManagement: React.FC = () => {
   const [openRoleAdmin, setOpenRoleAdmin] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-
   const fetchUsers = async (): Promise<void> => {
-    const data = await userService.getUsers();
-    setUsers(data);
+    try {
+      const data = await userService.getUsers();
+      setUsers(data.map(user => ({
+        ...user,
+        emailConfirmed: user.emailConfirmed || false,
+        roles: user.roles || []
+      })));
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Handle error appropriately
+    }
   };
 
   useEffect(() => {

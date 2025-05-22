@@ -19,7 +19,15 @@ import MuiAlert from '@mui/material/Alert';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../types/plantTypes';
 import './ManagePlant.css';
-import apiClient from '../services/apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr)?.token : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const ManagePlant: React.FC = () => {
   const { isDarkMode } = useCustomTheme();
@@ -59,8 +67,10 @@ const ManagePlant: React.FC = () => {
       setError('An unknown error occurred');
     }
     setLoading(false);
-  };  const fetchPlants = async (): Promise<void> => {
-    try {      const response = await apiClient.get('/AllPlant');
+  };    const fetchPlants = async (): Promise<void> => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${baseUrl}/AllPlant`, { headers });
       console.log('Fetched plants:', response.data); // Debug log
       setPlants(response.data);
       setLoading(false);
@@ -68,10 +78,10 @@ const ManagePlant: React.FC = () => {
       handleError(error);
     }
   };
-
   const fetchCategories = async (): Promise<void> => {
     try {
-      const response = await apiClient.get('/PlantCategories');
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${baseUrl}/PlantCategories`, { headers });
       console.log('Fetched categories:', response.data);  // Debug log
       setCategories(response.data);
     } catch (error: unknown) {
@@ -123,12 +133,15 @@ const ManagePlant: React.FC = () => {
     if (!plantData.normalPrice) {
       showError('Please enter a price');
       return;
-    }    try {      const response = await apiClient.post('/AllPlant', {
-          plantNameID: 0, // API will assign the real ID
-          plantDescription: plantData.plantDescription,
-          plantCategory: parseInt(plantData.plantCategory),
-          normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
-      });
+    }    
+    try {
+      const headers = getAuthHeaders();      const response = await axios.post(`${baseUrl}/AllPlant`, {
+        plantNameID: 0, // API will assign the real ID
+        plantDescription: plantData.plantDescription,
+        plantCategory: parseInt(plantData.plantCategory),
+        normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
+      }, { headers });
+      
       const newPlant = response.data;
       setPlants(prev => [...prev, newPlant]);
       setDialogOpen(false);
@@ -142,7 +155,8 @@ const ManagePlant: React.FC = () => {
       }
       console.error('Create plant error:', error);
     }
-  };  const handleUpdatePlant = async (): Promise<void> => {
+  };  
+  const handleUpdatePlant = async (): Promise<void> => {
     if (!editingPlant) return;
 
     // Validate required fields
@@ -157,8 +171,10 @@ const ManagePlant: React.FC = () => {
     if (!plantData.normalPrice) {
       showError('Please enter a price');
       return;
-    }    try {
+    }    
+    try {
       console.log('Updating plant with data:', plantData); // Debug log
+      const headers = getAuthHeaders();
       const updatePayload = {
         plantNameID: editingPlant.plantNameID,
         plantDescription: plantData.plantDescription.trim(),
@@ -166,7 +182,7 @@ const ManagePlant: React.FC = () => {
         normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
       };
       
-      await apiClient.put(`/AllPlant/${editingPlant.plantNameID}`, updatePayload);
+      await axios.put(`${baseUrl}/AllPlant/${editingPlant.plantNameID}`, updatePayload, { headers });
       
       // Fetch fresh data to ensure we have the correct state
       await fetchPlants();
@@ -182,7 +198,8 @@ const ManagePlant: React.FC = () => {
     if (!plantToDelete) return;
 
     try {
-      await apiClient.delete(`/AllPlant/${plantToDelete.plantNameID}`);
+      const headers = getAuthHeaders();
+      await axios.delete(`${baseUrl}/AllPlant/${plantToDelete.plantNameID}`, { headers });
       setPlants(prev => prev.filter(plant => plant.plantNameID !== plantToDelete.plantNameID));
       setDeleteDialogOpen(false);
       setPlantToDelete(null);

@@ -6,8 +6,16 @@ import { TextField, Button, IconButton, Dialog, DialogTitle, DialogContent, Dial
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import "react-datepicker/dist/react-datepicker.css";
 import './CustomerNotes.css';
-import apiClient from '../services/apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
 import { Note, Customer } from '../types/notes';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr)?.token : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const CustomerNotes: React.FC = () => {
   const params = useParams();
@@ -38,16 +46,17 @@ const CustomerNotes: React.FC = () => {
 
   const fetchCustomerAndNotes = async (): Promise<void> => {
     try {
+      const headers = getAuthHeaders();
       const [customerResponse, notesResponse] = await Promise.all([
-        apiClient.get<Customer>(`/Customers/${custId}`),
-        apiClient.get<Note[]>('/Notes')
+        axios.get<Customer>(`${baseUrl}/Customers/${custId}`, { headers }),
+        axios.get<Note[]>(`${baseUrl}/Notes`, { headers })
       ]);
       const customerData = customerResponse.data;
       const notesData = notesResponse.data;
       setCustomer(customerData);
       const customerNotes = notesData
-        .filter(note => note.custID === parseInt(custId as string))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        .filter((note: Note) => note.custID === parseInt(custId as string))
+        .sort((a: Note, b: Note) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setNotes(customerNotes);
       setFilteredNotes(customerNotes);
       setLoading(false);
@@ -84,11 +93,12 @@ const CustomerNotes: React.FC = () => {
 
   const handleCreateNote = async (): Promise<void> => {
     try {
-      const response = await apiClient.post<Note>('/Notes', {
+      const headers = getAuthHeaders();
+      const response = await axios.post<Note>(`${baseUrl}/Notes`, {
         custID: parseInt(custId as string),
         date: new Date().toISOString(),
         notes: newNoteText
-      });
+      }, { headers });
       const newNote = response.data;
       setNotes(prev => [newNote, ...prev]);
       setDialogOpen(false);
@@ -102,10 +112,11 @@ const CustomerNotes: React.FC = () => {
     if (!editingNote) return;
     
     try {
-      await apiClient.put<Note>(`/Notes/${editingNote.noteID}`, {
+      const headers = getAuthHeaders();
+      await axios.put<Note>(`${baseUrl}/Notes/${editingNote.noteID}`, {
         ...editingNote,
         notes: newNoteText
-      });
+      }, { headers });
       setNotes(prev => prev.map(note => 
         note.noteID === editingNote.noteID 
           ? { ...note, notes: newNoteText }
@@ -124,7 +135,8 @@ const CustomerNotes: React.FC = () => {
       return;
     }
     try {
-      await apiClient.delete(`/Notes/${noteId}`);
+      const headers = getAuthHeaders();
+      await axios.delete(`${baseUrl}/Notes/${noteId}`, { headers });
       setNotes(prev => prev.filter(note => note.noteID !== noteId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

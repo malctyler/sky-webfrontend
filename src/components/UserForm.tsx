@@ -1,7 +1,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { TextField, Button, Checkbox, FormControlLabel, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { TextField, Button, Checkbox, FormControlLabel } from '@mui/material';
 import userService from '../services/userService';
-import { User } from '../types/userTypes';
+import { User, CreateUserDto, UpdateUserDto } from '../types/userTypes';
 
 interface UserFormProps {
   user: User | null;
@@ -19,24 +19,30 @@ interface UserFormData {
   emailConfirmed: boolean;
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, onSuccess, onCancel }) => {
-  const [form, setForm] = useState<UserFormData>({
+const convertFormToDto = (form: UserFormData): CreateUserDto | UpdateUserDto => {
+  return {
+    ...form,
+    customerId: form.customerId ? parseInt(form.customerId, 10) : null
+  };
+};
+
+const UserForm: React.FC<UserFormProps> = ({ user, onSuccess, onCancel }) => {  const [form, setForm] = useState<UserFormData>({
     email: user?.email || '',
     password: '',
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     isCustomer: user?.isCustomer || false,
-    customerId: user?.customerId || '',
+    customerId: user?.customerId?.toString() || '',
     emailConfirmed: user?.emailConfirmed || false,
   });
   const [error, setError] = useState<string>('');
-
   useEffect(() => {
     if (user) {
       setForm(f => ({
         ...f,
         ...user,
-        password: '' // Don't populate password field for existing users
+        password: '', // Don't populate password field for existing users
+        customerId: user.customerId?.toString() || '' // Convert number to string for form
       }));
     }
   }, [user]);
@@ -48,16 +54,16 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess, onCancel }) => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
+      const dto = convertFormToDto(form);
       if (user) {
-        await userService.updateUser(user.id, form);
+        await userService.updateUser(user.id, dto);
       } else {
-        await userService.createUser(form);
+        await userService.createUser(dto as CreateUserDto);
       }
       onSuccess();
     } catch (err: any) {

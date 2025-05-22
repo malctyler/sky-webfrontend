@@ -45,9 +45,8 @@ const CustomerPlantHolding: React.FC = () => {
   }, [user, mounted]);
 
   useEffect(() => {
-    setMounted(true);
-    if (user) {
-      const customerId = user.customerId || user.customerID;
+    setMounted(true);    if (user) {
+      const customerId = user.customerId;
       if (customerId) {
         fetchHoldings(customerId);
       } else if (mounted) {
@@ -90,9 +89,8 @@ const CustomerPlantHolding: React.FC = () => {
         loadingContent
       ) : error ? (
         <div className="error-state">
-          <p>⚠️ {error}</p>
-          <button onClick={() => {
-            const customerId = user.customerId || user.customerID;
+          <p>⚠️ {error}</p>          <button onClick={() => {
+            const customerId = user.customerId;
             if (customerId) fetchHoldings(customerId);
           }}>
             Try Again

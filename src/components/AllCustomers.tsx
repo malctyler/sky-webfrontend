@@ -5,7 +5,8 @@ import { IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions }
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import apiClient from '../services/apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
 import { 
   Customer, 
   CustomerFormData, 
@@ -13,6 +14,13 @@ import {
   SnackbarState 
 } from '../types/customerTypes';
 import './AllCustomers.css';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr)?.token : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const AllCustomers: React.FC = () => {
   const { isDarkMode } = useCustomTheme();
@@ -68,12 +76,12 @@ const AllCustomers: React.FC = () => {
       setFilteredCustomers(filtered);
     }
   }, [searchTerm, customers]);
-
   const fetchCustomersAndNotes = async (): Promise<void> => {
     try {      
+      const headers = getAuthHeaders();
       const [customersResponse, notesResponse] = await Promise.all([
-        apiClient.get<Customer[]>('/Customers'),
-        apiClient.get<{ custID: number }[]>('/Notes')
+        axios.get<Customer[]>(`${baseUrl}/Customers`, { headers }),
+        axios.get<{ custID: number }[]>(`${baseUrl}/Notes`, { headers })
       ]);
       
       const customersData = customersResponse.data;
@@ -106,11 +114,11 @@ const AllCustomers: React.FC = () => {
       [name]: value
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     try {
-      const response = await apiClient.post<Customer>('/Customers', formData);
+      const headers = getAuthHeaders();
+      const response = await axios.post<Customer>(`${baseUrl}/Customers`, formData, { headers });
       setCustomers(prev => [...prev, response.data]);
       setShowForm(false);
       setFormData({
@@ -145,12 +153,12 @@ const AllCustomers: React.FC = () => {
     setCustomerToDelete(customer);
     setDeleteDialogOpen(true);
   };
-
   const handleConfirmDelete = async (): Promise<void> => {
     if (!customerToDelete) return;
 
     try {
-      await apiClient.delete(`/Customers/${customerToDelete.custID}`);
+      const headers = getAuthHeaders();
+      await axios.delete(`${baseUrl}/Customers/${customerToDelete.custID}`, { headers });
       setCustomers(prev => prev.filter(c => c.custID !== customerToDelete.custID));
       setSnackbar({
         open: true,

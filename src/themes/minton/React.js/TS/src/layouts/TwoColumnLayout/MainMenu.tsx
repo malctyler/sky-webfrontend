@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 import classNames from "classnames";
 
 // constants
-import {MenuItemTypes} from "@/constants/menu";
+import {MenuItemTypes} from "../../constants/menu";
 
 // components
 import {UserBox} from "../LeftSidebar";
 import SimpleBar from "simplebar-react";
-import {useLayoutContext} from "@/context/useLayoutContext";
-import { useAuthContext } from "@/context/useAuthContext";
+import {useLayoutContext} from "../../context/useLayoutContext";
+import { useAuthContext } from "../../context/useAuthContext";
 
 interface SubMenus {
     item: MenuItemTypes;
@@ -72,7 +72,7 @@ const MenuItemWithChildren = ({
                 <Collapse in={open}>
                     <div>
                         <ul className={classNames(subMenuClassNames)}>
-                            {(item.children || []).map((child, i) => {
+                            {(item.children || []).map((child: MenuItemTypes, i: number) => {
                                 return (
                                     <React.Fragment key={i}>
                                         {child.children ? (
@@ -165,18 +165,15 @@ const MainMenu = ({
                     <div id="two-col-menu" className="h-100">
                         <SimpleBar style={{ maxHeight: "100%" }} scrollbarMaxSize={320}>
 
-                            {showUserInfo && <UserBox />}
-
-                            {(menuItems || []).map((menuItem, key) => {
+                            {showUserInfo && <UserBox user={user || { name: '', email: '' }} />}                            {menuItems.map((menuItem: MenuItemTypes) => {
                                 // Conditionally render "Customers" menu item
                                 if (menuItem.label === "Customers" && !user?.roles?.includes("Staff") && !user?.roles?.includes("Admin")) {
                                     return null;
                                 }
 
-                                const activeParent = activeMenuItems && activeMenuItems.length && activeMenuItems[activeMenuItems.length - 1] === menuItem["key"];
-                                return (
+                                const activeParent = activeMenuItems && activeMenuItems.length && activeMenuItems[activeMenuItems.length - 1] === menuItem.key;                                return (
                                     <div
-                                        key={key}
+                                        key={menuItem.key}
                                         className={classNames("twocolumn-menu-item", {
                                             "d-block": activeParent,
                                         })}
@@ -185,23 +182,21 @@ const MainMenu = ({
                                             {menuItem.isTitle && (
                                                 <h5 className="menu-title">{menuItem.label}</h5>
                                             )}
-                                            <ul className="nav flex-column">
-                                                {(menuItem.children || []).map((item, idx) => {
+                                            <ul className="nav flex-column">                                                {(menuItem.children || []).map((childItem: MenuItemTypes, childIdx: number) => {
                                                     return (
-                                                        <React.Fragment key={idx}>
-                                                            {item.children ? (
+                                                        <React.Fragment key={childIdx}>
+                                                            {childItem.children ? (
                                                                 <MenuItemWithChildren
-                                                                    item={item}
+                                                                    item={childItem}
                                                                     toggleMenu={toggleMenu}
                                                                     subMenuClassNames="nav-second-level"
                                                                     activeMenuItems={activeMenuItems}
                                                                     linkClassName="side-nav-link"
                                                                 />
-                                                            ) : (
-                                                                <MenuItem
-                                                                    item={item}
+                                                            ) : (                                                                <MenuItem
+                                                                    item={childItem}
                                                                     linkClassName="side-nav-link"
-                                                                    className={activeMenuItems!.includes(item.key) ? "menuitem-active" : ""}
+                                                                    className={activeMenuItems!.includes(childItem.key) ? "menuitem-active" : ""}
                                                                 />
                                                             )}
                                                         </React.Fragment>

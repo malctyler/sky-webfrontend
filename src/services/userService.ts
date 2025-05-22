@@ -1,18 +1,28 @@
-import apiClient from './apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
 import { 
     User,
     CreateUserDto,
     UpdateUserDto
 } from '../types/userTypes';
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+    const userStr = localStorage.getItem('user');
+    const token = userStr ? JSON.parse(userStr)?.token : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 const getUsers = async (): Promise<User[]> => {
-    const res = await apiClient.get<User[]>('/Users');
-    return res.data;
+    const headers = getAuthHeaders();
+    const response = await axios.get<User[]>(`${baseUrl}/Users`, { headers });
+    return response.data;
 };
 
 const getUser = async (id: string): Promise<User> => {
-    const res = await apiClient.get<User>(`/Users/${id}`);
-    return res.data;
+    const headers = getAuthHeaders();
+    const response = await axios.get<User>(`${baseUrl}/Users/${id}`, { headers });
+    return response.data;
 };
 
 const createUser = async (userData: CreateUserDto): Promise<User> => {
@@ -29,16 +39,19 @@ const createUser = async (userData: CreateUserDto): Promise<User> => {
         emailConfirmed: userData.emailConfirmed
     };
     
-    const res = await apiClient.post<User>('/Users', registerDto);
-    return res.data;
+    const headers = getAuthHeaders();
+    const response = await axios.post<User>(`${baseUrl}/Users`, registerDto, { headers });
+    return response.data;
 };
 
 const updateUser = async (id: string, user: UpdateUserDto): Promise<void> => {
-    await apiClient.put<void>(`/Users/${id}`, user);
+    const headers = getAuthHeaders();
+    await axios.put<void>(`${baseUrl}/Users/${id}`, user, { headers });
 };
 
 const deleteUser = async (id: string): Promise<void> => {
-    await apiClient.delete(`/Users/${id}`);
+    const headers = getAuthHeaders();
+    await axios.delete(`${baseUrl}/Users/${id}`, { headers });
 };
 
 const userService = {

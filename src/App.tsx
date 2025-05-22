@@ -97,9 +97,7 @@ function App() {
             <Route path="/customers/:custId" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><MainLayout><CustomerSummary /></MainLayout></ProtectedRoute>} />
             <Route path="/customers/:custId/notes" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><MainLayout><CustomerNotes /></MainLayout></ProtectedRoute>} />
             <Route path="/plant-categories" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><PlantCategories /></MainLayout></ProtectedRoute>} />
-            <Route path="/manage-plant" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><ManagePlant /></MainLayout></ProtectedRoute>} />
-            <Route path="/user-management" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><UserManagement /></MainLayout></ProtectedRoute>} />
-            <Route path="/certificate/:id" element={<CertificatePage />} />
+            <Route path="/manage-plant" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><ManagePlant /></MainLayout></ProtectedRoute>} />            <Route path="/user-management" element={<ProtectedRoute requireAdmin={true} requireStaffOrAdmin={false}><MainLayout><UserManagement /></MainLayout></ProtectedRoute>} />            <Route path="/certificate/:id" element={<ProtectedRoute requireAdmin={false} requireStaffOrAdmin={true}><CertificatePage /></ProtectedRoute>} />
             
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/" replace />} />

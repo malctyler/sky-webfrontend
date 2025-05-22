@@ -12,6 +12,7 @@ export interface RegisterData {
     firstName: string;
     lastName: string;
     role?: string;
+    customerId?: string;  // Added this field
 }
 
 export interface AuthUser {
@@ -23,8 +24,7 @@ export interface AuthUser {
     roles: string[];
 }
 
-export interface AuthResponse {
-    token: string;
+export interface AuthResponse {    token: string;
     userId: string;
     email: string;
     roles: string[];
@@ -32,6 +32,7 @@ export interface AuthResponse {
     firstName?: string;
     lastName?: string;
     customerId?: string;
+    isCustomer: boolean;
 }
 
 export interface TokenValidationResponse {

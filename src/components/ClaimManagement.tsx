@@ -13,8 +13,16 @@ import {
   Typography
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import apiClient from '../services/apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
 import { User } from '../types/userTypes';
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr)?.token : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 interface Claim {
   type: string;
@@ -38,31 +46,31 @@ const ClaimManagement: React.FC<ClaimManagementProps> = ({ user, onClose, open }
       fetchClaims();
     }
   }, [user]);
-
   const fetchClaims = async (): Promise<void> => {
     try {
-      const response = await apiClient.get(`/Claims/${user.id}`);
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${baseUrl}/Claims/${user.id}`, { headers });
       setClaims(response.data);
     } catch (err) {
       console.error('Error fetching claims:', err);
     }
   };
-
   const handleAddClaim = async (): Promise<void> => {
     try {
-      await apiClient.post(`/Claims/${user.id}`, newClaim);
+      const headers = getAuthHeaders();
+      await axios.post(`${baseUrl}/Claims/${user.id}`, newClaim, { headers });
       await fetchClaims();
       setNewClaim({ type: '', value: '' });
     } catch (err) {
       console.error('Error adding claim:', err);
     }
   };
-
   const handleDeleteClaim = async (): Promise<void> => {
     if (!claimToDelete) return;
 
     try {
-      await apiClient.delete(`/Claims/${user.id}/${claimToDelete.type}`);
+      const headers = getAuthHeaders();
+      await axios.delete(`${baseUrl}/Claims/${user.id}/${claimToDelete.type}`, { headers });
       await fetchClaims();
       setDeleteDialogOpen(false);
       setClaimToDelete(null);

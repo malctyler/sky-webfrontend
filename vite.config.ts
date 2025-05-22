@@ -1,13 +1,26 @@
 import { defineConfig } from 'vite'
-import reactSwc from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
+import tsconfigPaths from 'vite-tsconfig-paths'
+import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [reactSwc({
-    tsDecorators: true,
-    tsConfigPath: './tsconfig.build.json'
-  })],
+  plugins: [
+    react({
+      // Include JSX and TSX files
+      include: /\.(js|jsx|ts|tsx)$/,
+      babel: {
+        plugins: [
+          // Add any babel plugins here
+        ],
+      }
+    }),
+    tsconfigPaths()
+  ],
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx']
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -15,6 +28,12 @@ export default defineConfig({
       supported: { 
         'top-level-await': true 
       },
+      loader: {
+        '.js': 'jsx',
+        '.jsx': 'jsx',
+        '.ts': 'tsx',
+        '.tsx': 'tsx',
+      }
     }
   },
   server: {

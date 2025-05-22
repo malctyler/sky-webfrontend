@@ -1,14 +1,13 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import DatePicker from 'react-datepicker';
-import { format } from 'date-fns';
 import "react-datepicker/dist/react-datepicker.css";
 import "./InspectionForm.css";
 import inspectorService from '../services/inspectorService';
-import { Inspection, InspectionFormData } from '../types/inspectionTypes';
+import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
 import { Inspector } from '../types/inspectorTypes';
 
 interface InspectionFormProps {
-    inspection: Inspection | null;
+    inspection: InspectionItem | null;
     onSubmit: (data: InspectionFormData) => void;
     onCancel: () => void;
     holdingId: number;
@@ -16,7 +15,7 @@ interface InspectionFormProps {
 
 const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, onCancel, holdingId }) => {
     const [formData, setFormData] = useState<InspectionFormData>({
-        holdingID: holdingId || 0,
+        holdingID: Number(holdingId) || 0,
         inspectionDate: null,
         location: '',
         recentCheck: '',
@@ -28,54 +27,49 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
         testDetails: '',
         miscNotes: '',
         inspectorID: null
-    });    const [inspectors, setInspectors] = useState<Inspector[]>([]);
-      useEffect(() => {
+    });
+    const [inspectors, setInspectors] = useState<Inspector[]>([]);    useEffect(() => {
         const fetchInspectors = async () => {
             try {
-                const data = await inspectorService.getAll();
-                console.log('Fetched inspectors:', data);
-                if (Array.isArray(data)) {
-                    setInspectors(data.filter(inspector => 
-                        inspector?.inspectorID && inspector?.inspectorsName
-                    ));
-                } else {
-                    console.error('Invalid inspector data format received:', data);
-                    setInspectors([]);
-                }
+                const inspectors = await inspectorService.getAll();
+                setInspectors(inspectors);
             } catch (error) {
                 console.error('Failed to fetch inspectors:', error);
                 setInspectors([]);
             }
         };
 
-        fetchInspectors();
-
-        if (inspection) {
+        fetchInspectors();        if (inspection) {
+            // Map inspection fields to form data structure
             setFormData({
-                ...inspection,
+                holdingID: Number(holdingId),
                 inspectionDate: inspection.inspectionDate ? new Date(inspection.inspectionDate) : null,
                 latestDate: inspection.latestDate ? new Date(inspection.latestDate) : null,
+                location: inspection.location || '',
+                recentCheck: inspection.recentCheck || '',
+                previousCheck: inspection.previousCheck || '',
+                safeWorking: inspection.safeWorking || '',
+                defects: inspection.defects || '',
+                rectified: inspection.rectified || '',
+                testDetails: inspection.testDetails || '',
+                miscNotes: inspection.miscNotes || '',
                 inspectorID: inspection.inspectorID || null
             });
         } else {
             setFormData(prev => ({
                 ...prev,
-                holdingID: holdingId
+                holdingID: Number(holdingId)
             }));
         }
     }, [inspection, holdingId]);    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const inputElement = e.target as HTMLInputElement;
+        const { name, value } = e.target;
         
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'inspectorID' ? (value ? parseInt(value, 10) : null) : 
-                    type === 'checkbox' ? inputElement.checked : value
+            [name]: name === 'inspectorID' ? (value ? parseInt(value, 10) : null) : value
         }));
-    };
-
-    const handleDateChange = (date: Date | null, fieldName: keyof Pick<InspectionFormData, 'inspectionDate' | 'latestDate'>) => {
-        setFormData(prev => ({
+    };const handleDateChange = (date: Date | null, fieldName: keyof Pick<InspectionFormData, 'inspectionDate' | 'latestDate'>) => {
+        setFormData((prev: InspectionFormData) => ({
             ...prev,
             [fieldName]: date
         }));
@@ -167,7 +161,7 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
             <label htmlFor="inspectorID">Inspector:</label>              <select
                 id="inspectorID"
                 name="inspectorID"
-                value={formData.inspectorID?.toString() || ""}
+                value={formData.inspectorID !== null ? formData.inspectorID.toString() : ""}
                 onChange={handleChange}
                 required
             >

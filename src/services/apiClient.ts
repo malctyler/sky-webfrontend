@@ -2,11 +2,13 @@ import axios, { AxiosError, AxiosInstance } from 'axios';
 import { baseUrl } from '../config';
 import { ApiClientConfig, User } from '../types/apiTypes';
 
-const apiClient: AxiosInstance = axios.create({
+// Create and configure the axios instance
+const instance: AxiosInstance = axios.create({
     baseURL: baseUrl
 });
 
-apiClient.interceptors.request.use((config: ApiClientConfig) => {
+// Configure interceptors
+instance.interceptors.request.use((config: ApiClientConfig) => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
         try {
@@ -26,7 +28,7 @@ apiClient.interceptors.request.use((config: ApiClientConfig) => {
 });
 
 // Add response interceptor to handle 401 Unauthorized
-apiClient.interceptors.response.use(
+instance.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response?.status === 401) {
@@ -39,4 +41,8 @@ apiClient.interceptors.response.use(
     }
 );
 
+// Create the API client instance
+const apiClient = instance;
+
+// Export the configured instance as the default export
 export default apiClient;

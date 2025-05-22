@@ -36,13 +36,21 @@ import {
 import './CustomerSummary.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
-import apiClient from '../services/apiClient';
+import axios from 'axios';
+import { baseUrl } from '../config';
 import { Customer, SnackbarState, Note } from '../types/customerTypes';
 import { PlantHolding, NewPlantHolding, Plant, Status } from '../types/plantholdingTypes';
 
 type RouterParams = {
   [key: string]: string | undefined;
   custId?: string;
+};
+
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr)?.token : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 const CustomerSummary: React.FC = () => {
@@ -94,12 +102,12 @@ const CustomerSummary: React.FC = () => {
   const toggleHoldingExpand = (holdingId: number) => {
     setExpandedHolding(expandedHolding === holdingId ? null : holdingId);
   };
-
   const fetchCustomerAndNotes = useCallback(async () => {
     try {
+      const headers = getAuthHeaders();
       const [customerResponse, notesResponse] = await Promise.all([
-        apiClient.get(`/Customers/${custId}`),
-        apiClient.get('/Notes')
+        axios.get(`${baseUrl}/Customers/${custId}`, { headers }),
+        axios.get(`${baseUrl}/Notes`, { headers })
       ]);
       const customerData = customerResponse.data;
       const notesData = notesResponse.data;
@@ -119,19 +127,21 @@ const CustomerSummary: React.FC = () => {
       setLoading(false);
     }
   }, [custId]);
-  const fetchPlantHoldings = useCallback(async () => {
+    const fetchPlantHoldings = useCallback(async () => {
     try {
-      const response = await apiClient.get(`/PlantHolding/customer/${custId}`);
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${baseUrl}/PlantHolding/customer/${custId}`, { headers });
       setPlantHoldings(response.data);
     } catch (err: unknown) {
       handleError(err);
     }
   }, [custId]);
-  const fetchPlantAndStatusOptions = useCallback(async () => {
+    const fetchPlantAndStatusOptions = useCallback(async () => {
     try {
+      const headers = getAuthHeaders();
       const [plantsResponse, statusesResponse] = await Promise.all([
-        apiClient.get('/AllPlant'),
-        apiClient.get('/Status')
+        axios.get(`${baseUrl}/AllPlant`, { headers }),
+        axios.get(`${baseUrl}/Status`, { headers })
       ]);
       setAllPlants(plantsResponse.data);
       setAllStatuses(statusesResponse.data);
@@ -144,56 +154,13 @@ const CustomerSummary: React.FC = () => {
     if (!custId) {
       setError('Customer ID is required');
       return;
-    }
-
-    // Initial data loading
-    const loadData = async () => {
-      try {
-        const [customerResponse, notesResponse, holdingsResponse] = await Promise.all([
-          apiClient.get(`/Customers/${custId}`),
-          apiClient.get('/Notes'),
-          apiClient.get(`/PlantHolding/customer/${custId}`)
-        ]);
-
-        const customerData = customerResponse.data;
-        const notesData = notesResponse.data;
-        const holdingsData = holdingsResponse.data;
-
-        setCustomer(customerData);
-        setEditingCustomer(customerData);
-        setNotes(
-          notesData
-            .filter((note: Note) => note.custID === parseInt(custId))
-            .sort((a: Note, b: Note) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        );
-        setPlantHoldings(holdingsData);
-      } catch (error: unknown) {
-        handleError(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+    }    Promise.all([
+      fetchCustomerAndNotes(),
+      fetchPlantHoldings(),
+      fetchPlantAndStatusOptions()
+    ]);
   }, [custId]);
-
-  // Load plant and status options
-  useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [plantsResponse, statusesResponse] = await Promise.all([
-          apiClient.get('/AllPlant'),
-          apiClient.get('/Status')
-        ]);
-        setAllPlants(plantsResponse.data);
-        setAllStatuses(statusesResponse.data);
-      } catch (error: unknown) {
-        handleError(error);
-      }
-    };
-
-    loadOptions();
-  }, []);
+  // Removed redundant useEffect since fetchPlantAndStatusOptions is called in the initial load
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -234,7 +201,7 @@ const CustomerSummary: React.FC = () => {
   const handleDeleteCustomer = async () => {
     if (!custId) return;
     try {
-      await apiClient.delete(`/Customers/${custId}`);
+      await axios.delete(`${baseUrl}/api/Customers/${custId}`);
       showSuccess('Customer deleted successfully');
       setDeleteCustomerDialog(false);
       setTimeout(() => {
@@ -244,20 +211,15 @@ const CustomerSummary: React.FC = () => {
       handleError(error);
     }
   };
-
-  const openDeleteCustomerDialog = () => {
-    setDeleteCustomerDialog(true);
-  };
-
   // Note actions
   const handleCreateNote = async () => {
-    if (!custId) return;
-    try {
-      const response = await apiClient.post('/Notes', {
+    if (!custId) return;    try {
+      const headers = getAuthHeaders();
+      const response = await axios.post(`${baseUrl}/Notes`, {
         custID: parseInt(custId),
         date: new Date().toISOString(),
         notes: newNoteText
-      });
+      }, { headers });
       const newNote = response.data;
       setNotes(prev => [newNote, ...prev]);
       setNoteDialogOpen(false);
@@ -267,14 +229,14 @@ const CustomerSummary: React.FC = () => {
       handleError(error);
     }
   };
-
   const handleUpdateNote = async () => {
     if (!editingNote) return;
     try {
-      await apiClient.put(`/Notes/${editingNote.noteID}`, {
+      const headers = getAuthHeaders();
+      await axios.put(`${baseUrl}/Notes/${editingNote.noteID}`, {
         ...editingNote,
         notes: newNoteText
-      });
+      }, { headers });
       setNotes(prev => prev.map(note => 
         note.noteID === editingNote.noteID 
           ? { ...note, notes: newNoteText }
@@ -286,19 +248,19 @@ const CustomerSummary: React.FC = () => {
       showSuccess('Note updated successfully');
     } catch (error) {
       handleError(error);
-    }
-  };
+    }  };
 
   // Plant holding management
   const handleCreatePlantHolding = async () => {
     if (!custId) return;
     try {
-      const response = await apiClient.post('/PlantHolding', {
+      const headers = getAuthHeaders();
+      const response = await axios.post(`${baseUrl}/PlantHolding`, {
         ...newPlantHolding,
         custID: parseInt(custId),
         plantNameID: parseInt(newPlantHolding.plantNameID),
         statusID: parseInt(newPlantHolding.statusID)
-      });
+      }, { headers });
       const newHolding = response.data;
       setPlantHoldings(prev => [...prev, newHolding]);
       setPlantHoldingDialogOpen(false);
@@ -306,18 +268,18 @@ const CustomerSummary: React.FC = () => {
       showSuccess('Plant holding created successfully');
     } catch (error: unknown) {
       handleError(error);
-    }
-  };
+    }  };
 
   const handleUpdatePlantHolding = async () => {
     if (!editingPlantHolding || !custId) return;
     try {
-      const response = await apiClient.put(`/PlantHolding/${editingPlantHolding.holdingID}`, {
+      const headers = getAuthHeaders();
+      const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, {
         ...editingPlantHolding,
         custID: parseInt(custId),
         plantNameID: parseInt(newPlantHolding.plantNameID),
         statusID: parseInt(newPlantHolding.statusID)
-      });
+      }, { headers });
       const updatedHolding = response.data;
       setPlantHoldings(prev => prev.map(holding => 
         holding.holdingID === editingPlantHolding.holdingID ? updatedHolding : holding
@@ -353,12 +315,11 @@ const CustomerSummary: React.FC = () => {
       [name]: value
     }));
   };
-
   const handleCustomerUpdate = async () => {
     if (!custId || !editingCustomer) return;
     
     try {
-      await apiClient.put(`/Customers/${custId}`, editingCustomer);
+      await axios.put(`${baseUrl}/Customers/${custId}`, editingCustomer);
       setCustomer(editingCustomer);
       setEditDialogOpen(false);
       showSuccess('Customer updated successfully');
@@ -366,11 +327,10 @@ const CustomerSummary: React.FC = () => {
       handleError(error);
     }
   };
-
   const handleDeleteNote = async () => {
     if (!noteToDelete) return;
     try {
-      await apiClient.delete(`/Notes/${noteToDelete.noteID}`);
+      await axios.delete(`${baseUrl}/Notes/${noteToDelete.noteID}`);
       setNotes(prev => prev.filter(n => n.noteID !== noteToDelete.noteID));
       setDeleteNoteDialog(false);
       setNoteToDelete(null);
@@ -379,7 +339,6 @@ const CustomerSummary: React.FC = () => {
       handleError(error);
     }
   };
-
   const openDeleteHoldingDialog = (holding: PlantHolding) => {
     setHoldingToDelete(holding);
     setDeleteHoldingDialog(true);
@@ -388,7 +347,7 @@ const CustomerSummary: React.FC = () => {
   const handleDeletePlantHolding = async () => {
     if (!holdingToDelete) return;
     try {
-      await apiClient.delete(`/PlantHolding/${holdingToDelete.holdingID}`);
+      await axios.delete(`${baseUrl}/PlantHolding/${holdingToDelete.holdingID}`);
       setPlantHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
       setDeleteHoldingDialog(false);
       setHoldingToDelete(null);

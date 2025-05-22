@@ -1,23 +1,15 @@
 import React from 'react';
-import { PDFViewer } from '@react-pdf/renderer';
+import { InspectionCertificate } from '../types/inspectionTypes';
 import InspectionCertificateTemplate from './InspectionCertificateTemplate';
-import { InspectionItem } from '../types/inspectionTypes';
 
 interface CertificateViewerProps {
-    inspection: InspectionItem;
+    inspection: InspectionCertificate;
 }
 
-const CertificateViewer: React.FC<CertificateViewerProps> = ({ inspection }) => {    const viewerStyle = {
-        width: '100%',
-        height: '80vh',
-        border: 'none'
-    } as const;
-
+const CertificateViewer: React.FC<CertificateViewerProps> = ({ inspection }) => {    
     return (
-        <PDFViewer style={viewerStyle}>
-            <InspectionCertificateTemplate inspection={inspection} />
-        </PDFViewer>
+        <InspectionCertificateTemplate inspection={inspection} />
     );
-};
+}
 
 export default CertificateViewer;

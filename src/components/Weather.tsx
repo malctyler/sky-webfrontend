@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { baseUrl } from '../config';
-import styles from './Weather.module.css';
+import style from './Weather.module.css';
+
+// Ensure type safety for CSS module
+const styles: { [key: string]: string } = style;
 
 interface CurrentWeather {
     description: string;

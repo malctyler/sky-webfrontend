@@ -19,7 +19,10 @@ const styles = StyleSheet.create({
     page: {
         padding: 30,
         fontFamily: 'Helvetica',
-        fontSize: 9
+        fontSize: 9,
+        width: '210mm',
+        height: '297mm',
+        backgroundColor: 'white'
     },
     headerContainer: {
         flexDirection: 'row',
@@ -135,32 +138,67 @@ interface InspectionCertificateTemplateProps {
 
 const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps> = ({ inspection }) => {    
     const currentDate = new Date();
-    const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID}/${inspection.uniqueRef}`;    
-    
-    const signaturePath = inspection.inspectorsName 
-        ? `${baseUrl}/Signature/${encodeURIComponent(inspection.inspectorsName)}`
-        : '';
+    const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID || 0}/${inspection.uniqueRef}`;    
+    const [signaturePath, setSignaturePath] = React.useState<string | undefined>(undefined);
 
-    const formatDate = (date: string | null): string => {
-        return date ? format(new Date(date), 'dd/MM/yyyy') : '';
+    React.useEffect(() => {
+        const loadSignature = async () => {
+            const inspectorName = inspection.inspectorsName?.trim();
+            if (!inspectorName) {
+                console.warn('No inspector name provided for signature');
+                return;
+            }
+            // Convert spaces to underscores and lowercase to match backend convention
+            const formattedName = inspectorName.toLowerCase().replace(/\s+/g, '_');
+            const path = `${baseUrl}/Signature/${encodeURIComponent(formattedName)}`;
+            
+            try {
+                // Test if the image exists
+                const response = await fetch(path);
+                if (response.ok) {
+                    setSignaturePath(path);
+                } else {
+                    console.warn('Signature image not found:', path);
+                }
+            } catch (error) {
+                console.error('Error loading signature:', error);
+            }
+        };
+        
+        loadSignature();
+    }, [inspection.inspectorsName]);
+
+    const formatDate = (date: string | undefined | null): string => {
+        if (!date) return 'N/A';
+        try {
+            return format(new Date(date), 'dd MMM yyyy');
+        } catch {
+            return 'Invalid Date';
+        }
+    };    const renderText = (text: string | undefined | null): string => {
+        if (!text) return '\u00A0';
+        return text.trim() || '\u00A0';
     };
-
-    const formatAddress = (): string => {
-        const lines = [
+    
+    const formatAddress = (): string[] => {
+        return [
             inspection.companyName,
             inspection.line1,
             inspection.line2,
             inspection.line3,
             inspection.line4,
             inspection.postcode
-        ].filter(Boolean);
-        
-        return lines.join('\n');
-    };
-
-    return (
-        <Document>
-            <Page size="A4" style={styles.page}>
+        ].filter((line): line is string => Boolean(line)) || ['\u00A0'];
+    };    return (
+        <Document
+            creator="Sky Technical Services"
+            producer="Sky Technical Services"
+            title={`Inspection Certificate - ${inspection.companyName || ''}`}
+        >
+            <Page 
+                size="A4" 
+                style={styles.page}
+                orientation="portrait">
                 <View>
                     <View style={styles.headerContainer}>
                         <Text style={styles.skyText}>SKY</Text>
@@ -180,13 +218,13 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                         <Text style={styles.subTitle}>
                             IN ACCORDANCE WITH THE LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998 (LOLER)
                         </Text>
-                    </View>
-
-                    <View style={styles.table}>
+                    </View>                    <View style={styles.table}>
                         <View style={[styles.tableRow, styles.headerRow]}>
-                            <View style={styles.leftColumn}><Text></Text></View>
+                            <View style={styles.leftColumn}>
+                                <Text>{'\u00A0'}</Text>
+                            </View>
                             <View style={styles.rightColumn}>
-                                <Text>{inspection.categoryDescription || ''}</Text>
+                                <Text>{renderText(inspection.categoryDescription)}</Text>
                             </View>
                         </View>
 
@@ -194,8 +232,7 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                             <View style={styles.leftColumn}>
                                 <Text>Description of equipment</Text>
                             </View>
-                            <View style={styles.rightColumn}>
-                                <Text>{inspection.plantDescription || ''}</Text>
+                            <View style={styles.rightColumn}>                                <Text>{inspection.plantDescription || '\u00A0'}</Text>
                             </View>
                         </View>
 
@@ -204,16 +241,15 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                                 <Text>Identification mark of equipment</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text>{inspection.serialNumber || ''}</Text>
+                                <Text>{inspection.serialNumber || '\u00A0'}</Text>
                             </View>
                         </View>
 
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
                                 <Text>Identification mark of Quick Hitch</Text>
-                            </View>
-                            <View style={styles.rightColumn}>
-                                <Text></Text>
+                            </View>                            <View style={styles.rightColumn}>
+                                <Text>{'\u00A0'}</Text>
                             </View>
                         </View>
 
@@ -222,7 +258,9 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                                 <Text>Name and address of owner of equipment</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text>{formatAddress()}</Text>
+                                {formatAddress().map((line, index) => (
+                                    <Text key={index}>{line}</Text>
+                                ))}
                             </View>
                         </View>
 
@@ -230,17 +268,15 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                             <View style={styles.leftColumn}>
                                 <Text style={styles.bold}>Date of the last thorough examination and identification of the record issued on that occasion</Text>
                             </View>
-                            <View style={styles.rightColumn}>
-                                <Text style={styles.bold}>{inspection.previousCheck || ''}</Text>
+                            <View style={styles.rightColumn}>                                <Text style={styles.bold}>{inspection.previousCheck || '\u00A0'}</Text>
                             </View>
                         </View>
 
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
                                 <Text>Safe working load or loads and (where relevant) corresponding radii</Text>
-                            </View>
-                            <View style={styles.rightColumn}>
-                                <Text>{inspection.safeWorking || ''}</Text>
+                            </View>                            <View style={styles.rightColumn}>
+                                <Text>{inspection.safeWorking || '\u00A0'}</Text>
                             </View>
                         </View>
 
@@ -258,7 +294,7 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                                 <Text>Date(s) by which defects described above must be rectified</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text>{inspection.rectified || ''}</Text>
+                                <Text>{inspection.rectified || '\u00A0'}</Text>
                             </View>
                         </View>
 
@@ -302,20 +338,22 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                     <View style={styles.declaration}>
                         <Text style={styles.bold}>Declaration</Text>
                         <Text>
-                            I hereby declare that the equipment described in this record was thoroughly examined in accordance with the appropriate provisions and found free from any defect likely to affect safety other than those listed above on <Text style={styles.bold}>{formatDate(inspection.inspectionDate)}</Text> and that the above particulars are correct.
+                            I hereby declare that the equipment described in this record was thoroughly examined in accordance with the appropriate provisions and found free from any defect likely to affect safety other than those listed above on{' '}
+                            <Text style={styles.bold}>{formatDate(inspection.inspectionDate)}</Text> and that the above particulars are correct.
                         </Text>
                     </View>
                     <View style={styles.declaration}>
                         <Text style={styles.bold}>Signature or other identification</Text>
-                    </View>
-                    <View style={styles.inspectorDetails}>
+                    </View>                    <View style={styles.inspectorDetails}>
                         {signaturePath && (
                             <Image
                                 src={signaturePath}
                                 style={styles.signature}
                             />
                         )}
-                        <Text>Engineering Surveyor: {inspection.inspectorsName}</Text>
+                        <Text>Engineering Surveyor:{' '}
+                            <Text style={styles.bold}>{renderText(inspection.inspectorsName)}</Text>
+                        </Text>
                     </View>
 
                     <Text style={[styles.bold, styles.addressText]}>
@@ -325,11 +363,15 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                     <Text style={styles.addressTextIndent}>
                         Sky Technical Services Ltd{'\n'}
                         4 Victoria Cottages{'\n'}
-                        Love Lane, Mayfield, E.Sussex. TN20 6EN.        Tel 01435 873355 / 07703 292932.       Email <Text style={styles.mailto}>info@skytechnical.co.uk</Text>
+                        Love Lane, Mayfield, E.Sussex. TN20 6EN.        Tel 01435 873355 / 07703 292932.       Email{' '}
+                        <Text style={styles.mailto}>info@skytechnical.co.uk</Text>
                     </Text>
 
                     <Text style={styles.dateRecord}>
-                        Date the record is made  <Text style={styles.bold}>{formatDate(inspection.inspectionDate)}</Text>
+                        Date the record is made{' '}
+                        <Text style={styles.bold}>
+                            {formatDate(inspection.inspectionDate)}
+                        </Text>
                     </Text>
                 </View>
             </Page>

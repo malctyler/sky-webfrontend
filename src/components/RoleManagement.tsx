@@ -55,13 +55,12 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ open, onClose, userId, 
       setLoading(false);
     }
   };
-
   const handleAddRole = async () => {
     if (!selectedRole) return;
 
     try {
       setError(null);
-      await roleService.assignRole(userId, selectedRole.name);
+      await roleService.assignRoleToUser(userId, selectedRole.name);
       setUserRoles([...userRoles, selectedRole.name]);
       setSelectedRole(null);
     } catch (err: any) {
@@ -73,7 +72,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ open, onClose, userId, 
   const handleRemoveRole = async (roleName: string) => {
     try {
       setError(null);
-      await roleService.removeRole(userId, roleName);
+      await roleService.removeRoleFromUser(userId, roleName);
       setUserRoles(userRoles.filter(role => role !== roleName));
     } catch (err: any) {
       setError(err.response?.data || 'Failed to remove role');

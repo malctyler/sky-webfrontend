@@ -24,7 +24,7 @@ import { baseUrl } from '../config';
 import inspectionService from '../services/inspectionService';
 import InspectionForm from './InspectionForm';
 import { format } from 'date-fns';
-import { Inspection, InspectionFormData } from '../types/inspectionTypes';
+import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
 import './InspectionList.css';
 
 interface InspectionListProps {
@@ -38,15 +38,14 @@ interface SnackbarState {
 }
 
 const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
-    const { isDarkMode } = useCustomTheme();
-    const [inspections, setInspections] = useState<Inspection[]>([]);
+    const { isDarkMode } = useCustomTheme();    const [inspections, setInspections] = useState<InspectionItem[]>([]);
     const [showForm, setShowForm] = useState<boolean>(false);
-    const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
+    const [selectedInspection, setSelectedInspection] = useState<InspectionItem | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false);
-    const [emailingInspection, setEmailingInspection] = useState<Inspection | null>(null);
+    const [emailingInspection, setEmailingInspection] = useState<InspectionItem | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-    const [inspectionToDelete, setInspectionToDelete] = useState<Inspection | null>(null);
+    const [inspectionToDelete, setInspectionToDelete] = useState<InspectionItem | null>(null);
     const [snackbar, setSnackbar] = useState<SnackbarState>({
         open: false,
         message: '',
@@ -78,15 +77,13 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
         setSelectedInspection(null);
         setShowForm(true);
         setError(null);
-    };
-
-    const handleEdit = (inspection: Inspection) => {
+    };    const handleEdit = (inspection: InspectionItem) => {
         setSelectedInspection(inspection);
         setShowForm(true);
         setError(null);
     };
 
-    const openDeleteDialog = (inspection: Inspection) => {
+    const openDeleteDialog = (inspection: InspectionItem) => {
         setInspectionToDelete(inspection);
         setDeleteDialogOpen(true);
     };
@@ -95,7 +92,7 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
         if (!inspectionToDelete) return;
         
         try {
-            const response = await fetch(`${baseUrl}/api/Inspection/${inspectionToDelete.uniqueRef}`, {
+            const response = await fetch(`${baseUrl}/inspection/${inspectionToDelete.uniqueRef}`, {
                 method: 'DELETE'
             });
 
@@ -143,18 +140,16 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
             console.error('Error saving inspection:', error);
             setError('Failed to save inspection');
         }
-    };
-
-    const formatDate = (date: string | null): string => {
+    };    const formatDate = (date: string | undefined | null): string => {
         if (!date) return '';
         return format(new Date(date), 'dd/MM/yyyy');
     };
 
-    const handleShowCertificate = (inspection: Inspection) => {
+    const handleShowCertificate = (inspection: InspectionItem) => {
         window.open(`/certificate/${inspection.uniqueRef}`, 'certificate', 'popup,width=800,height=600');
     };
 
-    const handleEmailClick = (inspection: Inspection) => {
+    const handleEmailClick = (inspection: InspectionItem) => {
         setEmailingInspection(inspection);
         setEmailDialogOpen(true);
     };
@@ -201,67 +196,26 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
                 <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
                     {error}
                 </div>
-            )}
-
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell width="25%">Inspection Date</TableCell>
-                            <TableCell width="40%">Location</TableCell>
-                            <TableCell width="25%">Latest Date</TableCell>
-                            <TableCell width="10%" align="center">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {inspections.map((inspection) => (
-                            <TableRow key={inspection.uniqueRef} hover>
-                                <TableCell>{formatDate(inspection.inspectionDate)}</TableCell>
-                                <TableCell>{inspection.location}</TableCell>
-                                <TableCell>{formatDate(inspection.latestDate)}</TableCell>
-                                <TableCell align="center">
-                                    <div className="flex justify-center space-x-2">
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleEdit(inspection)}
-                                            color="primary"
-                                        >
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => openDeleteDialog(inspection)}
-                                            color="error"
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleShowCertificate(inspection)}
-                                            color="secondary"
-                                        >
-                                            <CertificateIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() => handleEmailClick(inspection)}
-                                            color="info"
-                                        >
-                                            <EmailIcon fontSize="small" />
-                                        </IconButton>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {inspections.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={4} align="center">
-                                    No inspections found
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+            )}            <TableContainer component={Paper}>                <Table><TableHead><TableRow><TableCell width="25%">Inspection Date</TableCell><TableCell width="40%">Location</TableCell><TableCell width="25%">Latest Date</TableCell><TableCell width="10%" align="center">Actions</TableCell></TableRow></TableHead><TableBody>{inspections.map((inspection) => (<TableRow key={inspection.uniqueRef} hover>
+                    <TableCell>{formatDate(inspection.inspectionDate || null)}</TableCell>
+                    <TableCell>{inspection.location || ''}</TableCell>
+                    <TableCell>{formatDate(inspection.latestDate || null)}</TableCell>
+                    <TableCell align="center"><div className="flex justify-center space-x-2">
+                        <IconButton size="small" onClick={() => handleEdit(inspection)} color="primary">
+                            <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => openDeleteDialog(inspection)} color="error">
+                            <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleShowCertificate(inspection)} color="secondary">
+                            <CertificateIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleEmailClick(inspection)} color="info">
+                            <EmailIcon fontSize="small" />
+                        </IconButton>
+                    </div></TableCell>
+                </TableRow>))}{inspections.length === 0 && <TableRow><TableCell colSpan={4} align="center">No inspections found</TableCell></TableRow>}
+                    </TableBody></Table>
             </TableContainer>
 
             {/* Email confirmation dialog */}
