@@ -61,8 +61,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean): MenuItemType[] => {
   const baseItems: MenuItemType[] = [
-    { text: 'Dashboard', icon: <HomeIcon />, path: '/dashboard' },
-    { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
+    { text: 'Dashboard', icon: <HomeIcon />, path: '/dashboard' }
+   
   ];
 
   if (user?.isCustomer) {
@@ -73,15 +73,17 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
 
   if (user && !user.isCustomer) {
     baseItems.push(
+      { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
       { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories' },
-      { text: 'Manage Plant', icon: <CategoryIcon />, path: '/manage-plant' },
-      { text: 'Customers', icon: <PeopleIcon />, path: '/customers' }
+      { text: 'Manage Plant', icon: <CategoryIcon />, path: '/manage-plant' }
+      
     );
   }
 
   if (hasRole('Staff')) {
     baseItems.push(
-      { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' }
+      { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' },
+      { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
     );
   }
 

@@ -77,7 +77,7 @@ const CustomerSummary: React.FC = () => {
   const [expandedHolding, setExpandedHolding] = useState<number | null>(null);
 
   // Options state
-  const [allPlants, setAllPlants] = useState<Plant[]>([]);
+  const [allplant, setAllplant] = useState<Plant[]>([]);
   const [allStatuses, setAllStatuses] = useState<Status[]>([]);
   const [newPlantHolding, setNewPlantHolding] = useState<NewPlantHolding>({
     custID: custId ? parseInt(custId) : null,
@@ -139,11 +139,11 @@ const CustomerSummary: React.FC = () => {
     const fetchPlantAndStatusOptions = useCallback(async () => {
     try {
       const headers = getAuthHeaders();
-      const [plantsResponse, statusesResponse] = await Promise.all([
+      const [plantResponse, statusesResponse] = await Promise.all([
         axios.get(`${baseUrl}/AllPlant`, { headers }),
         axios.get(`${baseUrl}/Status`, { headers })
       ]);
-      setAllPlants(plantsResponse.data);
+      setAllplant(plantResponse.data);
       setAllStatuses(statusesResponse.data);
     } catch (err: unknown) {
       handleError(err);
@@ -561,7 +561,7 @@ const CustomerSummary: React.FC = () => {
               value={newPlantHolding.plantNameID}
               onChange={handlePlantHoldingChange}
             >
-              {allPlants.map((plant: Plant) => (
+              {allplant.map((plant: Plant) => (
                 <MenuItem key={plant.plantNameID} value={plant.plantNameID.toString()}>
                   {plant.plantDescription}
                 </MenuItem>

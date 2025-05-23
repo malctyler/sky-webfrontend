@@ -84,19 +84,19 @@ const CustomerPlantHolding: React.FC = () => {
   // Show a consistent loading state when component is mounting or user data is loading
   if (!mounted || !user) {
     return (
-      <div className={`${styles.plantsContainer} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={`${styles.plantContainer} ${isDarkMode ? styles.dark : styles.light}`}>
         {loadingContent}
       </div>
     );
   }
 
   return (
-    <div className={`${styles.plantsContainer} ${isDarkMode ? styles.dark : styles.light}`}>
+    <div className={`${styles.plantContainer} ${isDarkMode ? styles.dark : styles.light}`}>
       <div className={styles.headerActions}>
         <h2>My Plant Holdings</h2>
         <input
           type="text"
-          placeholder="Search plants by description, serial number, or status..."
+          placeholder="Search plant by description, serial number, or status..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
@@ -125,9 +125,9 @@ const CustomerPlantHolding: React.FC = () => {
           </button>
         </div>
       ) : filteredHoldings.length === 0 ? (
-        <p>{holdings.length === 0 ? "No plant holdings found." : "No matching plants found."}</p>
+        <p>{holdings.length === 0 ? "No plant holdings found." : "No matching plant found."}</p>
       ) : (
-        <div className={styles.plantsGrid}>
+        <div className={styles.plantGrid}>
           {filteredHoldings.map(holding => (
             <div key={holding.holdingID} className={styles.plantCard}>
               <h3>{holding.plantDescription}</h3>

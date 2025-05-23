@@ -31,7 +31,7 @@ const getAuthHeaders = () => {
 
 const ManagePlant: React.FC = () => {
   const { isDarkMode } = useCustomTheme();
-  const [plants, setPlants] = useState<Plant[]>([]);
+  const [plant, setplant] = useState<Plant[]>([]);
   const [categories, setCategories] = useState<PlantCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ const ManagePlant: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        await Promise.all([fetchPlants(), fetchCategories()]);
+        await Promise.all([fetchplant(), fetchCategories()]);
       } catch (error) {
         handleError(error);
       }
@@ -67,12 +67,12 @@ const ManagePlant: React.FC = () => {
       setError('An unknown error occurred');
     }
     setLoading(false);
-  };    const fetchPlants = async (): Promise<void> => {
+  };    const fetchplant = async (): Promise<void> => {
     try {
       const headers = getAuthHeaders();
       const response = await axios.get(`${baseUrl}/AllPlant`, { headers });
-      console.log('Fetched plants:', response.data); // Debug log
-      setPlants(response.data);
+      console.log('Fetched plant:', response.data); // Debug log
+      setplant(response.data);
       setLoading(false);
     } catch (error: unknown) {
       handleError(error);
@@ -143,7 +143,7 @@ const ManagePlant: React.FC = () => {
       }, { headers });
       
       const newPlant = response.data;
-      setPlants(prev => [...prev, newPlant]);
+      setplant(prev => [...prev, newPlant]);
       setDialogOpen(false);
       resetForm();
       showSuccess('Plant created successfully');
@@ -185,7 +185,7 @@ const ManagePlant: React.FC = () => {
       await axios.put(`${baseUrl}/AllPlant/${editingPlant.plantNameID}`, updatePayload, { headers });
       
       // Fetch fresh data to ensure we have the correct state
-      await fetchPlants();
+      await fetchplant();
       setDialogOpen(false);
       resetForm();
       showSuccess('Plant updated successfully');
@@ -200,7 +200,7 @@ const ManagePlant: React.FC = () => {
     try {
       const headers = getAuthHeaders();
       await axios.delete(`${baseUrl}/AllPlant/${plantToDelete.plantNameID}`, { headers });
-      setPlants(prev => prev.filter(plant => plant.plantNameID !== plantToDelete.plantNameID));
+      setplant(prev => prev.filter(plant => plant.plantNameID !== plantToDelete.plantNameID));
       setDeleteDialogOpen(false);
       setPlantToDelete(null);
       showSuccess('Plant deleted successfully');
@@ -268,8 +268,8 @@ const ManagePlant: React.FC = () => {
           Add New Plant
         </Button>
       </div>
-      <div className={styles.plantsGrid}>
-        {plants.map((plant) => (
+      <div className={styles.plantGrid}>
+        {plant.map((plant) => (
           <div 
             key={`plant-${plant.plantNameID}`} 
             className={styles.plantCard}
