@@ -1,0 +1,184 @@
+.container {
+  padding: 2rem;
+  min-height: calc(100vh - 200px);
+}
+
+.darkMode {
+  background-color: #282c34;
+  color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.plantGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.plantCard {
+  background-color: var(--background-paper);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: visible;
+  cursor: pointer;
+}
+
+.plantCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cardActions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.plantCard:hover .cardActions {
+  opacity: 1;
+}
+
+.darkMode .cardActions {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cardActions :global(.MuiIconButton-root) {
+  backdrop-filter: blur(2px);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cardActions :global(.MuiIconButton-root:hover) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.plantInfo {
+  margin-top: 1rem;
+}
+
+.plantInfo h3 {
+  margin: 0 0 0.5rem;
+}
+
+.plantInfo p {
+  margin: 0.25rem 0;
+}
+
+.incomplete {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px dashed #ffc107;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.missing {
+  color: #ff5722;
+  font-style: italic;
+}
+
+.warning {
+  color: #ffc107;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.errorState {
+  text-align: center;
+  padding: 2rem;
+  color: var(--error-color);
+}
+
+.dialogContent {
+  min-width: 300px;
+}
+
+.deleteInfo {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--background-paper);
+  border-radius: 4px;
+}
+
+.deleteInfo p {
+  margin: 0.5rem 0;
+}
+
+.darkMode .dialogContent :global(.MuiDialog-paper) {
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+/* Update existing dark mode styles */
+.darkMode :global(.MuiDialog-paper) {
+  background-color: #282c34;
+  color: white;
+}
+
+.darkMode :global(.MuiInputLabel-root),
+.darkMode :global(.MuiInputBase-root) {
+  color: white;
+}
+
+.darkMode :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: rgba(255, 255, 255, 0.23);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .plantGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

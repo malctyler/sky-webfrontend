@@ -1,0 +1,128 @@
+.drawerPaper {
+  background-color: var(--nav-bg) !important;
+  border-right: 1px solid var(--border-color) !important;
+  width: 240px !important;
+}
+
+:global(.dark) .drawerPaper {
+  background-color: #1a1e24 !important;
+}
+
+.listItemButton {
+  border-radius: 5px;
+  margin: 2px 12px;
+  padding: 8px 16px;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.listItemButton:hover {
+  background-color: rgba(var(--link-color-rgb), 0.08) !important;
+  transform: translateX(3px);
+}
+
+.listItemButton:global(.Mui-selected) {
+  background-color: rgba(var(--link-color-rgb), 0.12) !important;
+  position: relative;
+}
+
+.listItemButton:global(.Mui-selected)::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--link-color);
+  border-radius: 0 3px 3px 0;
+}
+
+:global(.dark) .listItemButton:global(.Mui-selected) {
+  background-color: rgba(102, 179, 255, 0.12) !important;
+}
+
+.listItemIcon {
+  color: var(--text-muted) !important;
+  min-width: 40px !important;
+  transition: color 0.2s ease-in-out;
+}
+
+:global(.Mui-selected) .listItemIcon,
+:global(.Mui-selected) .listItemText {
+  color: var(--link-color) !important;
+}
+
+.sidebarHeader {
+  background: linear-gradient(45deg, var(--link-color), var(--link-color-dark));
+  padding: 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:global(.dark) .sidebarHeader {
+  background: linear-gradient(45deg, #1a1e24, #282c34);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navSection {
+  padding: 16px 0;
+}
+
+.navSectionTitle {
+  padding: 8px 24px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebarLogo {
+  padding: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.toolbar {
+  background: linear-gradient(135deg, var(--link-color) 0%, var(--link-color-dark) 100%);
+  min-height: 64px !important;
+}
+
+:global(.dark) .toolbar {
+  background: linear-gradient(135deg, #1a1e24 0%, #282c34 100%);
+}
+
+.appBar {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+:global(.dark) .appBar {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:root {
+  --link-color-rgb: 0, 86, 193;
+  --link-color-dark: #003b85;
+}
+
+:global(.dark) {
+  --link-color-rgb: 102, 179, 255;
+  --link-color-dark: #4f82d1;
+}
+
+.mainContent {
+  background-color: var(--background-default);
+  min-height: calc(100vh - 64px);
+  margin-left: 0 !important;
+}
+
+.mainContent > div {
+  position: relative;
+}
+
+.paper {
+  margin-top: 0;
+}
