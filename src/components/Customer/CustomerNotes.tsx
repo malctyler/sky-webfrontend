@@ -161,14 +161,14 @@ const CustomerNotes: React.FC = () => {
     <div className={`${styles['notes-container']} ${isDarkMode ? styles.dark : styles.light}`}>
       <div className={styles['error-state']}>
         <p>⚠️ {error}</p>
-        <Button variant="contained" onClick={handleBack}>Return to Customers</Button>
+        <Button variant="contained" color="primary" onClick={handleBack}>Return to Customers</Button>
       </div>
     </div>
   );
 
   return (    <div className={`${styles['notes-container']} ${isDarkMode ? styles.dark : styles.light}`}>
       <div className={styles['notes-header']}>
-        <Button variant="contained" onClick={handleBack}>← Back</Button>
+        <Button variant="contained" color="primary" onClick={handleBack}>← Back</Button>
         <h2>Notes for {customer?.companyName}</h2>
       </div>
 
@@ -208,11 +208,10 @@ const CustomerNotes: React.FC = () => {
       </div>      <div className={styles['notes-grid']}>
         {displayedNotes.map(note => (
           <div key={note.noteID} className={styles['note-card']}>
-            <div className={styles['note-actions']}>
-              <IconButton onClick={() => openEditDialog(note)} size="small">
+            <div className={styles['note-actions']}>              <IconButton onClick={() => openEditDialog(note)} size="small" color="primary">
                 <EditIcon />
               </IconButton>
-              <IconButton onClick={() => handleDeleteNote(note.noteID)} size="small">
+              <IconButton onClick={() => handleDeleteNote(note.noteID)} size="small" color="error">
                 <DeleteIcon />
               </IconButton>
             </div>
@@ -256,7 +255,7 @@ const CustomerNotes: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button color="inherit" onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button 
             onClick={editingNote ? handleUpdateNote : handleCreateNote}
             variant="contained" 

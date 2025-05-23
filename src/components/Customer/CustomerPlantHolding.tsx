@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
 import { baseUrl } from '../../config';
+import { Button } from '@mui/material';
 import { PlantHolding } from '../../types/plantholdingTypes';
 import styles from './CustomerPlantHolding.module.css';
 
@@ -113,16 +114,16 @@ const CustomerPlantHolding: React.FC = () => {
         loadingContent
       ) : error ? (
         <div className={styles.errorState}>
-          <p>⚠️ {error}</p>
-          <button 
-            className={styles.expandButton}
+          <p>⚠️ {error}</p>          <Button 
+            variant="contained"
+            color="primary"
             onClick={() => {
               const customerId = user.customerId;
               if (customerId) fetchHoldings(customerId);
             }}
           >
             Try Again
-          </button>
+          </Button>
         </div>
       ) : filteredHoldings.length === 0 ? (
         <p>{holdings.length === 0 ? "No plant holdings found." : "No matching plant found."}</p>
@@ -138,13 +139,13 @@ const CustomerPlantHolding: React.FC = () => {
                 <div className={styles.expandedDetails}>
                   {/* Add any additional details you want to show when expanded */}
                 </div>
-              )}
-              <button 
-                className={styles.expandButton}
+              )}              <Button 
+                variant="text"
+                color="primary"
                 onClick={() => toggleExpand(holding.holdingID)}
               >
                 {expanded === holding.holdingID ? 'Show Less' : 'Show More'}
-              </button>
+              </Button>
             </div>
           ))}
         </div>

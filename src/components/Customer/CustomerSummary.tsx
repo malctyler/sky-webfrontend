@@ -725,10 +725,10 @@ const CustomerSummary: React.FC = () => {
                         <TableCell>{holding.statusDescription || 'N/A'}</TableCell>
                         <TableCell>{holding.swl}</TableCell>
                         <TableCell align="right">
-                          <IconButton size="small" onClick={() => toggleHoldingExpand(holding.holdingID)}>
+                          <IconButton size="small" onClick={() => toggleHoldingExpand(holding.holdingID)} color="primary">
                             {expandedHolding === holding.holdingID ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                           </IconButton>
-                          <IconButton size="small" onClick={() => openEditPlantHoldingDialog(holding)}>
+                          <IconButton size="small" onClick={() => openEditPlantHoldingDialog(holding)} color="primary">
                             <EditIcon />
                           </IconButton>
                           <IconButton size="small" color="error" onClick={() => openDeleteHoldingDialog(holding)}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Box,
   IconButton,
@@ -112,12 +112,18 @@ const PlantCategories: React.FC = () => {
         }),
       });
 
+      const errorData = await response.text();
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to create category');
+        if (response.status === 401) {
+          throw new Error('Unauthorized: Please check login and permissions.');
+        }
+        if (errorData.includes('already exists')) {
+          throw new Error('A category with this description already exists.');
+        }
+        throw new Error(errorData || 'Failed to create category');
       }
 
-      const newCategory = await response.json();
+      const newCategory = JSON.parse(errorData);
       setCategories(prev => [...prev, newCategory]);
       setCategoryDescription('');
       setDialogOpen(false);
@@ -142,10 +148,17 @@ const PlantCategories: React.FC = () => {
         }),
       });
 
+      const errorData = await response.text();
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to update category');
+        if (response.status === 401) {
+          throw new Error('Unauthorized: Please check login and permissions.');
+        }
+        if (errorData.includes('already exists')) {
+          throw new Error('A category with this description already exists.');
+        }
+        throw new Error(errorData || 'Failed to update category');
       }
+
       setCategories(prev => prev.map(cat => 
         cat.categoryID === editingCategory.categoryID 
           ? { ...cat, categoryDescription: categoryDescription }
@@ -200,6 +213,12 @@ const PlantCategories: React.FC = () => {
     setCategoryDescription(category.categoryDescription);
     setDialogOpen(true);
   };
+  // Create a memoized sorted list of categories
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => 
+      a.categoryDescription.localeCompare(b.categoryDescription)
+    );
+  }, [categories]);
 
   if (loading) {
     return (
@@ -228,18 +247,30 @@ const PlantCategories: React.FC = () => {
             Add Category
           </Button>
         </Box>
-      </Paper>
-
-      <div className={styles.categoriesGrid}>
-        {categories.map(category => (
-          <Paper key={category.categoryID} elevation={3} className={styles.categoryCard} sx={{ p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <Typography variant="h6" component="h3" sx={{ mb: 1, flexGrow: 1 }}>{category.categoryDescription}</Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-              <IconButton onClick={() => openEditDialog(category)} size="small" aria-label="edit category">
-                <EditIcon />
+      </Paper>      <div className={styles.categoriesGrid}>
+        {sortedCategories.map(category => (
+          <Paper 
+            key={category.categoryID} 
+            elevation={3} 
+            className={styles.categoryCard} 
+            sx={{ 
+              p: 1.5, 
+              mb: 2, 
+              display: 'flex', 
+              flexDirection: 'row', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              minHeight: '60px' // Reduced height (about 60% of original)
+            }}
+          >
+            <Typography variant="body1" component="div" sx={{ fontWeight: 'medium' }}>
+              {category.categoryDescription}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>              <IconButton onClick={() => openEditDialog(category)} size="small" aria-label="edit category" color="primary">
+                <EditIcon fontSize="small" />
               </IconButton>
-              <IconButton onClick={() => openDeleteDialog(category.categoryID)} size="small" aria-label="delete category">
-                <DeleteIcon />
+              <IconButton onClick={() => openDeleteDialog(category.categoryID)} size="small" aria-label="delete category" color="error">
+                <DeleteIcon fontSize="small" />
               </IconButton>
             </Box>
           </Paper>
@@ -261,9 +292,12 @@ const PlantCategories: React.FC = () => {
             onChange={(e) => setCategoryDescription(e.target.value)}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={editingCategory ? handleUpdateCategory : handleCreateCategory}>
+        <DialogActions>          <Button color="inherit" onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={editingCategory ? handleUpdateCategory : handleCreateCategory}
+          >
             {editingCategory ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
@@ -288,8 +322,10 @@ const PlantCategories: React.FC = () => {
             </p>
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>
+        <DialogActions>          <Button 
+            color="inherit"
+            onClick={() => setDeleteDialogOpen(false)}
+          >
             Cancel
           </Button>
           <Button 

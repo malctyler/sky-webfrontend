@@ -204,13 +204,13 @@ function AllCustomers() {
   return (
     <div className={containerClassName}>
       <div className={styles['header-actions']}>
-        <h1>All Customers</h1>
-        <button 
+        <h1>All Customers</h1>        <Button 
+          variant="contained" 
+          color="primary"
           onClick={() => setShowForm(!showForm)} 
-          className={styles['add-customer-btn']}
         >
           {showForm ? 'Cancel' : 'Add New Customer'}
-        </button>
+        </Button>
       </div>
 
       <div className={styles['search-container']}>
@@ -322,7 +322,7 @@ function AllCustomers() {
               placeholder="Email"
             />
           </div>
-          <button type="submit" className={styles['submit-btn']}>Create Customer</button>
+          <Button type="submit" variant="contained" color="primary">Create Customer</Button>
         </form>
       )}
 
@@ -355,11 +355,18 @@ function AllCustomers() {
                 {customer.line3 && <p>{customer.line3}</p>}
                 {customer.line4 && <p>{customer.line4}</p>}
                 <p>{customer.postcode}</p>
-              </div>
-              {customerNotes[customer.custID] > 0 && (
-                <div className={styles['notes-count']}>
+              </div>              {customerNotes[customer.custID] > 0 && (
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/customers/${customer.custID}/notes`);
+                  }}
+                >
                   Notes: {customerNotes[customer.custID]}
-                </div>
+                </Button>
               )}
             </div>
           ))}
@@ -405,8 +412,10 @@ function AllCustomers() {
             </p>
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>
+        <DialogActions>          <Button 
+            color="inherit" 
+            onClick={() => setDeleteDialogOpen(false)}
+          >
             Cancel
           </Button>
           <Button 

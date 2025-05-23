@@ -5,6 +5,7 @@ import styles from "./InspectionForm.module.css";
 import inspectorService from '../../services/inspectorService';
 import { InspectionItem, InspectionFormData } from '../../types/inspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
+import { Button } from '@mui/material';
 
 interface InspectionFormProps {
     inspection: InspectionItem | null;
@@ -200,11 +201,9 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 {inspectors.length === 0 && (
                     <option className={styles.option} value="" disabled>No inspectors available</option>
                 )}
-            </select>
-
-            <div className={styles.buttonGroup}>
-                <button className={styles.button} type="submit">Submit</button>
-                <button className={styles.button} type="button" onClick={onCancel}>Cancel</button>
+            </select>            <div className={styles.buttonGroup}>
+                <Button variant="contained" color="primary" type="submit">Submit</Button>
+                <Button variant="outlined" color="inherit" type="button" onClick={onCancel}>Cancel</Button>
             </div>
         </form>
     );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { baseUrl } from '../../config';
+import { Button } from '@mui/material';
 import styles from './Weather.module.css';
 
 interface WeatherData {
@@ -148,7 +149,7 @@ const Weather: React.FC = () => {
       {error && (
         <div className={styles['error-state']}>
           <p>⚠️ {error}</p>
-          <button onClick={fetchWeatherData}>Try Again</button>
+          <Button variant="contained" color="primary" onClick={fetchWeatherData}>Try Again</Button>
         </div>
       )}
       {!loading && !error && currentWeather && (
@@ -226,7 +227,7 @@ const Weather: React.FC = () => {
             </div>
           )}
           
-          <button onClick={fetchWeatherData} className={styles['refresh-button']}>Refresh</button>
+          <Button variant="contained" color="primary" onClick={fetchWeatherData}>Refresh</Button>
         </>
       )}
     </div>

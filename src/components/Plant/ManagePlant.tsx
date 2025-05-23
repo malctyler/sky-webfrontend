@@ -284,6 +284,7 @@ const ManagePlant: React.FC = () => {
                 }} 
                 size="small"
                 key={`edit-${plant.plantNameID}`}
+                color="primary"
               >
                 <EditIcon />
               </IconButton>
@@ -293,9 +294,9 @@ const ManagePlant: React.FC = () => {
                   e.stopPropagation();
                   openDeleteDialog(plant);
                 }} 
-                size="small" 
-                color="error"
+                size="small"
                 key={`delete-${plant.plantNameID}`}
+                color="error"
               >
                 <DeleteIcon />
               </IconButton>            </div>            
