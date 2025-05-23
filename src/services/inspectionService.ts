@@ -3,8 +3,6 @@ import { baseUrl } from '../config';
 import { generatePdfBlob, getPdfFileName } from '../components/InspectionCertificateTemplate';
 import {
     InspectionItem,
-    CreateInspectionDto,
-    UpdateInspectionDto,
     InspectionFormData
 } from '../types/inspectionTypes';
 

@@ -4,6 +4,7 @@ import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
 import { baseUrl } from '../config';
 import { PlantHolding } from '../types/plantholdingTypes';
+import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
   from?: string;
@@ -14,10 +15,12 @@ const CustomerPlantHolding: React.FC = () => {
   const { isDarkMode } = useCustomTheme();
   const location = useLocation();
   const [holdings, setHoldings] = useState<PlantHolding[]>([]);
+  const [filteredHoldings, setFilteredHoldings] = useState<PlantHolding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const locationState = location.state as LocationState;
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
@@ -44,7 +47,8 @@ const CustomerPlantHolding: React.FC = () => {
   }, [user, mounted]);
 
   useEffect(() => {
-    setMounted(true);    if (user) {
+    setMounted(true);
+    if (user) {
       const customerId = user.customerId;
       if (customerId) {
         fetchHoldings(customerId);
@@ -56,13 +60,23 @@ const CustomerPlantHolding: React.FC = () => {
     return () => setMounted(false);
   }, [user, fetchHoldings]);
 
+  // Update filtered holdings when search term or holdings change
+  useEffect(() => {
+    const filtered = holdings.filter(holding =>
+      holding.plantDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      holding.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      holding.statusDescription?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredHoldings(filtered);
+  }, [holdings, searchTerm]);
+
   const toggleExpand = (id: number) => {
     setExpanded(expanded === id ? null : id);
   };
 
   const loadingContent = (
-    <div className="loading-state" style={{ minHeight: '200px' }}>
-      <div className="spinner"></div>
+    <div className={styles.loadingState} style={{ minHeight: '200px' }}>
+      <div className={styles.spinner}></div>
       <p>Loading plant holdings...</p>
     </div>
   );
@@ -70,49 +84,63 @@ const CustomerPlantHolding: React.FC = () => {
   // Show a consistent loading state when component is mounting or user data is loading
   if (!mounted || !user) {
     return (
-      <div className={`plants-container ${isDarkMode ? 'dark' : 'light'}`}>
+      <div className={`${styles.plantsContainer} ${isDarkMode ? styles.dark : styles.light}`}>
         {loadingContent}
       </div>
     );
   }
 
   return (
-    <div className={`plants-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <h2>My Plant Holdings</h2>
+    <div className={`${styles.plantsContainer} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={styles.headerActions}>
+        <h2>My Plant Holdings</h2>
+        <input
+          type="text"
+          placeholder="Search plants by description, serial number, or status..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles.searchInput}
+        />
+      </div>
+      
       {locationState?.from && (
-        <p className="redirect-message">
+        <p className={styles.redirectMessage}>
           Redirected from {locationState.from}
         </p>
       )}
+
       {loading ? (
         loadingContent
       ) : error ? (
-        <div className="error-state">
-          <p>⚠️ {error}</p>          <button onClick={() => {
-            const customerId = user.customerId;
-            if (customerId) fetchHoldings(customerId);
-          }}>
+        <div className={styles.errorState}>
+          <p>⚠️ {error}</p>
+          <button 
+            className={styles.expandButton}
+            onClick={() => {
+              const customerId = user.customerId;
+              if (customerId) fetchHoldings(customerId);
+            }}
+          >
             Try Again
           </button>
         </div>
-      ) : holdings.length === 0 ? (
-        <p>No plant holdings found.</p>
+      ) : filteredHoldings.length === 0 ? (
+        <p>{holdings.length === 0 ? "No plant holdings found." : "No matching plants found."}</p>
       ) : (
-        <div className="plants-grid">
-          {holdings.map(holding => (
-            <div key={holding.holdingID} className="plant-card">
+        <div className={styles.plantsGrid}>
+          {filteredHoldings.map(holding => (
+            <div key={holding.holdingID} className={styles.plantCard}>
               <h3>{holding.plantDescription}</h3>
               <p><strong>Serial Number:</strong> {holding.serialNumber}</p>
               <p><strong>Status:</strong> {holding.statusDescription}</p>
               <p><strong>SWL:</strong> {holding.swl}</p>
-              {/* Additional holding details can be shown when expanded */}
               {expanded === holding.holdingID && (
-                <div className="expanded-details">
+                <div className={styles.expandedDetails}>
                   {/* Add any additional details you want to show when expanded */}
                 </div>
               )}
               <button 
-                className="expand-button"
+                className={styles.expandButton}
                 onClick={() => toggleExpand(holding.holdingID)}
               >
                 {expanded === holding.holdingID ? 'Show Less' : 'Show More'}

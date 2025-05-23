@@ -8,7 +8,7 @@ export const customerNotesService = {
     },
 
     createNote: async (customerId: number, note: Omit<Note, 'noteID'>): Promise<Note> => {
-        const response = await apiClient.post<Note>(`/Notes`, note);
+        const response = await apiClient.post<Note>(`/Notes`, { ...note, customerId });
         return response.data;
     },
 

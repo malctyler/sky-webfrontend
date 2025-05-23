@@ -1,12 +1,9 @@
 export interface PlantHolding {
   holdingID: number;
-  custID: number;
-  plantNameID: number;
+  plantDescription: string;
   serialNumber: string;
-  statusID: number;
+  statusDescription: string;
   swl: string;
-  plantDescription?: string;
-  statusDescription?: string;
 }
 
 export interface NewPlantHolding {

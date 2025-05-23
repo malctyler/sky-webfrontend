@@ -54,7 +54,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If the user is a customer, only allow access to specific routes
   if (user.isCustomer) {
-    const allowedCustomerPaths = ['/plant-holding', '/weather'];
+    const allowedCustomerPaths = ['/plant-holding'];
     if (!allowedCustomerPaths.includes(currentPath)) {
       return <Navigate to="/plant-holding" replace state={{ from: currentPath }} />;
     }
