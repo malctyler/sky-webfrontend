@@ -1,17 +1,17 @@
 /* Styling for the Inspection Form */
 
-form {
+.form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-label {
+.label {
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
 
-input, select, textarea {
+.input, .select, .textarea {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ccc;
@@ -20,7 +20,7 @@ input, select, textarea {
     color: #000;
 }
 
-select {
+.select {
     background-color: #ffffff;
     color: #000000;
     border: 1px solid #ccc;
@@ -40,13 +40,13 @@ select:focus {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-option {
+.option {
     background-color: #ffffff; /* Ensure white background for options */
     color: #000000; /* Ensure black text for options */
     padding: 0.5rem;
 }
 
-button {
+.button {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     border: none;
@@ -56,6 +56,26 @@ button {
     color: #fff;
 }
 
-button:hover {
+.button:hover {
     background-color: #0056b3;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.error {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
 }

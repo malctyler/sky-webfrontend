@@ -1,7 +1,7 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import "./InspectionForm.css";
+import styles from "./InspectionForm.module.css";
 import inspectorService from '../services/inspectorService';
 import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
 import { Inspector } from '../types/inspectorTypes';
@@ -28,18 +28,28 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
         miscNotes: '',
         inspectorID: null
     });
-    const [inspectors, setInspectors] = useState<Inspector[]>([]);    useEffect(() => {
+    const [inspectors, setInspectors] = useState<Inspector[]>([]);    // Track if component is mounted
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
         const fetchInspectors = async () => {
             try {
                 const inspectors = await inspectorService.getAll();
-                setInspectors(inspectors);
-            } catch (error) {
-                console.error('Failed to fetch inspectors:', error);
-                setInspectors([]);
+                if (mounted) {
+                    setInspectors(inspectors);
+                    setError(null);
+                }
+            } catch (err) {
+                if (mounted) {
+                    console.error('Failed to fetch inspectors:', err);
+                    setError('Failed to load inspectors. Please try again later.');
+                    setInspectors([]);
+                }
             }
         };
 
-        fetchInspectors();        if (inspection) {
+        fetchInspectors();if (inspection) {
             // Map inspection fields to form data structure
             setFormData({
                 holdingID: Number(holdingId),
@@ -73,24 +83,28 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
             ...prev,
             [fieldName]: date
         }));
+    };    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log('Form data being submitted:', formData);
+        onSubmit(formData);
     };
 
     return (
-        <form onSubmit={(e: FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            onSubmit(formData);
-        }}>
-            <label htmlFor="inspectionDate">Inspection Date:</label>
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            {error && <div className={styles.error}>{error}</div>}
+            <label className={styles.label} htmlFor="inspectionDate">Inspection Date:</label>
             <DatePicker
                 id="inspectionDate"
                 selected={formData.inspectionDate}
                 onChange={(date: Date | null) => handleDateChange(date, 'inspectionDate')}
                 dateFormat="yyyy-MM-dd"
                 required
+                className={styles.input}
             />
 
-            <label htmlFor="location">Location:</label>
+            <label className={styles.label} htmlFor="location">Location:</label>
             <input
+                className={styles.input}
                 id="location"
                 name="location"
                 type="text"
@@ -99,8 +113,9 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 required
             />
 
-            <label htmlFor="recentCheck">Recent Check:</label>
+            <label className={styles.label} htmlFor="recentCheck">Recent Check:</label>
             <input
+                className={styles.input}
                 id="recentCheck"
                 name="recentCheck"
                 type="text"
@@ -108,8 +123,9 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 onChange={handleChange}
             />
 
-            <label htmlFor="previousCheck">Previous Check:</label>
+            <label className={styles.label} htmlFor="previousCheck">Previous Check:</label>
             <input
+                className={styles.input}
                 id="previousCheck"
                 name="previousCheck"
                 type="text"
@@ -117,8 +133,9 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 onChange={handleChange}
             />
 
-            <label htmlFor="safeWorking">Safe Working:</label>
+            <label className={styles.label} htmlFor="safeWorking">Safe Working:</label>
             <input
+                className={styles.input}
                 id="safeWorking"
                 name="safeWorking"
                 type="text"
@@ -126,59 +143,69 @@ const InspectionForm: React.FC<InspectionFormProps> = ({ inspection, onSubmit, o
                 onChange={handleChange}
             />
 
-            <label htmlFor="defects">Defects:</label>
+            <label className={styles.label} htmlFor="defects">Defects:</label>
             <textarea
+                className={styles.textarea}
                 id="defects"
                 name="defects"
                 value={formData.defects}
                 onChange={handleChange}
             />
 
-            <label htmlFor="rectified">Rectified:</label>
+            <label className={styles.label} htmlFor="rectified">Rectified:</label>
             <textarea
+                className={styles.textarea}
                 id="rectified"
                 name="rectified"
                 value={formData.rectified}
                 onChange={handleChange}
             />
 
-            <label htmlFor="testDetails">Test Details:</label>
+            <label className={styles.label} htmlFor="testDetails">Test Details:</label>
             <textarea
+                className={styles.textarea}
                 id="testDetails"
                 name="testDetails"
                 value={formData.testDetails}
                 onChange={handleChange}
             />
 
-            <label htmlFor="miscNotes">Misc Notes:</label>
+            <label className={styles.label} htmlFor="miscNotes">Misc Notes:</label>
             <textarea
+                className={styles.textarea}
                 id="miscNotes"
                 name="miscNotes"
                 value={formData.miscNotes}
                 onChange={handleChange}
             />
 
-            <label htmlFor="inspectorID">Inspector:</label>              <select
+            <label className={styles.label} htmlFor="inspectorID">Inspector:</label>              
+            <select
+                className={styles.select}
                 id="inspectorID"
                 name="inspectorID"
                 value={formData.inspectorID !== null ? formData.inspectorID.toString() : ""}
                 onChange={handleChange}
                 required
             >
-                <option value="">Select an inspector</option>                {inspectors.map((inspector) => (
+                <option className={styles.option} value="">Select an inspector</option>                
+                {inspectors.map((inspector) => (
                     <option 
+                        className={styles.option}
                         key={inspector.inspectorID} 
                         value={inspector.inspectorID.toString()}>
                         {inspector.inspectorsName || 'Unknown Inspector'}
                     </option>
                 ))}
                 {inspectors.length === 0 && (
-                    <option value="" disabled>No inspectors available</option>
+                    <option className={styles.option} value="" disabled>No inspectors available</option>
                 )}
             </select>
 
-            <button type="submit">Submit</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
+            <div className={styles.buttonGroup}>
+                <button className={styles.button} type="submit">Submit</button>
+                <button className={styles.button} type="button" onClick={onCancel}>Cancel</button>
+            </div>
         </form>
     );
 };

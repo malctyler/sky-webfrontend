@@ -1,4 +1,3 @@
-// Direct axios import instead of using apiClient
 import axios from 'axios';
 import { baseUrl } from '../config';
 import { generatePdfBlob, getPdfFileName } from '../components/InspectionCertificateTemplate';
@@ -16,9 +15,22 @@ const getAuthHeaders = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-const formatDate = (date: Date | null): string => {
-    if (!date) return '';
-    return date.toISOString();
+const createDto = (inspection: InspectionFormData) => {
+    // Ensure we return the exact shape the backend expects
+    return {
+        holdingID: inspection.holdingID,
+        inspectionDate: inspection.inspectionDate ? inspection.inspectionDate.toISOString() : null,
+        latestDate: inspection.latestDate ? inspection.latestDate.toISOString() : null,
+        location: inspection.location || null,
+        recentCheck: inspection.recentCheck || null,
+        previousCheck: inspection.previousCheck || null,
+        safeWorking: inspection.safeWorking || null,
+        defects: inspection.defects || null,
+        rectified: inspection.rectified || null,
+        testDetails: inspection.testDetails || null,
+        miscNotes: inspection.miscNotes || null,
+        inspectorID: inspection.inspectorID
+    };
 };
 
 const getAll = async (): Promise<InspectionItem[]> => {
@@ -41,26 +53,32 @@ const getByPlantHolding = async (holdingId: string | number): Promise<Inspection
 
 const create = async (inspection: InspectionFormData): Promise<InspectionItem> => {
     const headers = getAuthHeaders();
-    const inspectionDto: CreateInspectionDto = {
-        ...inspection,
-        inspectionDate: formatDate(inspection.inspectionDate),
-        latestDate: formatDate(inspection.latestDate),
-        holdingID: Number(inspection.holdingID)
-    };
-    const response = await axios.post<InspectionItem>(`${baseUrl}/Inspection`, inspectionDto, { headers });
-    return response.data;
+    const dto = createDto(inspection);
+    console.log('Sending inspection DTO to server:', dto);
+    try {
+        const response = await axios.post<InspectionItem>(`${baseUrl}/Inspection`, dto, { headers });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            console.error('Server response:', error.response.data);
+        }
+        throw error;
+    }
 };
 
 const update = async (uniqueRef: string | number, inspection: InspectionFormData): Promise<InspectionItem> => {
     const headers = getAuthHeaders();
-    const inspectionDto: UpdateInspectionDto = {
-        ...inspection,
-        inspectionDate: formatDate(inspection.inspectionDate),
-        latestDate: formatDate(inspection.latestDate),
-        holdingID: Number(inspection.holdingID)
-    };
-    const response = await axios.put<InspectionItem>(`${baseUrl}/Inspection/${uniqueRef}`, inspectionDto, { headers });
-    return response.data;
+    const dto = createDto(inspection);
+    console.log('Sending inspection DTO to server:', dto);
+    try {
+        const response = await axios.put<InspectionItem>(`${baseUrl}/Inspection/${uniqueRef}`, dto, { headers });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            console.error('Server response:', error.response.data);
+        }
+        throw error;
+    }
 };
 
 const remove = async (id: string | number): Promise<void> => {
@@ -71,9 +89,9 @@ const remove = async (id: string | number): Promise<void> => {
 const emailCertificate = async (id: string | number): Promise<boolean> => {
     try {
         const inspection = await getById(id);
-        const pdfBlob = await generatePdfBlob(inspection as any); // TODO: Fix type mismatch between InspectionItem and InspectionCertificate
-        const filename = getPdfFileName(inspection as any);
-
+        const pdfBlob = await generatePdfBlob(inspection);
+        const filename = getPdfFileName(inspection);
+        
         const formData = new FormData();
         formData.append('pdf', pdfBlob, filename);
         
@@ -82,7 +100,7 @@ const emailCertificate = async (id: string | number): Promise<boolean> => {
             'Content-Type': 'multipart/form-data'
         };
 
-        await axios.post(`${baseUrl}/inspection/${id}/email`, formData, { headers });
+        await axios.post(`${baseUrl}/Inspection/${id}/email`, formData, { headers });
         return true;
     } catch (error) {
         console.error('Error sending certificate:', error);

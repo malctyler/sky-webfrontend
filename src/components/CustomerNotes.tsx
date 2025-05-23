@@ -5,7 +5,7 @@ import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { TextField, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Pagination } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import "react-datepicker/dist/react-datepicker.css";
-import './CustomerNotes.css';
+import styles from './CustomerNotes.module.css';
 import { customerService } from '../services/customerService';
 import { customerNotesService } from '../services/customerNotesService';
 import { Customer, Note } from '../types/customerTypes';
@@ -148,34 +148,32 @@ const CustomerNotes: React.FC = () => {
   const endIndex = startIndex + notesPerPage;
   const displayedNotes = filteredNotes.slice(startIndex, endIndex);
   const pageCount = Math.ceil(filteredNotes.length / notesPerPage);
-
   if (loading) return (
-    <div className={`notes-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="loading-state">
-        <div className="spinner"></div>
+    <div className={`${styles['notes-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={styles['loading-state']}>
+        <div className={styles.spinner}></div>
         <p>Loading notes...</p>
       </div>
     </div>
   );
 
   if (error) return (
-    <div className={`notes-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="error-state">
+    <div className={`${styles['notes-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={styles['error-state']}>
         <p>⚠️ {error}</p>
         <Button variant="contained" onClick={handleBack}>Return to Customers</Button>
       </div>
     </div>
   );
 
-  return (
-    <div className={`notes-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="notes-header">
+  return (    <div className={`${styles['notes-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={styles['notes-header']}>
         <Button variant="contained" onClick={handleBack}>← Back</Button>
         <h2>Notes for {customer?.companyName}</h2>
       </div>
 
-      <div className="notes-controls">
-        <div className="search-filter">
+      <div className={styles['notes-controls']}>
+        <div className={styles['search-filter']}>
           <TextField
             placeholder="Search notes..."
             value={searchText}
@@ -184,7 +182,7 @@ const CustomerNotes: React.FC = () => {
               startAdornment: <SearchIcon />,
             }}
           />
-          <div className="date-filters">            <DatePicker
+          <div className={styles['date-filters']}><DatePicker
               selected={startDate}
               onChange={(date: Date | null) => setStartDate(date)}
               placeholderText="Start Date"
@@ -207,12 +205,10 @@ const CustomerNotes: React.FC = () => {
         >
           Add Note
         </Button>
-      </div>
-
-      <div className="notes-grid">
+      </div>      <div className={styles['notes-grid']}>
         {displayedNotes.map(note => (
-          <div key={note.noteID} className="note-card">
-            <div className="note-actions">
+          <div key={note.noteID} className={styles['note-card']}>
+            <div className={styles['note-actions']}>
               <IconButton onClick={() => openEditDialog(note)} size="small">
                 <EditIcon />
               </IconButton>
@@ -220,14 +216,14 @@ const CustomerNotes: React.FC = () => {
                 <DeleteIcon />
               </IconButton>
             </div>
-            <div className="note-date">
+            <div className={styles['note-date']}>
               {new Date(note.date).toLocaleDateString('en-GB', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
               })}
             </div>
-            <div className="note-content">
+            <div className={styles['note-content']}>
               {note.notes}
             </div>
           </div>
@@ -235,7 +231,7 @@ const CustomerNotes: React.FC = () => {
       </div>
 
       {pageCount > 1 && (
-        <div className="pagination">
+        <div className={styles.pagination}>
           <Pagination
             count={pageCount}
             page={page}

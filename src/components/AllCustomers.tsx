@@ -1,29 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
-import { IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useTheme } from '../contexts/ThemeContext';
+import { IconButton } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import { customerService } from '../services/customerService';
-import { 
-  Customer, 
-  CustomerFormData, 
-  CustomerNotes, 
-  SnackbarState 
-} from '../types/customerTypes';
-import './AllCustomers.css';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import styles from './AllCustomers.module.css';
+import apiClient from '../services/apiClient';
+import { Customer } from '../types/customerTypes';
 
-const AllCustomers: React.FC = () => {
-  const { isDarkMode } = useCustomTheme();
+interface FormData {
+  companyName: string;
+  contactTitle: string;
+  contactFirstNames: string;
+  contactSurname: string;
+  line1: string;
+  line2: string;
+  line3: string;
+  line4: string;
+  postcode: string;
+  telephone: string;
+  fax: string;
+  email: string;
+}
+
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error';
+}
+
+function AllCustomers() {
+  const { isDarkMode } = useTheme();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [customerNotes, setCustomerNotes] = useState<CustomerNotes>({});
+  const [customerNotes, setCustomerNotes] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState<CustomerFormData>({
+  const [formData, setFormData] = useState<FormData>({
     companyName: '',
     contactTitle: '',
     contactFirstNames: '',
@@ -67,318 +88,338 @@ const AllCustomers: React.FC = () => {
       });
       setFilteredCustomers(filtered);
     }
-  }, [searchTerm, customers]);  const fetchCustomersAndNotes = async (): Promise<void> => {
+  }, [searchTerm, customers]);
+
+  const fetchCustomersAndNotes = async () => {
     try {
-      const customersData = await customerService.getAll();
-      // TODO: Replace with noteService once it's implemented
-      const notesResponse = await fetch('/api/Notes');
-      const notesData = await notesResponse.json();
-      
-      const notesMap: CustomerNotes = {};
-      if (Array.isArray(notesData)) {
-        notesData.forEach(note => {
-          if (note && typeof note === 'object' && 'custID' in note) {
-            const custID = note.custID;
-            notesMap[custID] = (notesMap[custID] || 0) + 1;
-          }
-        });
-      }
+      const [customersResponse, notesResponse] = await Promise.all([
+        apiClient.get('/Customers'),
+        apiClient.get('/Notes')
+      ]);
+      const customersData = customersResponse.data;
+      const notesData = notesResponse.data;
+
+      // Create a map of customer IDs to their note counts
+      const notesMap = notesData.reduce((acc: Record<number, number>, note: any) => {
+        acc[note.custID] = (acc[note.custID] || 0) + 1;
+        return acc;
+      }, {});
 
       setCustomers(customersData);
       setCustomerNotes(notesMap);
       setLoading(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      setError(err.message);
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
-  };  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    try {
-      const newCustomer = await customerService.create(formData);
-      setCustomers(prev => [...prev, newCustomer]);
-      setShowForm(false);
-      setFormData({
-        companyName: '',
-        contactTitle: '',
-        contactFirstNames: '',
-        contactSurname: '',
-        line1: '',
-        line2: '',
-        line3: '',
-        line4: '',
-        postcode: '',
-        telephone: '',
-        fax: '',
-        email: ''
-      });
-      setSnackbar({
-        open: true,
-        message: 'Customer added successfully!',
-        severity: 'success'
-      });
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err instanceof Error ? err.message : 'Failed to add customer',
-        severity: 'error'
-      });
-    }
   };
 
-  const handleDeleteClick = (customer: Customer): void => {
-    setCustomerToDelete(customer);
-    setDeleteDialogOpen(true);
-  };  const handleConfirmDelete = async (): Promise<void> => {
-    if (!customerToDelete) return;
-
-    try {
-      await customerService.delete(customerToDelete.custID);
-      setCustomers(prev => prev.filter(c => c.custID !== customerToDelete.custID));
-      setSnackbar({
-        open: true,
-        message: 'Customer deleted successfully!',
-        severity: 'success'
-      });
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err instanceof Error ? err.message : 'Failed to delete customer',
-        severity: 'error'
-      });
-    } finally {
-      setDeleteDialogOpen(false);
-      setCustomerToDelete(null);
-    }
-  };
-
-  const handleCloseSnackbar = (_?: React.SyntheticEvent | Event, reason?: string): void => {
-    if (reason === 'clickaway') return;
+  const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  if (loading) {
-    return (
-      <div className={`customers-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading customers...</p>
-        </div>
-      </div>
-    );
-  }
+  const showSuccess = (message: string) => {
+    setSnackbar({
+      open: true,
+      message,
+      severity: 'success'
+    });
+  };
 
-  if (error) {
-    return (
-      <div className={`customers-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="error-state">
-          <p>⚠️ {error}</p>
-          <button onClick={fetchCustomersAndNotes}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
+  const showError = (message: string) => {
+    setSnackbar({
+      open: true,
+      message,
+      severity: 'error'
+    });
+  };
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await apiClient.post('/Customers', formData);
+      const newCustomer = response.data;
+      setCustomers(prev => [...prev, newCustomer]);
+      setShowForm(false);
+      resetForm();
+      showSuccess('Customer created successfully');
+    } catch (err: any) {
+      showError(err.message);
+    }
+  };
+
+  const handleCustomerClick = (custId: number) => {
+    navigate(`/customers/${custId}`);
+  };
+
+  const openDeleteDialog = (custId: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent customer card click
+    const customer = customers.find(c => c.custID === custId);
+    if (customer) {
+      setCustomerToDelete(customer);
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+    try {
+      await apiClient.delete(`/Customers/${customerToDelete.custID}`);
+      setCustomers(prev => prev.filter(c => c.custID !== customerToDelete.custID));
+      showSuccess('Customer deleted successfully');
+      setDeleteDialogOpen(false);
+      setCustomerToDelete(null);
+    } catch (err: any) {
+      showError(err.message);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      companyName: '',
+      contactTitle: '',
+      contactFirstNames: '',
+      contactSurname: '',
+      line1: '',
+      line2: '',
+      line3: '',
+      line4: '',
+      postcode: '',
+      telephone: '',
+      fax: '',
+      email: ''
+    });
+  };
+
+  const containerClassName = `${styles['customers-container']} ${isDarkMode ? styles.dark : styles.light}`;
 
   return (
-    <div className={`customers-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="customers-header">
-        <h1>Customers</h1>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={() => setShowForm(true)}
+    <div className={containerClassName}>
+      <div className={styles['header-actions']}>
+        <h1>All Customers</h1>
+        <button 
+          onClick={() => setShowForm(!showForm)} 
+          className={styles['add-customer-btn']}
         >
-          Add New Customer
-        </Button>
+          {showForm ? 'Cancel' : 'Add New Customer'}
+        </button>
       </div>
 
-      <div className="search-bar">
+      <div className={styles['search-container']}>
         <input
           type="text"
           placeholder="Search customers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles['search-input']}
         />
       </div>
 
-      <div className="customers-grid">
-        {filteredCustomers.map(customer => (
-          <div key={customer.custID} className="customer-card">
-            <div className="customer-header">
-              <h3>{customer.companyName}</h3>
-              <IconButton
-                onClick={() => handleDeleteClick(customer)}
-                size="small"
-                className="delete-button"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-            <p>
-              {[
-                customer.contactFirstNames,
-                customer.contactSurname
-              ].filter(Boolean).join(' ')}
-            </p>
-            <p>{customer.email}</p>
-            <p>{customer.telephone}</p>
-            <div className="customer-actions">              <Button
-                variant="outlined"
-                onClick={() => navigate(`/customers/${customer.custID}/notes`)}
-              >
-                Notes ({customerNotes[customer.custID] || 0})
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate(`/customers/${customer.custID}`)}
-              >
-                Summary
-              </Button>
-            </div>
+      {showForm && (
+        <form onSubmit={handleCreateCustomer} className={styles['customer-form']}>
+          <div className={styles['form-row']}>
+            <input
+              type="text"
+              name="companyName"
+              value={formData.companyName}
+              onChange={handleInputChange}
+              placeholder="Company Name"
+              required
+            />
+            <input
+              type="text"
+              name="contactTitle"
+              value={formData.contactTitle}
+              onChange={handleInputChange}
+              placeholder="Contact Title"
+            />
           </div>
-        ))}
-      </div>
-
-      <Dialog open={showForm} onClose={() => setShowForm(false)}>
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>Add New Customer</DialogTitle>
-          <DialogContent>
-            <div className="form-grid">
-              <input
-                type="text"
-                name="companyName"
-                placeholder="Company Name *"
-                value={formData.companyName}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                type="text"
-                name="contactTitle"
-                placeholder="Contact Title"
-                value={formData.contactTitle}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="contactFirstNames"
-                placeholder="First Names"
-                value={formData.contactFirstNames}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="contactSurname"
-                placeholder="Surname"
-                value={formData.contactSurname}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="line1"
-                placeholder="Address Line 1"
-                value={formData.line1}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="line2"
-                placeholder="Address Line 2"
-                value={formData.line2}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="line3"
-                placeholder="Address Line 3"
-                value={formData.line3}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="line4"
-                placeholder="Address Line 4"
-                value={formData.line4}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                name="postcode"
-                placeholder="Postcode"
-                value={formData.postcode}
-                onChange={handleInputChange}
-              />
-              <input
-                type="tel"
-                name="telephone"
-                placeholder="Telephone"
-                value={formData.telephone}
-                onChange={handleInputChange}
-              />
-              <input
-                type="tel"
-                name="fax"
-                placeholder="Fax"
-                value={formData.fax}
-                onChange={handleInputChange}
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-              />
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              Add Customer
-            </Button>
-          </DialogActions>
+          <div className={styles['form-row']}>
+            <input
+              type="text"
+              name="contactFirstNames"
+              value={formData.contactFirstNames}
+              onChange={handleInputChange}
+              placeholder="First Names"
+            />
+            <input
+              type="text"
+              name="contactSurname"
+              value={formData.contactSurname}
+              onChange={handleInputChange}
+              placeholder="Surname"
+            />
+          </div>
+          <div className={styles['form-row']}>
+            <input
+              type="text"
+              name="line1"
+              value={formData.line1}
+              onChange={handleInputChange}
+              placeholder="Address Line 1"
+            />
+            <input
+              type="text"
+              name="line2"
+              value={formData.line2}
+              onChange={handleInputChange}
+              placeholder="Address Line 2"
+            />
+          </div>
+          <div className={styles['form-row']}>
+            <input
+              type="text"
+              name="line3"
+              value={formData.line3}
+              onChange={handleInputChange}
+              placeholder="Address Line 3"
+            />
+            <input
+              type="text"
+              name="line4"
+              value={formData.line4}
+              onChange={handleInputChange}
+              placeholder="Address Line 4"
+            />
+          </div>
+          <div className={styles['form-row']}>
+            <input
+              type="text"
+              name="postcode"
+              value={formData.postcode}
+              onChange={handleInputChange}
+              placeholder="Postcode"
+            />
+            <input
+              type="tel"
+              name="telephone"
+              value={formData.telephone}
+              onChange={handleInputChange}
+              placeholder="Telephone"
+            />
+          </div>
+          <div className={styles['form-row']}>
+            <input
+              type="tel"
+              name="fax"
+              value={formData.fax}
+              onChange={handleInputChange}
+              placeholder="Fax"
+            />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Email"
+            />
+          </div>
+          <button type="submit" className={styles['submit-btn']}>Create Customer</button>
         </form>
-      </Dialog>
+      )}
 
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete {customerToDelete?.companyName}?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleConfirmDelete} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
+      {loading && <p>Loading customers...</p>}
+      {error && <p>Error: {error}</p>}
+      {filteredCustomers.length > 0 ? (
+        <div className={styles['customers-grid']}>
+          {filteredCustomers.map(customer => (
+            <div 
+              key={customer.custID} 
+              className={styles['customer-card']}
+              onClick={() => handleCustomerClick(customer.custID)}
+            >
+              <div className={styles['card-actions']}>
+                <IconButton 
+                  onClick={(e) => openDeleteDialog(customer.custID, e)} 
+                  size="small"
+                  color="error"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </div>
+              <h3>{customer.companyName}</h3>
+              <p>Contact: {customer.contactTitle} {customer.contactFirstNames} {customer.contactSurname}</p>
+              <p>Email: {customer.email}</p>
+              <p>Phone: {customer.telephone}</p>
+              <div className={styles.address}>
+                <p>{customer.line1}</p>
+                {customer.line2 && <p>{customer.line2}</p>}
+                {customer.line3 && <p>{customer.line3}</p>}
+                {customer.line4 && <p>{customer.line4}</p>}
+                <p>{customer.postcode}</p>
+              </div>
+              {customerNotes[customer.custID] > 0 && (
+                <div className={styles['notes-count']}>
+                  Notes: {customerNotes[customer.custID]}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className={styles['no-results']}>No customers found matching your search.</p>
+      )}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <MuiAlert
-          elevation={6}
-          variant="filled"
-          onClose={handleCloseSnackbar}
+          onClose={handleSnackbarClose}
           severity={snackbar.severity}
+          variant="filled"
         >
           {snackbar.message}
         </MuiAlert>
       </Snackbar>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Customer Deletion
+        </DialogTitle>
+        <DialogContent>
+          <div id="delete-dialog-description">
+            <p>Are you sure you want to delete this customer?</p>
+            {customerToDelete && (
+              <>
+                <p><strong>Company:</strong> {customerToDelete.companyName}</p>
+                <p><strong>Contact:</strong> {customerToDelete.contactTitle} {customerToDelete.contactFirstNames} {customerToDelete.contactSurname}</p>
+              </>
+            )}
+            <p style={{ color: '#d32f2f', marginTop: '1rem' }}>
+              This action cannot be undone. All associated notes and plant holdings will also be deleted.
+            </p>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteCustomer}
+            color="error"
+            variant="contained"
+          >
+            Delete Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
-};
+}
 
 export default AllCustomers;

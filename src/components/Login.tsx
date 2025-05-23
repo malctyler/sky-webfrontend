@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TextField, Button, Paper, Typography, Box, CircularProgress } from '@mui/material';
 import { AxiosError } from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-import './Login.css';
+import styles from './Login.module.css';
 
 interface ErrorResponse {
     message?: string;
@@ -64,11 +64,9 @@ const Login: React.FC<LoginProps> = ({ redirectTo }) => {
         } finally {
             setLoading(false);
         }
-    };
-
-    return (
-        <Box className="login-container">
-            <Paper elevation={3} className="login-paper">
+    };    return (
+        <Box className={styles['login-container']}>
+            <Paper elevation={3} className={styles['login-paper']}>
                 <Typography variant="h5" component="h1" gutterBottom>
                     Login
                 </Typography>

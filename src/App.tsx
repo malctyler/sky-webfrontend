@@ -11,8 +11,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import './components/AllCustomers.css';
-import './components/CustomerNotes.css';
 import './components/PlantCategories.css';
 import './components/ManagePlant.css';
 import CustomerPlantHolding from './components/CustomerPlantHolding';

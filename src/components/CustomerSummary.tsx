@@ -33,7 +33,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import './CustomerSummary.css';
+import styles from './CustomerSummary.module.css';
 import InspectionList from './InspectionList';
 import MuiAlert from '@mui/material/Alert';
 import axios from 'axios';
@@ -423,9 +423,8 @@ const CustomerSummary: React.FC = () => {
       </Dialog>
   );
 
-  const renderNotes = () => (
-    <div className="notes-section">
-      <div className="notes-header">
+  const renderNotes = () => (    <div className={styles['notes-section']}>
+      <div className={styles['notes-header']}>
         <Button
           variant="contained"
           color="primary"
@@ -440,10 +439,10 @@ const CustomerSummary: React.FC = () => {
         </Button>
       </div>
       {notes.length > 0 ? (
-        <div className="notes-grid">
+        <div className={styles['notes-grid']}>
           {notes.map(note => (
-            <div key={note.noteID} className="note-card">
-              <div className="note-actions">
+            <div key={note.noteID} className={styles['note-card']}>
+              <div className={styles['note-actions']}>
                 <IconButton onClick={() => handleEditClick(note)} size="small">
                   <EditIcon />
                 </IconButton>
@@ -457,19 +456,19 @@ const CustomerSummary: React.FC = () => {
                   <DeleteIcon />
                 </IconButton>
               </div>
-              <div className="note-date">
+              <div className={styles['note-date']}>
                 {new Date(note.date).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric'
                 })}
               </div>
-              <div className="note-content">{note.notes}</div>
+              <div className={styles['note-content']}>{note.notes}</div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="no-notes">No notes available for this customer.</p>
+        <p className={styles['no-notes']}>No notes available for this customer.</p>
       )}
       {renderNoteDialog()}
     </div>
@@ -553,10 +552,9 @@ const CustomerSummary: React.FC = () => {
     <Dialog open={plantHoldingDialogOpen} onClose={handleDialogClose}>
       <DialogTitle>
         {editingPlantHolding ? 'Edit Plant Holding' : 'Create New Plant Holding'}
-      </DialogTitle>
-      <DialogContent>
-        <div className="dialog-form">
-          <FormControl fullWidth margin="normal">
+      </DialogTitle>      <DialogContent>
+          <div className={styles['dialog-form']}>
+            <FormControl fullWidth margin="normal">
             <InputLabel>Plant Name</InputLabel>
             <Select
               name="plantNameID"
@@ -616,10 +614,9 @@ const CustomerSummary: React.FC = () => {
   );
 
   if (loading) {
-    return (
-      <div className={`summary-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="loading-state">
-          <div className="spinner"></div>
+    return (      <div className={`${styles['summary-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles['loading-state']}>
+          <div className={styles.spinner}></div>
           <p>Loading customer details...</p>
         </div>
       </div>
@@ -628,8 +625,8 @@ const CustomerSummary: React.FC = () => {
 
   if (error) {
     return (
-      <div className={`summary-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="error-state">
+      <div className={`${styles['summary-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles['error-state']}>
           <p>⚠️ {error}</p>
           <Button variant="contained" onClick={() => navigate('/customers')}>
             Return to Customers
@@ -641,8 +638,8 @@ const CustomerSummary: React.FC = () => {
 
   if (!customer) {
     return (
-      <div className={`summary-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="error-state">
+      <div className={`${styles['summary-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles['error-state']}>
           <p>⚠️ Customer not found</p>
           <Button variant="contained" onClick={() => navigate('/customers')}>
             Return to Customers
@@ -651,12 +648,11 @@ const CustomerSummary: React.FC = () => {
       </div>
     );
   }
-  return (
-    <div className={`summary-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="summary-header">
+  return (    <div className={`${styles['summary-container']} ${isDarkMode ? styles.dark : styles.light}`}>
+      <div className={styles['summary-header']}>
         <Button variant="contained" onClick={() => navigate('/customers')}>← Back</Button>
         <h2>{customer.companyName}</h2>
-        <div className="header-actions">
+        <div className={styles['header-actions']}>
           <IconButton onClick={() => setEditDialogOpen(true)} color="primary">
             <EditIcon />
           </IconButton>
@@ -669,17 +665,17 @@ const CustomerSummary: React.FC = () => {
       <Tabs
         value={activeTab}
         onChange={(_, newValue) => setActiveTab(newValue)}
-        className="summary-tabs"
+        className={styles['summary-tabs']}
       >
         <Tab label="Customer Details" />
         <Tab label={`Notes (${notes.length})`} />
         <Tab label={`Plant Holdings (${plantHoldings.length})`} />
       </Tabs>
 
-      <div className="tab-content">
+      <div className={styles['tab-content']}>
         {activeTab === 0 ? (
-          <div className="customer-details">
-            <div className="detail-section">
+          <div className={styles['customer-details']}>
+            <div className={styles['detail-section']}>
               <h3>Contact Information</h3>
               <p><strong>Name:</strong> {customer?.contactTitle} {customer?.contactFirstNames} {customer?.contactSurname}</p>
               <p><strong>Email:</strong> {customer?.email}</p>
@@ -687,7 +683,7 @@ const CustomerSummary: React.FC = () => {
               <p><strong>Fax:</strong> {customer?.fax}</p>
             </div>
             
-            <div className="detail-section">
+            <div className={styles['detail-section']}>
               <h3>Address</h3>
               <p>{customer?.line1}</p>
               {customer?.line2 && <p>{customer.line2}</p>}
@@ -763,10 +759,9 @@ const CustomerSummary: React.FC = () => {
         )}
       </div>
 
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-        <DialogTitle>Edit Customer</DialogTitle>
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>      <DialogTitle>Edit Customer</DialogTitle>
         <DialogContent>
-          <div className="dialog-form">
+          <div className={styles['dialog-form']}>
             <TextField
               label="Company Name"
               name="companyName"
