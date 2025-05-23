@@ -2,9 +2,9 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./InspectionForm.module.css";
-import inspectorService from '../services/inspectorService';
-import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
-import { Inspector } from '../types/inspectorTypes';
+import inspectorService from '../../services/inspectorService';
+import { InspectionItem, InspectionFormData } from '../../types/inspectionTypes';
+import { Inspector } from '../../types/inspectorTypes';
 
 interface InspectionFormProps {
     inspection: InspectionItem | null;

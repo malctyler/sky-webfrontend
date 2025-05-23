@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import {
     Table,
     TableBody,
@@ -20,11 +20,11 @@ import {
     AlertColor
 } from '@mui/material';
 import { Delete as DeleteIcon, Assignment as CertificateIcon, Email as EmailIcon, Edit as EditIcon } from '@mui/icons-material';
-import { baseUrl } from '../config';
-import inspectionService from '../services/inspectionService';
+import { baseUrl } from '../../config';
+import inspectionService from '../../services/inspectionService';
 import InspectionForm from './InspectionForm';
 import { format } from 'date-fns';
-import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
+import { InspectionItem, InspectionFormData } from '../../types/inspectionTypes';
 import styles from './InspectionList.module.css';
 
 interface InspectionListProps {

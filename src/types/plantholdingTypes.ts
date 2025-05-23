@@ -1,16 +1,29 @@
 export interface PlantHolding {
   holdingID: number;
-  plantDescription: string;
-  serialNumber: string;
-  statusDescription: string;
-  swl: string;
+  custID?: number;
+  plantNameID?: number;
+  plantDescription?: string;
+  serialNumber?: string;
+  statusID?: number;
+  statusDescription?: string;
+  swl?: string;
+  inspectionFrequency?: string;
+  inspectionFee?: number;
 }
 
 export interface NewPlantHolding {
   custID: number | null;
-  plantNameID: string;
+  plantNameID: number | null;
   serialNumber: string;
-  statusID: string;
+  statusID: number | null;
+  swl: string;
+}
+
+export interface NewPlantHoldingForm {
+  custID: number | null;
+  plantNameID: string; // String for form handling
+  serialNumber: string;
+  statusID: string; // String for form handling
   swl: string;
 }
 
@@ -22,6 +35,8 @@ export interface Plant {
 export interface Status {
   statusID: number;
   statusDescription: string;
+  id?: number; // Backend sometimes returns id instead of statusID
+  description?: string; // Backend sometimes returns description instead of statusDescription
 }
 
 export interface SnackbarState {

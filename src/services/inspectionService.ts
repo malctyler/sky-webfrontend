@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { baseUrl } from '../config';
-import { generatePdfBlob, getPdfFileName } from '../components/InspectionCertificateTemplate';
+import { generatePdfBlob, getPdfFileName } from '../components/Inspection/InspectionCertificateTemplate';
 import {
     InspectionItem,
     InspectionFormData

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Paper, Box } from '@mui/material';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Home: React.FC = () => {
   const { isDarkMode } = useTheme();

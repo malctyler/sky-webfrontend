@@ -2,7 +2,7 @@ import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TextField, Button, Paper, Typography, Box, FormControlLabel, Checkbox } from '@mui/material';
 import { AxiosError } from 'axios';
-import { register } from '../services/authService';
+import { register } from '../../services/authService';
 import styles from './Register.module.css';
 
 interface FormData {

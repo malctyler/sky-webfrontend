@@ -1,19 +1,18 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MainLayout from "@/components/Layout/MainLayout";
-import AuthLayout from "@/components/Layout/AuthLayout";
-import Login from "@/components/Login";
-import Register from "@/components/Register";
-import Home from "@/components/Home";
-import Weather from "@/components/Weather";
-import CustomerPlantHolding from "@/components/CustomerPlantHolding";
-import AllCustomers from "@/components/AllCustomers";
-import CustomerSummary from "@/components/CustomerSummary";
-import CustomerNotes from "@/components/CustomerNotes";
-import PlantCategories from "@/components/PlantCategories";
-import ManagePlant from "@/components/ManagePlant";
-import UserManagement from "@/components/UserManagement";
-import CertificatePage from "@/components/CertificatePage";
+import LoginForm from "@/components/Auth/LoginForm";
+import Register from "@/components/Auth/Register";
+import Home from "@/components/Common/Home";
+import Weather from "@/components/Weather/Weather";
+import CustomerPlantHolding from "@/components/Customer/CustomerPlantHolding";
+import AllCustomers from "@/components/Customer/AllCustomers";
+import CustomerSummary from "@/components/Customer/CustomerSummary";
+import CustomerNotes from "@/components/Customer/CustomerNotes";
+import PlantCategories from "@/components/Plant/PlantCategories";
+import ManagePlant from "@/components/Plant/ManagePlant";
+import UserManagement from "@/components/UserManagement/UserManagement";
+import CertificatePage from "@/components/Inspection/CertificatePage";
 
 interface RouteType {
     path: string;
@@ -139,11 +138,10 @@ const AppRouter = () => {
     return (
         <Routes>
             {/* Auth routes - unprotected */}
-            {(authRoutes || []).map((route: RouteType) => (
-                <Route
+            {(authRoutes || []).map((route: RouteType) => (                <Route
                     key={route.path}
                     path={route.path}
-                    element={<AuthLayout>{route.element}</AuthLayout>}
+                    element={<div className="auth-container">{route.element}</div>}
                 />
             ))}            {/* App routes - protected */}
             {(appRoutes || []).map((route: RouteType) => (

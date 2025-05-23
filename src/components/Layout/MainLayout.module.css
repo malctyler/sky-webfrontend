@@ -1,6 +1,7 @@
 .drawerPaper {
   background-color: var(--nav-bg) !important;
   border-right: 1px solid var(--border-color) !important;
+  width: 240px !important;
 }
 
 :global(.dark) .drawerPaper {
@@ -115,6 +116,7 @@
 .mainContent {
   background-color: var(--background-default);
   min-height: calc(100vh - 64px);
+  margin-left: 0 !important;
 }
 
 .mainContent > div {

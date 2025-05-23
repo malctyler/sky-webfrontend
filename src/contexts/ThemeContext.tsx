@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useState, useMemo, useContext } from 'react';
 import { createTheme, ThemeProvider as MuiThemeProvider, Theme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 import { amber, deepOrange, grey } from '@mui/material/colors';
 import { PaletteMode } from '@mui/material';
 
@@ -91,11 +92,10 @@ export function ThemeProvider({ children }: ThemeProviderProps): JSX.Element {
     const muiTheme = useMemo<Theme>(
         () => createTheme(getDesignTokens(isDarkMode ? 'dark' : 'light')),
         [isDarkMode]
-    );
-
-    return (
+    );    return (
         <ThemeContext.Provider value={themeColorMode}>
             <MuiThemeProvider theme={muiTheme}>
+                <CssBaseline enableColorScheme />
                 {children}
             </MuiThemeProvider>
         </ThemeContext.Provider>

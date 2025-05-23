@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import Snackbar from '@mui/material/Snackbar';
@@ -11,8 +11,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import styles from './AllCustomers.module.css';
-import apiClient from '../services/apiClient';
-import { Customer } from '../types/customerTypes';
+import apiClient from '../../services/apiClient';
+import { Customer } from '../../types/customerTypes';
 
 interface FormData {
   companyName: string;

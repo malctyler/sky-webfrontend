@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { BlobProvider } from '@react-pdf/renderer';
 import InspectionCertificateTemplate from './InspectionCertificateTemplate';
-import inspectionService from '../services/inspectionService';
-import { InspectionCertificate } from '../types/inspectionTypes';
+import inspectionService from '../../services/inspectionService';
+import { InspectionCertificate } from '../../types/inspectionTypes';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 const CertificatePage: React.FC = () => {

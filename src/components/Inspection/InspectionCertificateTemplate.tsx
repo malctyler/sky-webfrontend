@@ -1,8 +1,8 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, Image, pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
-import { baseUrl } from '../config';
-import { InspectionCertificate } from '../types/inspectionTypes';
+import { baseUrl } from '../../config';
+import { InspectionCertificate } from '../../types/inspectionTypes';
 
 Font.register({
     family: 'Helvetica',

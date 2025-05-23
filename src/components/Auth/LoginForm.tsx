@@ -1,9 +1,8 @@
 import React, { useState, FormEvent } from 'react';
 import { TextField, Button, Paper, Typography, Box, CircularProgress } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { AxiosError } from 'axios';
-import './Login.css';
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -13,7 +12,31 @@ interface ErrorResponse {
   message?: string;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ redirectTo }) => {
+class LoginFormErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    console.error('LoginForm Error:', error);
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography color="error">Error loading login form:</Typography>
+          <pre style={{ color: 'red' }}>{this.state.error?.message}</pre>
+        </Box>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const InnerLoginForm: React.FC<LoginFormProps> = ({ redirectTo }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -67,8 +90,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectTo }) => {
   };
 
   return (
-    <Box className="login-container">
-      <Paper elevation={3} className="login-paper">
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      height: '100%'
+    }}>
+      <Paper 
+        elevation={3} 
+        sx={{
+          p: 4,
+          width: '100%',
+          maxWidth: 400,
+          bgcolor: 'background.paper'
+        }}
+      >
         <Typography variant="h5" component="h1" gutterBottom>
           Login
         </Typography>
@@ -126,6 +164,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectTo }) => {
         </Box>
       </Paper>
     </Box>
+  );
+};
+
+const LoginForm: React.FC<LoginFormProps> = (props) => {
+  return (
+    <LoginFormErrorBoundary>
+      <InnerLoginForm {...props} />
+    </LoginFormErrorBoundary>
   );
 };
 

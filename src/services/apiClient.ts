@@ -34,8 +34,7 @@ instance.interceptors.response.use(
         if (error.response?.status === 401) {
             // Clear invalid token
             localStorage.removeItem('user');
-            // Redirect to login
-            window.location.href = '/login';
+            // Let the component handle navigation through its error handling
         }
         return Promise.reject(error);
     }

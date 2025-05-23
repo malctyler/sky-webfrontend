@@ -38,8 +38,10 @@ interface AuthProviderProps {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    // Initialize loading as true so we show loading state immediately
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [initialized, setInitialized] = useState<boolean>(false);
 
     const getRolesFromToken = (decoded: DecodedToken): string[] => {
         const roleKeys = [
@@ -59,122 +61,155 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                let parsedUser: AuthUser = JSON.parse(storedUser);
-                if (parsedUser.token) {
-                    try {
-                        const decoded = jwtDecode<DecodedToken>(parsedUser.token);
-                        // Get user roles and email confirmation status from token
-                        parsedUser.roles = getRolesFromToken(decoded);                        parsedUser.customerId = decoded.CustomerId || decoded.customerId;
-                        parsedUser.emailConfirmed = decoded.EmailConfirmed === 'True';
+        let mounted = true;
 
-                        // Check if email is now confirmed
-                        if (!parsedUser.emailConfirmed) {
-                            const confirmationStatus = await checkEmailConfirmation(parsedUser.email);
-                            if (confirmationStatus.token) {
-                                // Update user with new token and status
-                                parsedUser = {
-                                    ...parsedUser,
-                                    token: confirmationStatus.token,
-                                    emailConfirmed: true
-                                };
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error decoding token:', e);
-                        parsedUser.roles = [];
-                    }
+        const checkAuth = async () => {
+            if (!mounted) return;
+            
+            try {
+                const storedUser = localStorage.getItem('user');
+                
+                if (!storedUser) {
+                    // Not an error case - just no user logged in
+                    return;
                 }
-                setUser(parsedUser);
-                // Validate token with backend
-                const result = await validateToken();
-                if (!result.valid) {
-                    setUser(null);
+
+                const parsedUser = JSON.parse(storedUser);
+                if (!parsedUser?.token) {
+                    // Invalid data - clear it
                     localStorage.removeItem('user');
-                } else {
-                    // Update localStorage with possibly updated user data
-                    localStorage.setItem('user', JSON.stringify(parsedUser));
+                    return;
+                }
+
+                // Validate token
+                try {
+                    await validateToken();
+                    if (!mounted) return;
+
+                    // Token is valid, decode and set user state
+                    const decoded = jwtDecode<DecodedToken>(parsedUser.token);
+                    const roles = getRolesFromToken(decoded);
+                    
+                    setUser({
+                        ...parsedUser,
+                        roles,
+                        customerId: decoded.CustomerId || decoded.customerId,
+                        emailConfirmed: decoded.EmailConfirmed === 'True'
+                    });
+                } catch (error) {
+                    // Token validation failed - clear stored data
+                    if (!mounted) return;
+                    console.error('Token validation failed:', error);
+                    localStorage.removeItem('user');
+                    setUser(null);
+                }
+            } catch (error) {
+                if (!mounted) return;
+                // JSON parse error or other unexpected error
+                console.error('Auth check failed:', error);
+                localStorage.removeItem('user');
+                setUser(null);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                    setInitialized(true);
                 }
             }
-            setLoading(false);
         };
+
         checkAuth();
+
+        return () => {
+            mounted = false;
+        };
     }, []);
 
-    const refreshEmailConfirmation = async (): Promise<boolean> => {
-        if (user?.email) {
+    const contextValue = {
+        user,
+        login: async (email: string, password: string) => {
+            setLoading(true);
             try {
-                const confirmationStatus = await checkEmailConfirmation(user.email);
-                if (confirmationStatus.token) {
-                    const updatedUser: AuthUser = {
-                        ...user,
-                        token: confirmationStatus.token,
-                        emailConfirmed: true
-                    };
-                    setUser(updatedUser);
+                const response = await loginService(email, password);
+                const decoded = jwtDecode<DecodedToken>(response.token);
+                const roles = getRolesFromToken(decoded);
+                const newUser = {
+                    ...response,
+                    roles,
+                    customerId: decoded.CustomerId || decoded.customerId,
+                    emailConfirmed: decoded.EmailConfirmed === 'True'
+                };
+                localStorage.setItem('user', JSON.stringify(newUser));
+                setUser(newUser);
+                return newUser;
+            } finally {
+                setLoading(false);
+            }
+        },
+        logout: async () => {
+            setLoading(true);
+            try {
+                await logoutService();
+            } catch (error) {
+                console.error('Error during logout:', error);
+            } finally {
+                setUser(null);
+                localStorage.removeItem('user');
+                setLoading(false);
+            }
+        },
+        loading,
+        hasRole: (role: string) => user?.roles.includes(role) || false,
+        isEmailConfirmed: () => user?.emailConfirmed || false,
+        refreshEmailConfirmation: async () => {
+            if (!user?.email) return false;
+            try {
+                const response = await checkEmailConfirmation(user.email);
+                if (response.token) {
+                    const updatedUser = { ...user, token: response.token, emailConfirmed: true };
                     localStorage.setItem('user', JSON.stringify(updatedUser));
+                    setUser(updatedUser);
                     return true;
                 }
             } catch (error) {
-                console.error('Error refreshing email confirmation status:', error);
+                console.error('Error checking email confirmation:', error);
             }
+            return false;
         }
-        return false;
     };
 
-    const login = async (email: string, password: string): Promise<AuthUser> => {
-        const response = await loginService(email, password);
-        let customerId: string | number | undefined = undefined;
-        let roles: string[] = [];
-        let emailConfirmed = false;
-
-        if (response.token) {
-            try {
-                const decoded = jwtDecode<DecodedToken>(response.token);
-                roles = getRolesFromToken(decoded);                customerId = decoded.CustomerId || decoded.customerId;
-                emailConfirmed = decoded.EmailConfirmed === 'True';
-            } catch (e) {
-                console.error('Error decoding token:', e);
-            }
-        }
-        const userData: AuthUser = {
-            email: response.email,
-            token: response.token,
-            isCustomer: response.isCustomer,
-            customerId,
-            roles,
-            emailConfirmed
-        };
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return userData;
-    };
-
-    const logout = async (): Promise<void> => {
-        await logoutService();
-        setUser(null);
-        localStorage.removeItem('user');
-    };
-
-    const hasRole = (role: string): boolean => {
-        return user?.roles?.includes(role) || false;
-    };
-
-    const isEmailConfirmed = (): boolean => {
-        return user?.emailConfirmed || false;
-    };
-
-    const contextValue: AuthContextType = {
-        user,
-        login,
-        logout,
-        loading,
-        hasRole,
-        isEmailConfirmed,
-        refreshEmailConfirmation
-    };
+    // Only render children after initial auth check is complete
+    if (!initialized) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh',
+                backgroundColor: 'var(--background-default)',
+                gap: '16px'
+            }}>
+                <div style={{ 
+                    width: '40px', 
+                    height: '40px', 
+                    border: '4px solid rgba(0, 0, 0, 0.1)', 
+                    borderTopColor: 'var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }} />
+                <div>Checking authentication...</div>
+                <style>
+                    {`
+                        @keyframes spin {
+                            to {
+                                transform: rotate(360deg);
+                            }
+                        }
+                    `}
+                </style>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={contextValue}>

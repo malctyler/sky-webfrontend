@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { 
   IconButton, 
   Button, 
@@ -17,10 +17,10 @@ import {
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../types/plantTypes';
+import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../../types/plantTypes';
 import styles from './ManagePlant.module.css';
 import axios from 'axios';
-import { baseUrl } from '../config';
+import { baseUrl } from '../../config';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

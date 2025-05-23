@@ -16,12 +16,15 @@ export default defineConfig({
       }
     }),
     tsconfigPaths()
-  ],
-  resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  ],  resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
-    }
+      '@': resolve(__dirname, 'src'),
+      '@components': resolve(__dirname, 'src/components'),
+      '@contexts': resolve(__dirname, 'src/contexts'),
+      '@services': resolve(__dirname, 'src/services'),
+      '@types': resolve(__dirname, 'src/types')
+    },
+    extensions: ['.js', '.jsx', '.ts', '.tsx']
   },
   test: {
     globals: true,

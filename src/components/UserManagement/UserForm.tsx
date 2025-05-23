@@ -1,7 +1,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { TextField, Button, Checkbox, FormControlLabel } from '@mui/material';
-import userService from '../services/userService';
-import { User, CreateUserDto, UpdateUserDto } from '../types/userTypes';
+import userService from '../../services/userService';
+import { User, CreateUserDto, UpdateUserDto } from '../../types/userTypes';
 
 interface UserFormProps {
   user: User | null;

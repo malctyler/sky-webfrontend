@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import {
   Button,
   IconButton,
@@ -34,12 +34,12 @@ import {
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import styles from './CustomerSummary.module.css';
-import InspectionList from './InspectionList';
+import InspectionList from '../Inspection/InspectionList';
 import MuiAlert from '@mui/material/Alert';
 import axios from 'axios';
-import { baseUrl } from '../config';
-import { Customer, SnackbarState, Note } from '../types/customerTypes';
-import { PlantHolding, NewPlantHolding, Plant, Status } from '../types/plantholdingTypes';
+import { baseUrl } from '../../config';
+import { Customer, SnackbarState, Note } from '../../types/customerTypes';
+import { PlantHolding, NewPlantHolding, NewPlantHoldingForm, Plant, Status } from '../../types/plantholdingTypes';
 
 type RouterParams = {
   [key: string]: string | undefined;
@@ -78,8 +78,7 @@ const CustomerSummary: React.FC = () => {
 
   // Options state
   const [allplant, setAllplant] = useState<Plant[]>([]);
-  const [allStatuses, setAllStatuses] = useState<Status[]>([]);
-  const [newPlantHolding, setNewPlantHolding] = useState<NewPlantHolding>({
+  const [allStatuses, setAllStatuses] = useState<Status[]>([]);  const [newPlantHolding, setNewPlantHolding] = useState<NewPlantHoldingForm>({
     custID: custId ? parseInt(custId) : null,
     plantNameID: '',
     serialNumber: '',
@@ -254,13 +253,14 @@ const CustomerSummary: React.FC = () => {
   const handleCreatePlantHolding = async () => {
     if (!custId) return;
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.post(`${baseUrl}/PlantHolding`, {
-        ...newPlantHolding,
+      const headers = getAuthHeaders();      const apiPayload: NewPlantHolding = {
         custID: parseInt(custId),
-        plantNameID: parseInt(newPlantHolding.plantNameID),
-        statusID: parseInt(newPlantHolding.statusID)
-      }, { headers });
+        plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
+        serialNumber: newPlantHolding.serialNumber,
+        statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
+        swl: newPlantHolding.swl
+      };
+      const response = await axios.post(`${baseUrl}/PlantHolding`, apiPayload, { headers });
       const newHolding = response.data;
       setPlantHoldings(prev => [...prev, newHolding]);
       setPlantHoldingDialogOpen(false);
@@ -273,13 +273,14 @@ const CustomerSummary: React.FC = () => {
   const handleUpdatePlantHolding = async () => {
     if (!editingPlantHolding || !custId) return;
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, {
-        ...editingPlantHolding,
+      const headers = getAuthHeaders();      const apiPayload: NewPlantHolding = {
         custID: parseInt(custId),
-        plantNameID: parseInt(newPlantHolding.plantNameID),
-        statusID: parseInt(newPlantHolding.statusID)
-      }, { headers });
+        plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
+        serialNumber: newPlantHolding.serialNumber,
+        statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
+        swl: newPlantHolding.swl
+      };
+      const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload, { headers });
       const updatedHolding = response.data;
       setPlantHoldings(prev => prev.map(holding => 
         holding.holdingID === editingPlantHolding.holdingID ? updatedHolding : holding
@@ -294,7 +295,7 @@ const CustomerSummary: React.FC = () => {
 
   // Utility functions
   const getStatusDescription = (holding: PlantHolding): string => {
-    const status = allStatuses.find(s => s.statusID === holding.statusID);
+    const status = allStatuses.find(s => (s.statusID || s.id) === (holding.statusID));
     return status?.statusDescription || 'Unknown';
   };
 
@@ -306,13 +307,11 @@ const CustomerSummary: React.FC = () => {
       ...editingCustomer,
       [name]: value
     });
-  };
-
-  const handlePlantHoldingChange = (e: SelectChangeEvent<string> | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  };  const handlePlantHoldingChange = (e: SelectChangeEvent<string> | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewPlantHolding(prev => ({
+    setNewPlantHolding((prev: NewPlantHoldingForm) => ({
       ...prev,
-      [name]: value
+      [name]: value || ''
     }));
   };
   const handleCustomerUpdate = async () => {
@@ -384,13 +383,12 @@ const CustomerSummary: React.FC = () => {
   const openEditPlantHoldingDialog = (holding: PlantHolding) => {
     if (!custId) return;
     
-    setEditingPlantHolding(holding);
-    setNewPlantHolding({
+    setEditingPlantHolding(holding);    setNewPlantHolding({
       custID: parseInt(custId),
-      plantNameID: holding.plantNameID.toString(),
-      serialNumber: holding.serialNumber,
-      statusID: holding.statusID.toString(),
-      swl: holding.swl
+      plantNameID: holding.plantNameID?.toString() || '',
+      serialNumber: holding.serialNumber || '',
+      statusID: holding.statusID?.toString() || '',
+      swl: holding.swl || ''
     });
     setPlantHoldingDialogOpen(true);
   };

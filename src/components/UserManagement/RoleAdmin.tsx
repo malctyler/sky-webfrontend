@@ -1,8 +1,8 @@
 import React, { useEffect, useState, KeyboardEvent, ChangeEvent } from 'react';
 import { Button, List, ListItem, ListItemText, TextField, Alert, Typography } from '@mui/material';
-import roleService from '../services/roleService';
-import { useAuth } from '../contexts/AuthContext';
-import { Role } from '../types/roleTypes';
+import roleService from '../../services/roleService';
+import { useAuth } from '../../contexts/AuthContext';
+import { Role } from '../../types/roleTypes';
 
 const RoleAdmin: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);

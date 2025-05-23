@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
-import { baseUrl } from '../config';
-import { PlantHolding } from '../types/plantholdingTypes';
+import { baseUrl } from '../../config';
+import { PlantHolding } from '../../types/plantholdingTypes';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {

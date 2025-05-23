@@ -17,8 +17,8 @@ import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import MuiAlert from '@mui/material/Alert';
 import { AlertColor } from '@mui/material';
 import styles from './PlantCategories.module.css';
-import { baseUrl } from '../config';
-import { useAuth } from '../contexts/AuthContext';
+import { baseUrl } from '../../config';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PlantCategory {
   categoryID: number;

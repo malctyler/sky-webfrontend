@@ -13,9 +13,9 @@ import {
   Typography
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import claimService from '../services/claimService';
-import { User } from '../types/userTypes';
-import { Claim, AddClaimDto, ClaimType } from '../types/claimTypes';
+import claimService from '../../services/claimService';
+import { User } from '../../types/userTypes';
+import { Claim, AddClaimDto, ClaimType } from '../../types/claimTypes';
 
 interface ClaimManagementProps {
   user: User;

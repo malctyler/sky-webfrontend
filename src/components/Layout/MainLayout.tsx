@@ -16,7 +16,8 @@ import {
   useMediaQuery,
   Tooltip,
   Menu,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import { useTheme as useMuiTheme, styled } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -28,8 +29,8 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import CategoryIcon from '@mui/icons-material/Category';
 import PeopleIcon from '@mui/icons-material/People';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import React, { useState, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MenuItem as MenuItemType } from '../../types/layoutTypes';
@@ -48,7 +49,7 @@ interface AuthUser {
 const drawerWidth = 240;
 
 interface LayoutProps {
-  children: React.ReactNode;
+  // No props needed since using Outlet for children
 }
 
 const DrawerHeader = styled('div')(({ theme }) => ({
@@ -59,10 +60,10 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
+// Update getMenuItems function to better organize menu items
 const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean): MenuItemType[] => {
   const baseItems: MenuItemType[] = [
-    { text: 'Dashboard', icon: <HomeIcon />, path: '/dashboard' }
-   
+    { text: 'Dashboard', icon: <HomeIcon />, path: '/home' }
   ];
 
   if (user?.isCustomer) {
@@ -72,26 +73,27 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
   }
 
   if (user && !user.isCustomer) {
-    baseItems.push(
-      { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
-      { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories' },
-      { text: 'Manage Plant', icon: <CategoryIcon />, path: '/manage-plant' }
-      
-    );
-  }
-
-  if (hasRole('Staff')) {
-    baseItems.push(
-      { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' },
-      { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
-    );
+    if (hasRole('Staff') || hasRole('Admin')) {
+      baseItems.push(
+        { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
+        { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
+      );
+    }
+    
+    if (hasRole('Admin')) {
+      baseItems.push(
+        { text: 'Plant Categories', icon: <CategoryIcon />, path: '/plant-categories' },
+        { text: 'Manage Plant', icon: <CategoryIcon />, path: '/manage-plant' },
+        { text: 'User Management', icon: <ManageAccountsIcon />, path: '/user-management' }
+      );
+    }
   }
 
   return baseItems;
 };
 
-const MainLayout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, logout, hasRole } = useAuth();
+const MainLayout: React.FC<LayoutProps> = () => {
+  const { user, loading, logout, hasRole } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const navigate = useNavigate();
@@ -99,6 +101,12 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -121,37 +129,71 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
     logout();
     navigate('/login');
   }, [logout, navigate]);
+  // If loading, show loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: 'var(--background-default)',
+          gap: 2
+        }}
+      >
+        <CircularProgress size={40} />
+        <Typography variant="body1" color="textSecondary">
+          Loading application...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // If no user, show nothing while redirecting
+  if (!user) {
+    return null;
+  }
 
   const menuItems = getMenuItems(user, hasRole);
 
   // Get the first letter of the email for the avatar
   const avatarLetter = user?.email?.[0]?.toUpperCase() || 'U';
   const displayName = user?.email || 'User';
-
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />      <AppBar position="fixed" className={styles.appBar} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <Box sx={{ display: 'flex', overflow: 'hidden' }}>
+      <CssBaseline /><AppBar        position="fixed" 
+        className={styles.appBar} 
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
+          ml: { sm: `${open ? drawerWidth : 0}px` }
+        }}
+      >
         <Toolbar className={styles.toolbar}>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            aria-label="toggle drawer"
+            onClick={open ? handleDrawerClose : handleDrawerOpen}
             edge="start"
-            sx={{ mr: 2, ...(open && { display: 'none' }) }}
+            sx={{ 
+              mr: 2,
+              display: { sm: 'none' }
+            }}
           >
-            <MenuIcon />
-          </IconButton>          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            {open ? <ChevronLeftIcon /> : <MenuIcon />}
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Sky Application
           </Typography>
-          {user && !user.isCustomer && (
-            <IconButton 
-              color="inherit" 
-              onClick={() => navigate('/weather')}
-              sx={{ mr: 1 }}
-            >
-              <CloudIcon />
-            </IconButton>
-          )}
+          <IconButton 
+            color="inherit" 
+            onClick={toggleTheme}
+            sx={{ mr: 1 }}
+          >
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
           <Tooltip title="Account settings">
             <IconButton
               onClick={handleUserMenuOpen}
@@ -202,22 +244,38 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            position: 'fixed',
+            transition: (theme) =>
+              theme.transitions.create(['width', 'margin'], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
           },
         }}
       >
         <DrawerHeader className={styles.sidebarHeader}>
-          <IconButton onClick={handleDrawerClose}>
-            <ChevronLeftIcon />
-          </IconButton>
+          {isMobile && (
+            <IconButton onClick={handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          )}
         </DrawerHeader>
         <Divider />
-        <List>
+        <List sx={{ flexGrow: 1, overflow: 'auto' }}>
           {menuItems.map((item) => (
             <ListItem
               key={item.text}
               disablePadding
               selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) {
+                  handleDrawerClose();
+                }
+              }}
             >
               <ListItemButton className={styles.listItemButton}>
                 <ListItemIcon className={styles.listItemIcon}>{item.icon}</ListItemIcon>
@@ -225,9 +283,7 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
               </ListItemButton>
             </ListItem>
           ))}
-        </List>
-      </Drawer>      <Box
-        component="main"
+        </List>      </Drawer>      <Box        component="main"
         className={styles.mainContent}
         sx={{
           flexGrow: 1,
@@ -237,14 +293,13 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
           position: 'relative',
           marginTop: '64px', // Add margin to account for AppBar height
           transition: (theme) =>
-            theme.transitions.create(['width', 'margin'], {
+            theme.transitions.create(['width', 'margin-left'], {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             })
         }}
-      >
-        <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {children}
+      >        <Box sx={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <Outlet />
         </Box>
       </Box>
     </Box>

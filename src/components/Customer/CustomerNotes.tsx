@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
-import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
+import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { TextField, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Pagination } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import "react-datepicker/dist/react-datepicker.css";
 import styles from './CustomerNotes.module.css';
-import { customerService } from '../services/customerService';
-import { customerNotesService } from '../services/customerNotesService';
-import { Customer, Note } from '../types/customerTypes';
+import { customerService } from '../../services/customerService';
+import { customerNotesService } from '../../services/customerNotesService';
+import { Customer, Note } from '../../types/customerTypes';
 
 const CustomerNotes: React.FC = () => {
   const params = useParams();

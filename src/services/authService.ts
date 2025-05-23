@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { AxiosError } from 'axios';
 import { 
     RegisterData,
     AuthResponse,
@@ -17,24 +18,39 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
 };
 
 export const logout = async (): Promise<void> => {
-    // Since we're using the apiClient, the auth token will be automatically included
-    await apiClient.post<void>(`/Auth/logout`);
-    return;
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        // If no user data exists, just resolve without making the API call
+        return;
+    }
+
+    try {
+        await apiClient.post<void>(`/Auth/logout`);
+    } catch (error) {
+        // If we get a 401, that's fine - the token is already invalid
+        if ((error as AxiosError)?.response?.status !== 401) {
+            throw error;
+        }
+    }
 };
 
 export const validateToken = async (): Promise<TokenValidationResponse> => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        throw new Error('No user data found');
+    }
+
     try {
-        const userStr = localStorage.getItem('user');
-        const token = userStr ? JSON.parse(userStr)?.token : null;
-        
-        if (!token) {
-            return { valid: false };
+        const user = JSON.parse(userStr);
+        if (!user?.token) {
+            throw new Error('No token found');
         }
-        
+
         const response = await apiClient.get<TokenValidationResponse>(`/Auth/validate`);
         return response.data;
     } catch (error) {
-        return { valid: false };
+        localStorage.removeItem('user');
+        throw error;
     }
 };
 
