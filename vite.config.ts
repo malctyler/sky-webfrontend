@@ -1,8 +1,12 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { resolve } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export default defineConfig({
   plugins: [
@@ -63,10 +67,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          material: ['@mui/material', '@mui/icons-material']
-        }
-      }
-    }
-  }
+          vendor: ['react', 'react-dom', '@mui/material', '@mui/icons-material'],
+        },
+      },
+    },
+  },
 })
