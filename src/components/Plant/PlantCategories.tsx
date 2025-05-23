@@ -98,11 +98,26 @@ const PlantCategories: React.FC = () => {
     });
   };
 
+  const isDuplicateCategory = (description: string, excludeCategoryId?: number): boolean => {
+    const normalizedDescription = description.trim().toLowerCase();
+    return categories.some(cat => 
+      cat.categoryDescription.trim().toLowerCase() === normalizedDescription &&
+      cat.categoryID !== excludeCategoryId
+    );
+  };
+
   const handleCreateCategory = async (): Promise<void> => {
     if (!categoryDescription.trim()) {
       showError('Category description cannot be empty.');
       return;
     }
+
+    // Check for duplicates before making the API call
+    if (isDuplicateCategory(categoryDescription)) {
+      showError('A category with this description already exists.');
+      return;
+    }
+
     try {
       const response = await fetch(`${baseUrl}/PlantCategories`, {
         method: 'POST',
@@ -138,6 +153,13 @@ const PlantCategories: React.FC = () => {
       showError('Category description cannot be empty.');
       return;
     }
+
+    // Check for duplicates before making the API call
+    if (isDuplicateCategory(categoryDescription, editingCategory.categoryID)) {
+      showError('A category with this description already exists.');
+      return;
+    }
+
     try {
       const response = await fetch(`${baseUrl}/PlantCategories/${editingCategory.categoryID}`, {
         method: 'PUT',
