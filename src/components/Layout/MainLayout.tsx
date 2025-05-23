@@ -33,6 +33,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MenuItem as MenuItemType } from '../../types/layoutTypes';
+import styles from './MainLayout.module.css';
 
 interface AuthUser {
   email: string;
@@ -127,9 +128,8 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
+      <CssBaseline />      <AppBar position="fixed" className={styles.appBar} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Toolbar className={styles.toolbar}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -138,10 +138,18 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
             sx={{ mr: 2, ...(open && { display: 'none' }) }}
           >
             <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          </IconButton>          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Sky Application
           </Typography>
+          {user && !user.isCustomer && (
+            <IconButton 
+              color="inherit" 
+              onClick={() => navigate('/weather')}
+              sx={{ mr: 1 }}
+            >
+              <CloudIcon />
+            </IconButton>
+          )}
           <Tooltip title="Account settings">
             <IconButton
               onClick={handleUserMenuOpen}
@@ -178,12 +186,14 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
             </MenuItem>
           </Menu>
         </Toolbar>
-      </AppBar>
-      <Drawer
+      </AppBar>      <Drawer
         variant={isMobile ? 'temporary' : 'persistent'}
         anchor="left"
         open={open}
         onClose={handleDrawerClose}
+        classes={{
+          paper: styles.drawerPaper
+        }}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -193,7 +203,7 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
           },
         }}
       >
-        <DrawerHeader>
+        <DrawerHeader className={styles.sidebarHeader}>
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
@@ -207,36 +217,33 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
               selected={location.pathname === item.path}
               onClick={() => navigate(item.path)}
             >
-              <ListItemButton>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+              <ListItemButton className={styles.listItemButton}>
+                <ListItemIcon className={styles.listItemIcon}>{item.icon}</ListItemIcon>
+                <ListItemText className={styles.listItemText} primary={item.text} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
-      </Drawer>
-      <Box
+      </Drawer>      <Box
         component="main"
+        className={styles.mainContent}
         sx={{
           flexGrow: 1,
-          p: 1,
-          pl: 2,
-          mt: '64px', // Add explicit margin-top to account for AppBar height
           width: '100%',
+          padding: '24px',
+          overflow: 'auto',
+          position: 'relative',
+          marginTop: '64px', // Add margin to account for AppBar height
           transition: (theme) =>
             theme.transitions.create(['width', 'margin'], {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
-            }),
-          '& .MuiBox-root': { // Target the inner Box component
-            mt: 0, // Remove any top margin
-          },
-          '& .css-1k455el': { // Target the specific div causing extra space
-            display: 'none',
-          }
+            })
         }}
       >
-        {children}
+        <Box sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+          {children}
+        </Box>
       </Box>
     </Box>
   );

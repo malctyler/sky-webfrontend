@@ -11,7 +11,9 @@ interface AuthUser {
     emailConfirmed: boolean;
 }
 
-interface DecodedToken {    customerId?: string | number;
+interface DecodedToken {
+    CustomerId?: string | number;
+    customerId?: string | number;
     EmailConfirmed?: string;
     role?: string | string[];
     'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'?: string | string[];
@@ -65,8 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     try {
                         const decoded = jwtDecode<DecodedToken>(parsedUser.token);
                         // Get user roles and email confirmation status from token
-                        parsedUser.roles = getRolesFromToken(decoded);
-                        parsedUser.customerId = decoded.customerId;
+                        parsedUser.roles = getRolesFromToken(decoded);                        parsedUser.customerId = decoded.CustomerId || decoded.customerId;
                         parsedUser.emailConfirmed = decoded.EmailConfirmed === 'True';
 
                         // Check if email is now confirmed
@@ -132,8 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.token) {
             try {
                 const decoded = jwtDecode<DecodedToken>(response.token);
-                roles = getRolesFromToken(decoded);
-                customerId = decoded.customerId;
+                roles = getRolesFromToken(decoded);                customerId = decoded.CustomerId || decoded.customerId;
                 emailConfirmed = decoded.EmailConfirmed === 'True';
             } catch (e) {
                 console.error('Error decoding token:', e);

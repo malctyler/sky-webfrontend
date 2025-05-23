@@ -1,0 +1,174 @@
+.table {
+  margin: 16px;
+}
+
+.darkMode {
+  margin: 16px;
+}
+
+/* Material-UI global overrides for dark mode */
+.darkMode :global(.MuiPaper-root) {
+  background-color: #1a1a1a;
+}
+
+.darkMode :global(.MuiTableCell-root) {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.darkMode :global(.MuiTableHead-root) :global(.MuiTableCell-root) {
+  color: #66b3ff;
+  background-color: #2d2d2d;
+  font-weight: 600;
+}
+
+.darkMode :global(.MuiTableBody-root) :global(.MuiTableRow-root):hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.darkMode :global(.MuiTableBody-root) :global(.MuiTableRow-root) {
+  transition: background-color 0.2s ease;
+}
+
+.darkMode :global(.MuiButton-contained) {
+  background-color: #66b3ff;
+  color: #1a1a1a;
+}
+
+.darkMode :global(.MuiButton-contained):hover {
+  background-color: #4fa8c6;
+}
+
+.darkMode :global(.MuiIconButton-root) {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.darkMode :global(.MuiIconButton-colorPrimary) {
+  color: #66b3ff;
+}
+
+.darkMode :global(.MuiIconButton-colorSecondary) {
+  color: #4fa8c6;
+}
+
+.darkMode :global(.MuiIconButton-colorError) {
+  color: #ff6b6b;
+}
+
+.darkMode :global(.MuiIconButton-colorInfo) {
+  color: #4fc6c6;
+}
+
+.darkMode :global(.MuiDialog-paper) {
+  background-color: #1a1a1a;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.darkMode :global(.MuiDialogTitle-root) {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.darkMode :global(.MuiDialogContentText-root) {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.darkMode .bgBlack {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Inspection List Specific Styles */
+.container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.toolbar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.actionButton {
+  margin: 0 0.25rem;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.statusPending {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.statusInProgress {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.statusCompleted {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+.statusCancelled {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #fafafa;
+  color: #424242;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    width: 100%;
+  }
+}

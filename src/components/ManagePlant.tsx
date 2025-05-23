@@ -18,7 +18,7 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../types/plantTypes';
-import './ManagePlant.css';
+import styles from './ManagePlant.module.css';
 import axios from 'axios';
 import { baseUrl } from '../config';
 
@@ -239,10 +239,9 @@ const ManagePlant: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className={`manage-plant-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="loading-state">
-          <div className="spinner"></div>
+    return (      <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
           <p>Loading plant...</p>
         </div>
       </div>
@@ -250,18 +249,16 @@ const ManagePlant: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className={`manage-plant-container ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className="error-state">
+    return (      <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
+        <div className={styles.errorState}>
           <p>⚠️ {error}</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={`manage-plant-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <div className="header">
+  return (    <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
+      <div className={styles.header}>
         <h2>Manage Plant</h2>
         <Button
           variant="contained"
@@ -270,14 +267,15 @@ const ManagePlant: React.FC = () => {
         >
           Add New Plant
         </Button>
-      </div>      <div className="plants-grid">
+      </div>
+      <div className={styles.plantsGrid}>
         {plants.map((plant) => (
           <div 
             key={`plant-${plant.plantNameID}`} 
-            className="plant-card"
+            className={styles.plantCard}
             onClick={() => openEditDialog(plant)}
           >
-            <div className="card-actions">
+            <div className={styles.cardActions}>
               <IconButton 
                 onClick={(e) => {
                   e.preventDefault();
@@ -300,8 +298,8 @@ const ManagePlant: React.FC = () => {
                 key={`delete-${plant.plantNameID}`}
               >
                 <DeleteIcon />
-              </IconButton>
-            </div>            <div className="plant-info">
+              </IconButton>            </div>            
+            <div className={styles.plantInfo}>
               <h3 key={`desc-${plant.plantNameID}`}>
                 {plant.plantDescription}
               </h3>
@@ -402,11 +400,10 @@ const ManagePlant: React.FC = () => {
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
-        <DialogTitle>Confirm Plant Deletion</DialogTitle>
-        <DialogContent>
-          <div>
+        <DialogTitle>Confirm Plant Deletion</DialogTitle>        <DialogContent>
+          <div className={styles.dialogContent}>
             <p>Are you sure you want to delete this plant?</p>              {plantToDelete && (
-                <div key="delete-info">
+                <div key="delete-info" className={styles.deleteInfo}>
                   <p key="desc"><strong>Description:</strong> {plantToDelete.plantDescription}</p>
                   <p key="cat"><strong>Category:</strong> {categories.find(c => c.categoryID === plantToDelete.plantCategory)?.categoryDescription}</p>
                   <p key="price"><strong>Normal Price:</strong> £{Number(plantToDelete.normalPrice).toFixed(2)}</p>

@@ -4,7 +4,6 @@ import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
 import { baseUrl } from '../config';
 import { PlantHolding } from '../types/plantholdingTypes';
-import './ManagePlant.css';
 
 interface LocationState {
   from?: string;

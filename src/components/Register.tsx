@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TextField, Button, Paper, Typography, Box, FormControlLabel, Checkbox } from '@mui/material';
 import { AxiosError } from 'axios';
 import { register } from '../services/authService';
-import './Register.css';
+import styles from './Register.module.css';
 
 interface FormData {
     email: string;
@@ -49,11 +49,9 @@ const Register: React.FC = () => {    const [formData, setFormData] = useState<F
             const axiosError = err as AxiosError<ErrorResponse>;
             setError(axiosError.response?.data?.message || 'Failed to register');
         }
-    };
-
-    return (
-        <Box className="register-container">
-            <Paper elevation={3} className="register-paper">
+    };    return (
+        <Box className={styles.registerContainer}>
+            <Paper elevation={3} className={styles.registerPaper}>
                 <Typography variant="h5" component="h1" gutterBottom>
                     Register
                 </Typography>

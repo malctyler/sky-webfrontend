@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
-import './App.css';
 import AllCustomers from './components/AllCustomers';
 import CustomerNotes from './components/CustomerNotes';
 import CustomerSummary from './components/CustomerSummary';
@@ -11,8 +10,6 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import './components/PlantCategories.css';
-import './components/ManagePlant.css';
 import CustomerPlantHolding from './components/CustomerPlantHolding';
 import UserManagement from './components/UserManagement';
 import Home from './components/Home';

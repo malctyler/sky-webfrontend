@@ -1,30 +1,30 @@
-.MuiDrawer-paper {
+.drawerPaper {
   background-color: var(--nav-bg) !important;
   border-right: 1px solid var(--border-color) !important;
 }
 
-.dark .MuiDrawer-paper {
+:global(.dark) .drawerPaper {
   background-color: #1a1e24 !important;
 }
 
-.MuiListItemButton-root {
+.listItemButton {
   border-radius: 5px;
   margin: 2px 12px;
   padding: 8px 16px;
   transition: all 0.2s ease-in-out !important;
 }
 
-.MuiListItemButton-root:hover {
+.listItemButton:hover {
   background-color: rgba(var(--link-color-rgb), 0.08) !important;
   transform: translateX(3px);
 }
 
-.MuiListItemButton-root.Mui-selected {
+.listItemButton:global(.Mui-selected) {
   background-color: rgba(var(--link-color-rgb), 0.12) !important;
   position: relative;
 }
 
-.MuiListItemButton-root.Mui-selected::before {
+.listItemButton:global(.Mui-selected)::before {
   content: '';
   position: absolute;
   left: -12px;
@@ -35,38 +35,38 @@
   border-radius: 0 3px 3px 0;
 }
 
-.dark .MuiListItemButton-root.Mui-selected {
+:global(.dark) .listItemButton:global(.Mui-selected) {
   background-color: rgba(102, 179, 255, 0.12) !important;
 }
 
-.MuiListItemIcon-root {
+.listItemIcon {
   color: var(--text-muted) !important;
   min-width: 40px !important;
   transition: color 0.2s ease-in-out;
 }
 
-.Mui-selected .MuiListItemIcon-root,
-.Mui-selected .MuiListItemText-primary {
+:global(.Mui-selected) .listItemIcon,
+:global(.Mui-selected) .listItemText {
   color: var(--link-color) !important;
 }
 
-.sidebar-header {
+.sidebarHeader {
   background: linear-gradient(45deg, var(--link-color), var(--link-color-dark));
   padding: 20px;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.dark .sidebar-header {
+:global(.dark) .sidebarHeader {
   background: linear-gradient(45deg, #1a1e24, #282c34);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.nav-section {
+.navSection {
   padding: 16px 0;
 }
 
-.nav-section-title {
+.navSectionTitle {
   padding: 8px 24px;
   color: var(--text-muted);
   font-size: 0.75rem;
@@ -75,7 +75,7 @@
   letter-spacing: 0.5px;
 }
 
-.sidebar-logo {
+.sidebarLogo {
   padding: 1.5rem;
   color: var(--text-primary);
   font-size: 1.25rem;
@@ -84,21 +84,21 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.MuiToolbar-root {
+.toolbar {
   background: linear-gradient(135deg, var(--link-color) 0%, var(--link-color-dark) 100%);
   min-height: 64px !important;
 }
 
-.dark .MuiToolbar-root {
+:global(.dark) .toolbar {
   background: linear-gradient(135deg, #1a1e24 0%, #282c34 100%);
 }
 
-.MuiAppBar-root {
+.appBar {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
 }
 
-.dark .MuiAppBar-root {
+:global(.dark) .appBar {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -107,24 +107,20 @@
   --link-color-dark: #003b85;
 }
 
-.dark {
+:global(.dark) {
   --link-color-rgb: 102, 179, 255;
   --link-color-dark: #4f82d1;
 }
 
-/* Add these new rules at the end of the file */
-.MuiBox-root[component="main"] {
-  padding: 8px 16px !important;
+.mainContent {
+  background-color: var(--background-default);
+  min-height: calc(100vh - 64px);
 }
 
-.MuiBox-root[component="main"] > .MuiBox-root {
-  margin-top: 0 !important;
+.mainContent > div {
+  position: relative;
 }
 
-.MuiBox-root[component="main"] > div:first-child {
-  display: none;
-}
-
-.MuiPaper-root {
-  margin-top: 0 !important;
+.paper {
+  margin-top: 0;
 }

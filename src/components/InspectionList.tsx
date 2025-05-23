@@ -25,7 +25,7 @@ import inspectionService from '../services/inspectionService';
 import InspectionForm from './InspectionForm';
 import { format } from 'date-fns';
 import { InspectionItem, InspectionFormData } from '../types/inspectionTypes';
-import './InspectionList.css';
+import styles from './InspectionList.module.css';
 
 interface InspectionListProps {
     holdingId: number;
@@ -179,10 +179,9 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
         setEmailingInspection(null);
     };
 
-    return (
-        <div className={`inspections-container ${isDarkMode ? 'dark' : 'light'}`}>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Inspections</h2>
+    return (        <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
+            <div className={styles.header}>
+                <h2>Inspections</h2>
                 <Button
                     variant="contained"
                     color="primary"
@@ -196,7 +195,19 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
                 <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
                     {error}
                 </div>
-            )}            <TableContainer component={Paper}>                <Table><TableHead><TableRow><TableCell width="25%">Inspection Date</TableCell><TableCell width="40%">Location</TableCell><TableCell width="25%">Latest Date</TableCell><TableCell width="10%" align="center">Actions</TableCell></TableRow></TableHead><TableBody>{inspections.map((inspection) => (<TableRow key={inspection.uniqueRef} hover>
+            )}            <TableContainer component={Paper} className={styles.table}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell width="25%">Inspection Date</TableCell>
+                            <TableCell width="40%">Location</TableCell>
+                            <TableCell width="25%">Latest Date</TableCell>
+                            <TableCell width="10%" align="center">Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {inspections.map((inspection) => (
+                            <TableRow key={inspection.uniqueRef} hover>
                     <TableCell>{formatDate(inspection.inspectionDate || null)}</TableCell>
                     <TableCell>{inspection.location || ''}</TableCell>
                     <TableCell>{formatDate(inspection.latestDate || null)}</TableCell>

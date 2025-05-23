@@ -16,7 +16,7 @@ import {
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import MuiAlert from '@mui/material/Alert';
 import { AlertColor } from '@mui/material';
-import './PlantCategories.css';
+import styles from './PlantCategories.module.css';
 import { baseUrl } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -230,9 +230,9 @@ const PlantCategories: React.FC = () => {
         </Box>
       </Paper>
 
-      <div className="categories-grid">
+      <div className={styles.categoriesGrid}>
         {categories.map(category => (
-          <Paper key={category.categoryID} elevation={3} className="category-card" sx={{ p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Paper key={category.categoryID} elevation={3} className={styles.categoryCard} sx={{ p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <Typography variant="h6" component="h3" sx={{ mb: 1, flexGrow: 1 }}>{category.categoryDescription}</Typography>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
               <IconButton onClick={() => openEditDialog(category)} size="small" aria-label="edit category">

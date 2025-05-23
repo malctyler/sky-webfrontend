@@ -1,10 +1,18 @@
-.dark .MuiPaper-root {
-    background-color: #1a1a1a;
+.table {
+  margin: 16px;
 }
 
-.dark .MuiTableCell-root {
-    color: rgba(255, 255, 255, 0.87);
-    border-bottom-color: rgba(255, 255, 255, 0.12);
+.darkMode {
+  composes: table;
+}
+
+.darkMode :global(.MuiPaper-root) {
+  background-color: #1a1a1a;
+}
+
+.darkMode :global(.MuiTableCell-root) {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
 .dark .MuiTableHead-root .MuiTableCell-root {
@@ -67,4 +75,101 @@
 /* Form dialog background overlay */
 .dark .bg-black {
     background-color: rgba(0, 0, 0, 0.8);
+}
+
+.inspections-container {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.inspections-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.inspections-toolbar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.toolbar-filters {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.inspection-status-chip {
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.status-in-progress {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.status-completed {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.status-cancelled {
+    background-color: #fafafa;
+    color: #424242;
+}
+
+.inspection-details-cell {
+    min-width: 200px;
+}
+
+.inspection-actions-cell {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .inspections-container {
+        padding: 1rem;
+    }
+
+    .inspections-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .inspections-toolbar {
+        flex-direction: column;
+    }
+
+    .toolbar-filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .search-field {
+        width: 100%;
+    }
 }
