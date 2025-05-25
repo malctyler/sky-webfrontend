@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
-import { baseUrl } from '../../config';
-import { Button } from '@mui/material';
+import { Button, Typography, Box } from '@mui/material';
 import { PlantHolding } from '../../types/plantholdingTypes';
+import plantHoldingService from '../../services/plantHoldingService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -25,27 +25,24 @@ const CustomerPlantHolding: React.FC = () => {
   const locationState = location.state as LocationState;
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
-    if (!user?.token || !customerId) return;
+    if (!customerId) return;
     
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${baseUrl}/PlantHolding/customer/${customerId}`, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      if (!response.ok) throw new Error('Failed to fetch plant holdings');
-      const data = await response.json();
+      const data = await plantHoldingService.getByCustomerId(customerId);
       if (mounted) {
         setHoldings(data);
         setLoading(false);
       }
     } catch (err) {
       if (mounted) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching plant holdings:', err);
+        setError('Unable to load your plant holdings. Please try again later.');
         setLoading(false);
       }
     }
-  }, [user, mounted]);
+  }, [mounted]);
 
   useEffect(() => {
     setMounted(true);
@@ -82,6 +79,26 @@ const CustomerPlantHolding: React.FC = () => {
     </div>
   );
 
+  const EmptyState = () => (
+    <Box sx={{ 
+      textAlign: 'center', 
+      p: 4, 
+      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+      borderRadius: 2,
+      my: 2
+    }}>
+      <Typography variant="h6" gutterBottom>
+        No Plant Holdings Found
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+        You currently don't have any plants registered in the system.
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        If you believe this is an error, please contact our support team.
+      </Typography>
+    </Box>
+  );
+
   // Show a consistent loading state when component is mounting or user data is loading
   if (!mounted || !user) {
     return (
@@ -95,38 +112,40 @@ const CustomerPlantHolding: React.FC = () => {
     <div className={`${styles.plantContainer} ${isDarkMode ? styles.dark : styles.light}`}>
       <div className={styles.headerActions}>
         <h2>My Plant Holdings</h2>
-        <input
-          type="text"
-          placeholder="Search plant by description, serial number, or status..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
-        />
+        {holdings.length > 0 && (
+          <input
+            type="text"
+            placeholder="Search plants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
+        )}
       </div>
       
       {locationState?.from && (
         <p className={styles.redirectMessage}>
           Redirected from {locationState.from}
         </p>
-      )}
-
-      {loading ? (
+      )}      {loading ? (
         loadingContent
       ) : error ? (
-        <div className={styles.errorState}>
-          <p>⚠️ {error}</p>          <Button 
+        <div className={styles.emptyState}>
+          <p>{error}</p>
+          <Button 
             variant="contained"
             color="primary"
             onClick={() => {
               const customerId = user.customerId;
               if (customerId) fetchHoldings(customerId);
             }}
+            sx={{ mt: 2 }}
           >
             Try Again
           </Button>
         </div>
-      ) : filteredHoldings.length === 0 ? (
-        <p>{holdings.length === 0 ? "No plant holdings found." : "No matching plant found."}</p>
+      ) : holdings.length === 0 ? (
+        <EmptyState />
       ) : (
         <div className={styles.plantGrid}>
           {filteredHoldings.map(holding => (

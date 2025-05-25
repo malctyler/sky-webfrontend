@@ -146,7 +146,23 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
     };
 
     const handleShowCertificate = (inspection: InspectionItem) => {
-        window.open(`/certificate/${inspection.uniqueRef}`, 'certificate', 'popup,width=800,height=600');
+        // Convert A4 dimensions from mm to pixels at 96 DPI
+        const mmToPx = (mm: number) => Math.round(mm * 3.7795275591);
+        const a4Width = mmToPx(210);
+        const a4Height = mmToPx(297);
+        const padding = 40; // 20px padding on each side
+        const chromeHeight = 100; // Approximate height of browser chrome
+
+        const width = a4Width + padding;
+        const height = a4Height + chromeHeight + padding;
+        const left = Math.round((window.screen.width - width) / 2);
+        const top = Math.round((window.screen.height - height) / 2);
+
+        window.open(
+            `/certificate/${inspection.uniqueRef}`,
+            'certificate',
+            `popup,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        );
     };
 
     const handleEmailClick = (inspection: InspectionItem) => {

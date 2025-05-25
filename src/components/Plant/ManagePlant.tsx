@@ -1,6 +1,7 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, useMemo } from 'react';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { 
+  Box,
   IconButton, 
   Button, 
   TextField, 
@@ -13,10 +14,13 @@ import {
   FormControl,
   Select,
   SelectChangeEvent,
-  Snackbar
+  Snackbar,
+  Paper,
+  Typography,
+  CircularProgress
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../../types/plantTypes';
 import styles from './ManagePlant.module.css';
 import axios from 'axios';
@@ -29,12 +33,13 @@ const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-const ManagePlant: React.FC = () => {
+const ManagePlant: React.FC = () => {  
   const { isDarkMode } = useCustomTheme();
   const [plant, setplant] = useState<Plant[]>([]);
   const [categories, setCategories] = useState<PlantCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
   const [plantData, setPlantData] = useState<PlantFormData>({
@@ -49,6 +54,7 @@ const ManagePlant: React.FC = () => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [plantToDelete, setPlantToDelete] = useState<Plant | null>(null);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -67,7 +73,9 @@ const ManagePlant: React.FC = () => {
       setError('An unknown error occurred');
     }
     setLoading(false);
-  };    const fetchplant = async (): Promise<void> => {
+  };    
+
+  const fetchplant = async (): Promise<void> => {
     try {
       const headers = getAuthHeaders();
       const response = await axios.get(`${baseUrl}/AllPlant`, { headers });
@@ -78,6 +86,7 @@ const ManagePlant: React.FC = () => {
       handleError(error);
     }
   };
+
   const fetchCategories = async (): Promise<void> => {
     try {
       const headers = getAuthHeaders();
@@ -88,6 +97,7 @@ const ManagePlant: React.FC = () => {
       handleError(error);
     }
   };
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
     const { name, value } = e.target;
     console.log(`Input change - ${name}:`, value); // Debug log
@@ -120,6 +130,7 @@ const ManagePlant: React.FC = () => {
       severity: 'error'
     });
   };
+
   const handleCreatePlant = async (): Promise<void> => {
     // Validate required fields
     if (!plantData.plantCategory) {
@@ -134,13 +145,19 @@ const ManagePlant: React.FC = () => {
       showError('Please enter a price');
       return;
     }    
+
     try {
-      const headers = getAuthHeaders();      const response = await axios.post(`${baseUrl}/AllPlant`, {
-        plantNameID: 0, // API will assign the real ID
-        plantDescription: plantData.plantDescription,
-        plantCategory: parseInt(plantData.plantCategory),
-        normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
-      }, { headers });
+      const headers = getAuthHeaders();
+      const response = await axios.post<Plant>(
+        `${baseUrl}/AllPlant`,
+        {
+          plantNameID: 0, // API will assign the real ID
+          plantDescription: plantData.plantDescription,
+          plantCategory: parseInt(plantData.plantCategory),
+          normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
+        },
+        { headers }
+      );
       
       const newPlant = response.data;
       setplant(prev => [...prev, newPlant]);
@@ -148,7 +165,9 @@ const ManagePlant: React.FC = () => {
       resetForm();
       showSuccess('Plant created successfully');
     } catch (error: unknown) {
-      if (error instanceof Error) {
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+        showError(error.response.data.error);
+      } else if (error instanceof Error) {
         showError(error.message);
       } else {
         showError('Failed to create plant');
@@ -156,6 +175,7 @@ const ManagePlant: React.FC = () => {
       console.error('Create plant error:', error);
     }
   };  
+
   const handleUpdatePlant = async (): Promise<void> => {
     if (!editingPlant) return;
 
@@ -190,7 +210,14 @@ const ManagePlant: React.FC = () => {
       resetForm();
       showSuccess('Plant updated successfully');
     } catch (error: unknown) {
-      handleError(error);
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+        showError(error.response.data.error);
+      } else if (error instanceof Error) {
+        showError(error.message);
+      } else {
+        showError('Failed to update plant');
+      }
+      console.error('Update plant error:', error);
     }
   };
 
@@ -208,6 +235,7 @@ const ManagePlant: React.FC = () => {
       handleError(error);
     }
   };
+
   const openEditDialog = (plant: Plant) => {
     console.log('Opening edit dialog for plant:', plant); // Debug log
     setEditingPlant(plant);
@@ -238,86 +266,129 @@ const ManagePlant: React.FC = () => {
     });
   };
 
+  // Sort plants alphabetically and filter based on search
+  const filteredAndSortedPlants = useMemo(() => {
+    return [...plant]
+      .sort((a, b) => 
+        (a.plantDescription || '').localeCompare(b.plantDescription || '')
+      )
+      .filter(p => 
+        p.plantDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        categories.find(c => c.categoryID === p.plantCategory)?.categoryDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.normalPrice?.toString().includes(searchTerm)
+      );
+  }, [plant, categories, searchTerm]);
   if (loading) {
-    return (      <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Loading plant...</p>
-        </div>
-      </div>
+    return (      
+      <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error) {
-    return (      <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
-        <div className={styles.errorState}>
-          <p>⚠️ {error}</p>
-        </div>
-      </div>
+    return (      
+      <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+        <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+          <Typography color="error">⚠️ {error}</Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={fetchplant}
+            sx={{ mt: 2 }}
+          >
+            Try Again
+          </Button>
+        </Paper>
+      </Box>
     );
   }
+  return (
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2
+        }}>
+          <Box sx={{ flex: 1, minWidth: 200 }}>
+            <Typography variant="h5" component="h2">Manage Plant</Typography>
+          </Box>
+          <Box sx={{ flex: 2, maxWidth: 400 }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search plants..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+              }}
+            />
+          </Box>
+          <Button variant="contained" color="primary" onClick={openCreateDialog}>
+            Add New Plant
+          </Button>
+        </Box>
+      </Paper>
 
-  return (    <div className={`${styles.container} ${isDarkMode ? styles.darkMode : ''}`}>
-      <div className={styles.header}>
-        <h2>Manage Plant</h2>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={openCreateDialog}
-        >
-          Add New Plant
-        </Button>
-      </div>
       <div className={styles.plantGrid}>
-        {plant.map((plant) => (
-          <div 
-            key={`plant-${plant.plantNameID}`} 
-            className={styles.plantCard}
+        {filteredAndSortedPlants.map((plant) => (
+          <Paper
+            key={plant.plantNameID}
+            elevation={3}
+            sx={{ 
+              p: 1.5, 
+              mb: 2, 
+              display: 'flex', 
+              flexDirection: 'row', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              minHeight: '60px',
+              cursor: 'pointer'
+            }}
             onClick={() => openEditDialog(plant)}
           >
-            <div className={styles.cardActions}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {plant.plantDescription}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {categories.find(c => c.categoryID === plant.plantCategory)?.categoryDescription} - £{Number(plant.normalPrice).toFixed(2)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton 
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   openEditDialog(plant);
                 }} 
                 size="small"
-                key={`edit-${plant.plantNameID}`}
                 color="primary"
               >
                 <EditIcon />
               </IconButton>
               <IconButton 
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   openDeleteDialog(plant);
                 }} 
                 size="small"
-                key={`delete-${plant.plantNameID}`}
                 color="error"
               >
                 <DeleteIcon />
-              </IconButton>            </div>            
-            <div className={styles.plantInfo}>
-              <h3 key={`desc-${plant.plantNameID}`}>
-                {plant.plantDescription}
-              </h3>
-              <p key={`cat-${plant.plantNameID}`}>
-                Category: {categories.find(c => c.categoryID === plant.plantCategory)?.categoryDescription}
-              </p>
-              <p key={`price-${plant.plantNameID}`}>
-                Normal Price: £{Number(plant.normalPrice).toFixed(2)}
-              </p>
-            </div>
-          </div>
+              </IconButton>
+            </Box>
+          </Paper>
         ))}
       </div>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>{editingPlant ? 'Edit Plant' : 'Create New Plant'}</DialogTitle>
-        <DialogContent>          <TextField
+        <DialogContent>          
+          <TextField
             label="Description"
             name="plantDescription"
             value={plantData.plantDescription}
@@ -360,7 +431,8 @@ const ManagePlant: React.FC = () => {
                   }
                 }
               }}
-            >              {categories.map((category) => (
+            >              
+              {categories.map((category) => (
                 <MenuItem 
                   key={category.categoryID} 
                   value={category.categoryID.toString()}
@@ -369,7 +441,8 @@ const ManagePlant: React.FC = () => {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>          <TextField
+          </FormControl>          
+          <TextField
             label="Normal Price"
             name="normalPrice"
             value={plantData.normalPrice}
@@ -401,14 +474,16 @@ const ManagePlant: React.FC = () => {
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
-        <DialogTitle>Confirm Plant Deletion</DialogTitle>        <DialogContent>
+        <DialogTitle>Confirm Plant Deletion</DialogTitle>        
+        <DialogContent>
           <div className={styles.dialogContent}>
-            <p>Are you sure you want to delete this plant?</p>              {plantToDelete && (
-                <div key="delete-info" className={styles.deleteInfo}>
-                  <p key="desc"><strong>Description:</strong> {plantToDelete.plantDescription}</p>
-                  <p key="cat"><strong>Category:</strong> {categories.find(c => c.categoryID === plantToDelete.plantCategory)?.categoryDescription}</p>
-                  <p key="price"><strong>Normal Price:</strong> £{Number(plantToDelete.normalPrice).toFixed(2)}</p>
-                </div>
+            <p>Are you sure you want to delete this plant?</p>              
+            {plantToDelete && (
+              <div key="delete-info" className={styles.deleteInfo}>
+                <p key="desc"><strong>Description:</strong> {plantToDelete.plantDescription}</p>
+                <p key="cat"><strong>Category:</strong> {categories.find(c => c.categoryID === plantToDelete.plantCategory)?.categoryDescription}</p>
+                <p key="price"><strong>Normal Price:</strong> £{Number(plantToDelete.normalPrice).toFixed(2)}</p>
+              </div>
             )}
             <p style={{ color: '#d32f2f', marginTop: '1rem' }}>
               This action cannot be undone.
@@ -441,7 +516,7 @@ const ManagePlant: React.FC = () => {
           {snackbar.message}
         </MuiAlert>
       </Snackbar>
-    </div>
+    </Box>
   );
 };
 

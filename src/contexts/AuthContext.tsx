@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import * as jwt from 'jwt-decode';
 import { login as loginService, logout as logoutService, validateToken, checkEmailConfirmation } from '../services/authService';
-import { jwtDecode } from 'jwt-decode';
 
 interface AuthUser {
     email: string;
@@ -11,14 +11,20 @@ interface AuthUser {
     emailConfirmed: boolean;
 }
 
-interface DecodedToken {
-    CustomerId?: string | number;
-    customerId?: string | number;
+interface JwtClaims {
+    CustomerId?: string | string[];
     EmailConfirmed?: string;
     role?: string | string[];
-    'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'?: string | string[];
-    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'?: string | string[];
+    roles?: string | string[];
+    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"?: string | string[];
     [key: string]: any;
+}
+
+interface DecodedToken extends JwtClaims {
+    exp: number;
+    iss: string;
+    aud: string;
 }
 
 interface AuthContextType {
@@ -32,20 +38,29 @@ interface AuthContextType {
 }
 
 interface AuthProviderProps {
-    children: ReactNode;
+    children: React.ReactNode;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    // Initialize loading as true so we show loading state immediately
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [initialized, setInitialized] = useState<boolean>(false);
 
+    const extractCustomerId = (decoded: DecodedToken): string | undefined => {
+        if (!decoded.CustomerId) return undefined;
+        // If it's an array, take the last value (most recent)
+        const id = Array.isArray(decoded.CustomerId) 
+            ? decoded.CustomerId[decoded.CustomerId.length - 1]
+            : decoded.CustomerId;
+        return id;
+    };
+
     const getRolesFromToken = (decoded: DecodedToken): string[] => {
         const roleKeys = [
             'role',
+            'roles',
             'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
             'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'
         ];
@@ -53,7 +68,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         for (const key of roleKeys) {
             if (key in decoded) {
                 const roles = decoded[key];
-                // If roles is an array, return it, otherwise wrap it in an array
                 return Array.isArray(roles) ? roles : [roles];
             }
         }
@@ -68,36 +82,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             try {
                 const storedUser = localStorage.getItem('user');
-                
-                if (!storedUser) {
-                    // Not an error case - just no user logged in
-                    return;
-                }
+                if (!storedUser) return;
 
                 const parsedUser = JSON.parse(storedUser);
                 if (!parsedUser?.token) {
-                    // Invalid data - clear it
                     localStorage.removeItem('user');
                     return;
                 }
 
-                // Validate token
                 try {
                     await validateToken();
                     if (!mounted) return;
 
-                    // Token is valid, decode and set user state
-                    const decoded = jwtDecode<DecodedToken>(parsedUser.token);
+                    const decoded = jwt.jwtDecode<DecodedToken>(parsedUser.token);
                     const roles = getRolesFromToken(decoded);
+                    const customerId = extractCustomerId(decoded);
                     
-                    setUser({
+                    const user = {
                         ...parsedUser,
                         roles,
-                        customerId: decoded.CustomerId || decoded.customerId,
+                        customerId: customerId ? parseInt(customerId as string, 10) : undefined,
                         emailConfirmed: decoded.EmailConfirmed === 'True'
-                    });
+                    };
+
+                    // Update localStorage with cleaned data
+                    localStorage.setItem('user', JSON.stringify(user));
+                    setUser(user);
                 } catch (error) {
-                    // Token validation failed - clear stored data
                     if (!mounted) return;
                     console.error('Token validation failed:', error);
                     localStorage.removeItem('user');
@@ -105,7 +116,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
             } catch (error) {
                 if (!mounted) return;
-                // JSON parse error or other unexpected error
                 console.error('Auth check failed:', error);
                 localStorage.removeItem('user');
                 setUser(null);
@@ -118,10 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
         checkAuth();
-
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
 
     const contextValue = {
@@ -130,14 +137,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(true);
             try {
                 const response = await loginService(email, password);
-                const decoded = jwtDecode<DecodedToken>(response.token);
+                const decoded = jwt.jwtDecode<DecodedToken>(response.token);
                 const roles = getRolesFromToken(decoded);
+                const customerId = extractCustomerId(decoded);
+                
                 const newUser = {
                     ...response,
                     roles,
-                    customerId: decoded.CustomerId || decoded.customerId,
+                    customerId: customerId ? parseInt(customerId as string, 10) : undefined,
                     emailConfirmed: decoded.EmailConfirmed === 'True'
                 };
+
                 localStorage.setItem('user', JSON.stringify(newUser));
                 setUser(newUser);
                 return newUser;
@@ -177,7 +187,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
-    // Only render children after initial auth check is complete
     if (!initialized) {
         return (
             <div style={{ 

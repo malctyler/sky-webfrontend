@@ -1,37 +1,10 @@
-.container {
-  padding: 2rem;
-  min-height: calc(100vh - 200px);
-}
-
-.darkMode {
-  background-color: #282c34;
-  color: white;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
 .plantGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.plantCard {
-  background-color: var(--background-paper);
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-  overflow: visible;
-  cursor: pointer;
-}
 
 .plantCard:hover {
   transform: translateY(-2px);
@@ -70,7 +43,11 @@
 }
 
 .plantInfo {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .plantInfo h3 {
@@ -79,6 +56,29 @@
 
 .plantInfo p {
   margin: 0.25rem 0;
+}
+
+.plantTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.plantDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+}
+
+.plantDetails p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .incomplete {

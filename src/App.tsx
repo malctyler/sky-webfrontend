@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import CustomerPlantHolding from './components/Customer/CustomerPlantHolding';
 import UserManagement from './components/UserManagement/UserManagement';
 import Home from './components/Common/Home';
+import CustomerHome from './components/Customer/CustomerHome';
 import Weather from './components/Weather/Weather';
 import MainLayout from './components/Layout/MainLayout';
 
@@ -43,7 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If the user is a customer, only allow access to specific routes
   if (user.isCustomer) {
-    const allowedCustomerPaths = ['/plant-holding'];
+    const allowedCustomerPaths = ['/plant-holding', '/home'];
     if (!allowedCustomerPaths.includes(currentPath)) {
       return <Navigate to="/plant-holding" replace state={{ from: currentPath }} />;
     }
@@ -63,7 +64,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 // Authentication check component
-const AuthCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AuthCheck: React.FC<{ children: React.ReactNode | ((props: { user: any }) => React.ReactNode) }> = ({ children }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -82,6 +83,10 @@ const AuthCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  
+  if (typeof children === 'function') {
+    return <>{children({ user })}</>;
   }
   
   return <>{children}</>;
@@ -178,11 +183,25 @@ function App() {
                   </Paper>
                 </Box>
               } />
+              <Route
+                path="/certificate/:id"
+                element={
+                  <ProtectedRoute requireStaffOrAdmin>
+                    <CertificatePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route element={<AuthCheck><MainLayout /></AuthCheck>}>
                 <Route path="/" element={
                   <Navigate to="/home" replace />
                 } />
-                <Route path="/home" element={<Home />} />
+                <Route path="/home" element={
+                  <AuthCheck>
+                    {({ user }: { user: any }) => (
+                      user?.isCustomer ? <CustomerHome /> : <Home />
+                    )}
+                  </AuthCheck>
+                } />
                 <Route path="/weather" element={<Weather />} />
                 <Route path="/plant-holding" element={<CustomerPlantHolding />} />
                 <Route
@@ -230,14 +249,6 @@ function App() {
                   element={
                     <ProtectedRoute requireAdmin>
                       <UserManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/certificate/:id"
-                  element={
-                    <ProtectedRoute requireStaffOrAdmin>
-                      <CertificatePage />
                     </ProtectedRoute>
                   }
                 />

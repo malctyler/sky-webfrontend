@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, ChangeEvent, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import {
@@ -195,20 +195,22 @@ const CustomerSummary: React.FC = () => {
       swl: ''
     });
   };
-
   // Customer actions
-  const handleDeleteCustomer = async () => {
+  const handleDeleteCustomer = () => {
     if (!custId) return;
-    try {
-      await axios.delete(`${baseUrl}/api/Customers/${custId}`);
-      showSuccess('Customer deleted successfully');
-      setDeleteCustomerDialog(false);
-      setTimeout(() => {
-        navigate('/customers');
-      }, 1000);
-    } catch (error: unknown) {
-      handleError(error);
-    }
+    
+    const headers = getAuthHeaders();
+    axios.delete(`${baseUrl}/Customers/${custId}`, { headers })
+      .then(() => {
+        showSuccess('Customer deleted successfully');
+        setDeleteCustomerDialog(false);
+        setTimeout(() => {
+          navigate('/customers');
+        }, 1000);
+      })
+      .catch((error: unknown) => {
+        handleError(error);
+      });
   };
   // Note actions
   const handleCreateNote = async () => {
@@ -299,6 +301,13 @@ const CustomerSummary: React.FC = () => {
     return status?.statusDescription || 'Unknown';
   };
 
+  // Sort plants alphabetically by description
+  const sortedPlants = useMemo(() => {
+    return [...allplant].sort((a, b) => 
+      (a.plantDescription || '').localeCompare(b.plantDescription || '')
+    );
+  }, [allplant]);
+
   // Event handlers
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!editingCustomer) return;
@@ -313,18 +322,19 @@ const CustomerSummary: React.FC = () => {
       ...prev,
       [name]: value || ''
     }));
-  };
-  const handleCustomerUpdate = async () => {
+  };  const handleCustomerUpdate = () => {
     if (!custId || !editingCustomer) return;
     
-    try {
-      await axios.put(`${baseUrl}/Customers/${custId}`, editingCustomer);
-      setCustomer(editingCustomer);
-      setEditDialogOpen(false);
-      showSuccess('Customer updated successfully');
-    } catch (error) {
-      handleError(error);
-    }
+    const headers = getAuthHeaders();
+    axios.put(`${baseUrl}/Customers/${custId}`, editingCustomer, { headers })
+      .then(() => {
+        setCustomer(editingCustomer);
+        setEditDialogOpen(false);
+        showSuccess('Customer updated successfully');
+      })
+      .catch((error: unknown) => {
+        handleError(error);
+      });
   };
   const handleDeleteNote = async () => {
     if (!noteToDelete) return;
@@ -346,7 +356,8 @@ const CustomerSummary: React.FC = () => {
   const handleDeletePlantHolding = async () => {
     if (!holdingToDelete) return;
     try {
-      await axios.delete(`${baseUrl}/PlantHolding/${holdingToDelete.holdingID}`);
+      const headers = getAuthHeaders();
+      await axios.delete(`${baseUrl}/PlantHolding/${holdingToDelete.holdingID}`, { headers });
       setPlantHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
       setDeleteHoldingDialog(false);
       setHoldingToDelete(null);
@@ -559,7 +570,7 @@ const CustomerSummary: React.FC = () => {
               value={newPlantHolding.plantNameID}
               onChange={handlePlantHoldingChange}
             >
-              {allplant.map((plant: Plant) => (
+              {sortedPlants.map((plant: Plant) => (
                 <MenuItem key={plant.plantNameID} value={plant.plantNameID.toString()}>
                   {plant.plantDescription}
                 </MenuItem>

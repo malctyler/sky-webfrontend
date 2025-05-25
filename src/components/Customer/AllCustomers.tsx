@@ -354,20 +354,18 @@ function AllCustomers() {
                 {customer.line2 && <p>{customer.line2}</p>}
                 {customer.line3 && <p>{customer.line3}</p>}
                 {customer.line4 && <p>{customer.line4}</p>}
-                <p>{customer.postcode}</p>
-              </div>              {customerNotes[customer.custID] > 0 && (
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/customers/${customer.custID}/notes`);
-                  }}
-                >
-                  Notes: {customerNotes[customer.custID]}
-                </Button>
-              )}
+                <p>{customer.postcode}</p>              </div>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/customers/${customer.custID}/notes`);
+                }}
+              >
+                Notes: {customerNotes[customer.custID] || 0}
+              </Button>
             </div>
           ))}
         </div>

@@ -134,12 +134,13 @@ const styles = StyleSheet.create({
 
 interface InspectionCertificateTemplateProps {
     inspection: InspectionCertificate;
+    preloadedSignaturePath?: string;
 }
 
-const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps> = ({ inspection }) => {    
+const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps> = ({ inspection, preloadedSignaturePath }) => {    
     const currentDate = new Date();
     const recordNumber = `${format(currentDate, 'yyyy/M')}/${inspection.custID || 0}/${inspection.uniqueRef}`;    
-    const [signaturePath, setSignaturePath] = React.useState<string | undefined>(undefined);
+    const [signaturePath, setSignaturePath] = React.useState<string | undefined>(preloadedSignaturePath);
 
     React.useEffect(() => {
         const loadSignature = async () => {
@@ -148,12 +149,10 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                 console.warn('No inspector name provided for signature');
                 return;
             }
-            // Convert spaces to underscores and lowercase to match backend convention
             const formattedName = inspectorName.toLowerCase().replace(/\s+/g, '_');
             const path = `${baseUrl}/Signature/${encodeURIComponent(formattedName)}`;
             
             try {
-                // Test if the image exists
                 const response = await fetch(path);
                 if (response.ok) {
                     setSignaturePath(path);
@@ -165,8 +164,10 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
             }
         };
         
-        loadSignature();
-    }, [inspection.inspectorsName]);
+        if (!preloadedSignaturePath) {
+            loadSignature();
+        }
+    }, [inspection.inspectorsName, preloadedSignaturePath]);
 
     const formatDate = (date: string | undefined | null): string => {
         if (!date) return 'N/A';
@@ -175,7 +176,9 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
         } catch {
             return 'Invalid Date';
         }
-    };    const renderText = (text: string | undefined | null): string => {
+    };
+
+    const renderText = (text: string | undefined | null): string => {
         if (!text) return '\u00A0';
         return text.trim() || '\u00A0';
     };
@@ -189,16 +192,15 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
             inspection.line4,
             inspection.postcode
         ].filter((line): line is string => Boolean(line)) || ['\u00A0'];
-    };    return (
+    };
+
+    return (
         <Document
             creator="Sky Technical Services"
             producer="Sky Technical Services"
             title={`Inspection Certificate - ${inspection.companyName || ''}`}
         >
-            <Page 
-                size="A4" 
-                style={styles.page}
-                orientation="portrait">
+            <Page size="A4" style={styles.page}>
                 <View>
                     <View style={styles.headerContainer}>
                         <Text style={styles.skyText}>SKY</Text>
@@ -218,7 +220,9 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                         <Text style={styles.subTitle}>
                             IN ACCORDANCE WITH THE LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998 (LOLER)
                         </Text>
-                    </View>                    <View style={styles.table}>
+                    </View>
+
+                    <View style={styles.table}>
                         <View style={[styles.tableRow, styles.headerRow]}>
                             <View style={styles.leftColumn}>
                                 <Text>{'\u00A0'}</Text>
@@ -232,7 +236,8 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                             <View style={styles.leftColumn}>
                                 <Text>Description of equipment</Text>
                             </View>
-                            <View style={styles.rightColumn}>                                <Text>{inspection.plantDescription || '\u00A0'}</Text>
+                            <View style={styles.rightColumn}>
+                                <Text>{inspection.plantDescription || '\u00A0'}</Text>
                             </View>
                         </View>
 
@@ -248,7 +253,8 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
                                 <Text>Identification mark of Quick Hitch</Text>
-                            </View>                            <View style={styles.rightColumn}>
+                            </View>
+                            <View style={styles.rightColumn}>
                                 <Text>{'\u00A0'}</Text>
                             </View>
                         </View>
@@ -268,14 +274,16 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                             <View style={styles.leftColumn}>
                                 <Text style={styles.bold}>Date of the last thorough examination and identification of the record issued on that occasion</Text>
                             </View>
-                            <View style={styles.rightColumn}>                                <Text style={styles.bold}>{inspection.previousCheck || '\u00A0'}</Text>
+                            <View style={styles.rightColumn}>
+                                <Text style={styles.bold}>{inspection.previousCheck || '\u00A0'}</Text>
                             </View>
                         </View>
 
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
                                 <Text>Safe working load or loads and (where relevant) corresponding radii</Text>
-                            </View>                            <View style={styles.rightColumn}>
+                            </View>
+                            <View style={styles.rightColumn}>
                                 <Text>{inspection.safeWorking || '\u00A0'}</Text>
                             </View>
                         </View>
@@ -294,43 +302,30 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                                 <Text>Date(s) by which defects described above must be rectified</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text>{inspection.rectified || '\u00A0'}</Text>
+                                <Text>{inspection.rectifyDate || '\u00A0'}</Text>
                             </View>
                         </View>
 
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
-                                <Text>What parts if any were inaccessible?{'\n'}(TO BE COMPLETED ONLY AFTER A THOROUGH EXAMINATION OF A HOIST OR LIFT)</Text>
+                                <Text>Latest date by which the next thorough examination must be carried out</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text>Enclosed Parts of Hydraulic System</Text>
+                                <Text>{formatDate(inspection.latestDate)}</Text>
                             </View>
                         </View>
 
                         <View style={styles.tableRow}>
                             <View style={styles.leftColumn}>
-                                <Text style={styles.bold}>Latest date by which the next thorough examination must be carried out</Text>
+                                <Text>Name and address of inspection company</Text>
                             </View>
                             <View style={styles.rightColumn}>
-                                <Text style={styles.bold}>{inspection.recentCheck || ''}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.tableRow}>
-                            <View style={styles.leftColumn}>
-                                <Text>Examined at</Text>
-                            </View>
-                            <View style={styles.rightColumn}>
-                                <Text>{inspection.location || ''}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.tableRow}>
-                            <View style={styles.leftColumn}>
-                                <Text>Other notes</Text>
-                            </View>
-                            <View style={styles.rightColumn}>
-                                <Text style={styles.bold}>Always ensure that the correct operators instructions are with the machine and that the correct SWL is clearly visible. Where a quickhitch is fitted ensure that the operator understands the procedures and is competent to operate the hitch safely. For full SWL specifications always refer to manufacturers lifting/radii tables.</Text>
+                                <Text>Sky Technical Services Ltd</Text>
+                                <Text>4 Victoria Cottages</Text>
+                                <Text>Love Lane</Text>
+                                <Text>Mayfield</Text>
+                                <Text>E.Sussex</Text>
+                                <Text>TN20 6EN</Text>
                             </View>
                         </View>
                     </View>
@@ -342,47 +337,76 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                             <Text style={styles.bold}>{formatDate(inspection.inspectionDate)}</Text> and that the above particulars are correct.
                         </Text>
                     </View>
+
                     <View style={styles.declaration}>
                         <Text style={styles.bold}>Signature or other identification</Text>
-                    </View>                    <View style={styles.inspectorDetails}>
+                    </View>
+
+                    <View style={styles.inspectorDetails}>
                         {signaturePath && (
-                            <Image
-                                src={signaturePath}
-                                style={styles.signature}
-                            />
+                            <Image src={signaturePath} style={styles.signature} />
                         )}
-                        <Text>Engineering Surveyor:{' '}
-                            <Text style={styles.bold}>{renderText(inspection.inspectorsName)}</Text>
-                        </Text>
+                        <Text>Engineering Surveyor: {renderText(inspection.inspectorsName)}</Text>
                     </View>
 
                     <Text style={[styles.bold, styles.addressText]}>
                         Name and address of person authenticating the record and responsible for the thorough examination.
                     </Text>
 
-                    <Text style={styles.addressTextIndent}>
-                        Sky Technical Services Ltd{'\n'}
-                        4 Victoria Cottages{'\n'}
-                        Love Lane, Mayfield, E.Sussex. TN20 6EN.        Tel 01435 873355 / 07703 292932.       Email{' '}
-                        <Text style={styles.mailto}>info@skytechnical.co.uk</Text>
-                    </Text>
+                    <View style={styles.addressTextIndent}>
+                        <Text>Sky Technical Services Ltd</Text>
+                        <Text>4 Victoria Cottages</Text>
+                        <Text>Love Lane, Mayfield, E.Sussex. TN20 6EN</Text>
+                        <Text>Tel: 01435 873355 / 07703 292932</Text>
+                        <Text>Email: info@skytechnical.co.uk</Text>
+                    </View>
 
-                    <Text style={styles.dateRecord}>
-                        Date the record is made{' '}
-                        <Text style={styles.bold}>
-                            {formatDate(inspection.inspectionDate)}
-                        </Text>
-                    </Text>
+                    <View style={styles.dateRecord}>
+                        <Text style={styles.bold}>Date the record is made: {formatDate(inspection.inspectionDate)}</Text>
+                    </View>
                 </View>
             </Page>
         </Document>
     );
 };
 
+export const loadSignatureUrl = async (inspectorName: string | undefined): Promise<string | undefined> => {
+    if (!inspectorName?.trim()) {
+        console.warn('No inspector name provided for signature');
+        return undefined;
+    }
+    const formattedName = inspectorName.trim().toLowerCase().replace(/\s+/g, '_');
+    const path = `${baseUrl}/Signature/${encodeURIComponent(formattedName)}`;
+    
+    try {
+        const response = await fetch(path);
+        if (response.ok) {
+            return path;
+        } else {
+            console.warn('Signature image not found:', path);
+            return undefined;
+        }
+    } catch (error) {
+        console.error('Error loading signature:', error);
+        return undefined;
+    }
+};
+
 export const generatePdfBlob = async (inspection: InspectionCertificate): Promise<Blob> => {
-    const doc = <InspectionCertificateTemplate inspection={inspection} />;
-    const blob = await pdf(doc).toBlob();
-    return blob;
+    try {
+        // First load the signature
+        const signaturePath = await loadSignatureUrl(inspection.inspectorsName);
+        
+        // Create the document with the preloaded signature path
+        const doc = <InspectionCertificateTemplate inspection={inspection} preloadedSignaturePath={signaturePath} />;
+        
+        // Create PDF
+        const blob = await pdf(doc).toBlob();
+        return blob;
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        throw error;
+    }
 };
 
 export const getPdfFileName = (inspection: InspectionCertificate): string => {

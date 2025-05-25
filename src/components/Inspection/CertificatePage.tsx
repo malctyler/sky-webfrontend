@@ -10,26 +10,7 @@ const CertificatePage: React.FC = () => {
     const params = useParams();
     const id = params.id;
     const [inspection, setInspection] = useState<InspectionCertificate | null>(null);
-    const [error, setError] = useState<string | null>(null);    useEffect(() => {
-        // Set window size to A4 dimensions (converting mm to pixels at 96 DPI)
-        const mmToPx = (mm: number) => Math.round(mm * 3.7795275591);  // 1mm = 3.7795275591 pixels at 96 DPI
-        const a4Width = mmToPx(210);
-        const a4Height = mmToPx(297);
-        
-        // Add some padding for browser chrome
-        const chromeHeight = 100; // Approximate height of browser UI
-        const padding = 40; // 20px padding on each side
-        
-        window.resizeTo(
-            a4Width + padding,
-            a4Height + chromeHeight + padding
-        );
-        
-        // Center the window on screen
-        const left = (window.screen.width - (a4Width + padding)) / 2;
-        const top = (window.screen.height - (a4Height + chromeHeight + padding)) / 2;
-        window.moveTo(left, top);
-    }, []);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadInspection = async () => {
@@ -42,6 +23,10 @@ const CertificatePage: React.FC = () => {
                 const data = await inspectionService.getById(id);
                 setInspection(data);
                 document.title = `Certificate - ${data.inspectorName || 'Inspection'}`;
+                
+                // Set CSS to prevent scrollbars on body
+                document.body.style.margin = '0';
+                document.body.style.overflow = 'hidden';
             } catch (err) {
                 console.error('Error loading inspection:', err);
                 setError('Failed to load inspection');
@@ -49,6 +34,12 @@ const CertificatePage: React.FC = () => {
         };
 
         loadInspection();
+
+        // Cleanup
+        return () => {
+            document.body.style.margin = '';
+            document.body.style.overflow = '';
+        };
     }, [id]);
 
     if (error) {
@@ -65,10 +56,12 @@ const CertificatePage: React.FC = () => {
                 <CircularProgress />
             </Box>
         );
-    }    return (
+    }
+
+    return (
         <BlobProvider document={<InspectionCertificateTemplate inspection={inspection} />}>
             {({ url, loading, error: pdfError }) => {
-                if (loading) {
+                if (loading || !url) {
                     return (
                         <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="white">
                             <CircularProgress />
@@ -84,31 +77,24 @@ const CertificatePage: React.FC = () => {
                     );
                 }
 
-                if (!url) {
-                    return (
-                        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="white">
-                            <Typography color="error">PDF URL not available</Typography>
-                        </Box>
-                    );
-                }                return (
-                    <Box sx={{ 
-                        width: '100%', 
-                        height: '100vh', 
+                return (
+                    <Box sx={{
+                        width: '100vw',
+                        height: '100vh',
                         bgcolor: '#f0f0f0',
                         display: 'flex',
                         justifyContent: 'center',
-                        alignItems: 'flex-start',
-                        padding: 2,
-                        overflow: 'auto'
+                        alignItems: 'center',
+                        margin: 0,
+                        padding: 0,
+                        overflow: 'hidden'
                     }}>
                         <Box sx={{
-                            width: '210mm',
-                            minHeight: '297mm',
-                            bgcolor: 'white',
-                            boxShadow: 3,
+                            width: '100%',
+                            height: '100%',
                             '& iframe': {
-                                width: '210mm',
-                                height: '297mm',
+                                width: '100%',
+                                height: '100%',
                                 border: 'none',
                                 display: 'block'
                             }
@@ -116,6 +102,7 @@ const CertificatePage: React.FC = () => {
                             <iframe
                                 src={url}
                                 title="Inspection Certificate"
+                                style={{ display: 'block', width: '100%', height: '100%', border: 'none' }}
                             />
                         </Box>
                     </Box>
