@@ -137,17 +137,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(true);
             try {
                 const response = await loginService(email, password);
+                if (!response.token) {
+                    // No token returned, clear user
+                    localStorage.removeItem('user');
+                    setUser(null);
+                    throw new Error('No token returned from login');
+                }
                 const decoded = jwt.jwtDecode<DecodedToken>(response.token);
                 const roles = getRolesFromToken(decoded);
                 const customerId = extractCustomerId(decoded);
-                
                 const newUser = {
                     ...response,
                     roles,
                     customerId: customerId ? parseInt(customerId as string, 10) : undefined,
                     emailConfirmed: decoded.EmailConfirmed === 'True'
                 };
-
                 localStorage.setItem('user', JSON.stringify(newUser));
                 setUser(newUser);
                 return newUser;

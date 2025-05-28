@@ -13,20 +13,23 @@ interface FormData {
     lastName: string;
     isCustomer: boolean;
     customerId: string;
+    role?: string;
 }
 
 interface ErrorResponse {
     message?: string;
 }
 
-const Register: React.FC = () => {    const [formData, setFormData] = useState<FormData>({
+const Register: React.FC = () => {
+    const [formData, setFormData] = useState<FormData>({
         email: '',
         password: '',
         confirmPassword: '',
         firstName: '',
         lastName: '',
         isCustomer: false,
-        customerId: ''
+        customerId: '',
+        role: ''
     });
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
@@ -37,19 +40,30 @@ const Register: React.FC = () => {    const [formData, setFormData] = useState<F
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-    };    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            await register({
-                ...formData,
-                customerId: formData.customerId || undefined
-            });
+            // Only send fields expected by backend
+            const registerData = {
+                email: formData.email,
+                password: formData.password,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                isCustomer: formData.isCustomer,
+                customerId: formData.customerId ? parseInt(formData.customerId, 10) : null,
+                emailConfirmed: false // or true if you want to default to confirmed
+            };
+            await register(registerData);
             navigate('/login');
-        } catch (err) {
-            const axiosError = err as AxiosError<ErrorResponse>;
-            setError(axiosError.response?.data?.message || 'Failed to register');
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.message || err.message || 'Failed to register';
+            setError(errorMsg);
         }
-    };    return (
+    };
+
+    return (
         <Box className={styles.registerContainer}>
             <Paper elevation={3} className={styles.registerPaper}>
                 <Typography variant="h5" component="h1" gutterBottom>
@@ -57,7 +71,7 @@ const Register: React.FC = () => {    const [formData, setFormData] = useState<F
                 </Typography>
                 {error && (
                     <Typography color="error" gutterBottom>
-                        {error}
+                        {typeof error === 'string' ? error : JSON.stringify(error)}
                     </Typography>
                 )}
                 <form onSubmit={handleSubmit}>
@@ -121,7 +135,8 @@ const Register: React.FC = () => {    const [formData, setFormData] = useState<F
                             required
                             inputProps={{ min: 0 }}
                         />
-                    )}                    <Button
+                    )}
+                    <Button
                         type="submit"
                         variant="contained"
                         color="primary"
@@ -148,6 +163,5 @@ const Register: React.FC = () => {    const [formData, setFormData] = useState<F
             </Paper>
         </Box>
     );
-};
-
+}
 export default Register;

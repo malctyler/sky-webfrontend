@@ -15,6 +15,9 @@ instance.interceptors.request.use((config: ApiClientConfig) => {
             const user: User = JSON.parse(userStr);
             if (user?.token) {
                 config.headers.Authorization = `Bearer ${user.token}`;
+            } else {
+                // No token, clear user
+                localStorage.removeItem('user');
             }
         } catch (error) {
             console.error('Error parsing user data:', error);
