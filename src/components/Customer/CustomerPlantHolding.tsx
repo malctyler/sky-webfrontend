@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
-import { Button, Typography, Box } from '@mui/material';
+import { Button, Typography, Box, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { PlantHolding } from '../../types/plantholdingTypes';
 import plantHoldingService from '../../services/plantHoldingService';
 import styles from './CustomerPlantHolding.module.css';
@@ -154,6 +154,7 @@ const CustomerPlantHolding: React.FC = () => {
               <p><strong>Serial Number:</strong> {holding.serialNumber}</p>
               <p><strong>Status:</strong> {holding.statusDescription}</p>
               <p><strong>SWL:</strong> {holding.swl}</p>
+              <p><strong>Inspection Frequency:</strong> {holding.inspectionFrequency} months</p>
               {expanded === holding.holdingID && (
                 <div className={styles.expandedDetails}>
                   {/* Add any additional details you want to show when expanded */}

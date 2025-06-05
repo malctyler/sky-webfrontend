@@ -3,7 +3,9 @@ import { baseUrl } from '../config';
 import { generatePdfBlob, getPdfFileName } from '../components/Inspection/InspectionCertificateTemplate';
 import {
     InspectionItem,
-    InspectionFormData
+    InspectionFormData,
+    InspectionDueDatesResponse,
+    ScheduleInspectionRequest
 } from '../types/inspectionTypes';
 
 // Helper function to get auth headers
@@ -106,6 +108,67 @@ const emailCertificate = async (id: string | number): Promise<boolean> => {
     }
 };
 
+const getInspectionDueDates = async (): Promise<InspectionDueDatesResponse> => {
+    try {
+        const headers = getAuthHeaders();
+        const response = await axios.get<InspectionDueDatesResponse>(`${baseUrl}/inspectionduedates`, {
+            headers
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching inspection due dates:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('Status:', error.response?.status);
+            console.error('Response data:', error.response?.data);
+        }
+        throw new Error(axios.isAxiosError(error) 
+            ? `Failed to fetch inspection due dates: ${error.response?.data?.message || error.message}`
+            : 'Failed to fetch inspection due dates');
+    }
+};
+
+const scheduleInspection = async (request: ScheduleInspectionRequest): Promise<void> => {
+    if (!request.holdingID) {
+        throw new Error('HoldingID is required for scheduling an inspection');
+    }
+
+    // Ensure the data is formatted correctly
+    const formattedRequest = {
+        ...request,
+        holdingID: Number(request.holdingID),
+        scheduledDate: new Date(request.scheduledDate).toISOString(),
+        inspectorID: Number(request.inspectorID),
+        force: request.force || false
+    };            try {
+                const response = await axios.post(`${baseUrl}/scheduledInspection`, formattedRequest, {
+                    headers: getAuthHeaders()
+                });
+                return response.data;    } catch (error) {
+        console.error('Error scheduling inspection:', error);
+        if (axios.isAxiosError(error)) {
+            // Handle 409 Conflict with detailed message
+            if (error.response?.status === 409) {
+                const data = error.response.data;
+                throw {
+                    isAxiosError: true,
+                    response: {
+                        status: 409,
+                        data: {
+                            message: data.message,
+                            existingDate: data.existingDate,
+                            serialNumber: data.serialNumber
+                        }
+                    }
+                };
+            }
+            // For other errors, throw with a descriptive message
+            const errorMessage = error.response?.data?.message || error.message;
+            throw new Error(`Failed to schedule inspection: ${errorMessage}`);
+        }
+        throw error;
+    }
+};
+
 const inspectionService = {
     getAll,
     getById,
@@ -113,7 +176,9 @@ const inspectionService = {
     create,
     update,
     remove,
-    emailCertificate
+    emailCertificate,
+    getInspectionDueDates,
+    scheduleInspection
 };
 
 export default inspectionService;

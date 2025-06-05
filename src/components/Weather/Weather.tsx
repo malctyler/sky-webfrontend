@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { baseUrl } from '../../config';
 import { Button } from '@mui/material';
 import styles from './Weather.module.css';
+import weatherService from '../../services/weatherService';
 
 interface WeatherData {
   temperature: number;
@@ -49,25 +49,12 @@ const Weather: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchWeatherData();
-  }, []);
-
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
-      const [currentResponse, forecastResponse] = await Promise.all([
-        fetch(`${baseUrl}/Weather`),
-        fetch(`${baseUrl}/Weather/forecast`)
-      ]);
-
-      if (!currentResponse.ok || !forecastResponse.ok) {
-        throw new Error('Failed to fetch weather data');
-      }
-
       const [current, forecast] = await Promise.all([
-        currentResponse.json(),
-        forecastResponse.json()
+        weatherService.getCurrentWeather(),
+        weatherService.getFiveDayForecast()
       ]);
 
       setCurrentWeather(current);
@@ -79,6 +66,10 @@ const Weather: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchWeatherData();
+  }, []);
 
   const formatDate = (dateStr: string, format: 'short' | 'time' = 'short'): string => {
     const date = new Date(dateStr);

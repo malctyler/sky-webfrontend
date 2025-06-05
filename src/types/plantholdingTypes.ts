@@ -7,7 +7,7 @@ export interface PlantHolding {
   statusID?: number;
   statusDescription?: string;
   swl?: string;
-  inspectionFrequency?: string;
+  inspectionFrequency?: number;
   inspectionFee?: number;
 }
 
@@ -17,6 +17,7 @@ export interface NewPlantHolding {
   serialNumber: string;
   statusID: number | null;
   swl: string;
+  inspectionFrequency: number;
 }
 
 export interface NewPlantHoldingForm {
@@ -25,6 +26,7 @@ export interface NewPlantHoldingForm {
   serialNumber: string;
   statusID: string; // String for form handling
   swl: string;
+  inspectionFrequency: string; // String for form handling
 }
 
 export interface Plant {

@@ -125,3 +125,37 @@ export type CreateInspectionResponse = ApiResponse<InspectionItem>;
 export type UpdateInspectionResponse = ApiResponse<InspectionItem>;
 export type DeleteInspectionResponse = ApiResponse<void>;
 export type EmailCertificateResponse = ApiResponse<boolean>;
+
+export interface InspectionDueDate {
+    holdingID: number;
+    serialNumber: string;
+    categoryDescription: string;
+    companyName: string;
+    formattedLastInspection: string;
+    formattedDueDate: string;
+    inspectionFrequency: number;
+    dueDate: string;
+    scheduledInspectionCount: number;
+}
+
+// The API returns the array directly, no wrapper needed
+export type InspectionDueDatesResponse = InspectionDueDate[];
+
+export interface ScheduledInspection {
+    holdingID: number;
+    scheduledDate: Date;
+    inspectorID: number;
+    equipmentType: string;
+    serialNumber: string;
+    companyName: string;
+}
+
+export interface ScheduleInspectionRequest {
+    holdingID: number;
+    serialNumber: string;
+    scheduledDate: string;
+    inspectorID: number;
+    location?: string;
+    notes?: string;
+    force?: boolean;
+}

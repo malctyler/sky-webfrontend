@@ -83,7 +83,8 @@ const CustomerSummary: React.FC = () => {
     plantNameID: '',
     serialNumber: '',
     statusID: '',
-    swl: ''
+    swl: '',
+    inspectionFrequency: '3'  // Default to 3 months
   });
 
   // Dialog states
@@ -192,7 +193,8 @@ const CustomerSummary: React.FC = () => {
       plantNameID: '',
       serialNumber: '',
       statusID: '',
-      swl: ''
+      swl: '',
+      inspectionFrequency: '3' // Default to 3 months
     });
   };
   // Customer actions
@@ -260,7 +262,8 @@ const CustomerSummary: React.FC = () => {
         plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
         serialNumber: newPlantHolding.serialNumber,
         statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
-        swl: newPlantHolding.swl
+        swl: newPlantHolding.swl,
+        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency)
       };
       const response = await axios.post(`${baseUrl}/PlantHolding`, apiPayload, { headers });
       const newHolding = response.data;
@@ -280,7 +283,8 @@ const CustomerSummary: React.FC = () => {
         plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
         serialNumber: newPlantHolding.serialNumber,
         statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
-        swl: newPlantHolding.swl
+        swl: newPlantHolding.swl,
+        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency)
       };
       const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload, { headers });
       const updatedHolding = response.data;
@@ -399,7 +403,8 @@ const CustomerSummary: React.FC = () => {
       plantNameID: holding.plantNameID?.toString() || '',
       serialNumber: holding.serialNumber || '',
       statusID: holding.statusID?.toString() || '',
-      swl: holding.swl || ''
+      swl: holding.swl || '',
+      inspectionFrequency: holding.inspectionFrequency?.toString() || '3'
     });
     setPlantHoldingDialogOpen(true);
   };
@@ -575,6 +580,19 @@ const CustomerSummary: React.FC = () => {
                   {plant.plantDescription}
                 </MenuItem>
               ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Inspection Frequency (Months)</InputLabel>
+            <Select
+              name="inspectionFrequency"
+              value={newPlantHolding.inspectionFrequency}
+              onChange={handlePlantHoldingChange}
+            >
+              <MenuItem value="3">3 Months</MenuItem>
+              <MenuItem value="6">6 Months</MenuItem>
+              <MenuItem value="9">9 Months</MenuItem>
+              <MenuItem value="12">12 Months</MenuItem>
             </Select>
           </FormControl>
           <TextField
