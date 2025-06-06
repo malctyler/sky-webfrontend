@@ -17,6 +17,7 @@ import Home from './components/Common/Home';
 import CustomerHome from './components/Customer/CustomerHome';
 import Weather from './components/Weather/Weather';
 import MainLayout from './components/Layout/MainLayout';
+import SchedulingList from './components/Scheduling/SchedulingList';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -225,6 +226,14 @@ function App() {
                   element={
                     <ProtectedRoute requireStaffOrAdmin>
                       <CustomerNotes />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/scheduling"
+                  element={
+                    <ProtectedRoute requireStaffOrAdmin>
+                      <SchedulingList />
                     </ProtectedRoute>
                   }
                 />

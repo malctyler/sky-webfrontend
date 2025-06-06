@@ -159,3 +159,21 @@ export interface ScheduleInspectionRequest {
     notes?: string;
     force?: boolean;
 }
+
+// Scheduled Inspection types
+export interface ScheduledInspection {
+    id: string;
+    customerId: string;
+    customerName: string;
+    plantId: string;
+    plantName: string;
+    scheduledDate: string;
+    status: string;
+}
+
+export interface ScheduledInspectionDto {
+    customerId: string;
+    plantId: string;
+    scheduledDate: string;
+    status: string;
+}

@@ -5,14 +5,31 @@ import {
     InspectionItem,
     InspectionFormData,
     InspectionDueDatesResponse,
-    ScheduleInspectionRequest
+    ScheduleInspectionRequest,
 } from '../types/inspectionTypes';
+import { 
+    ScheduledInspection,
+    CreateUpdateScheduledInspectionDto 
+} from '../types/scheduledInspectionTypes';
+import apiClient from './apiClient';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
     const token = userStr ? JSON.parse(userStr)?.token : null;
     return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// Helper function to convert frontend ScheduledInspection to backend DTO
+const toCreateUpdateDto = (inspection: ScheduledInspection): CreateUpdateScheduledInspectionDto => {
+    return {
+        holdingID: inspection.holdingID,
+        scheduledDate: inspection.scheduledDate,
+        location: inspection.location,
+        notes: inspection.notes,
+        inspectorID: inspection.inspectorID,
+        isCompleted: inspection.isCompleted
+    };
 };
 
 const createDto = (inspection: InspectionFormData) => {
@@ -139,11 +156,14 @@ const scheduleInspection = async (request: ScheduleInspectionRequest): Promise<v
         scheduledDate: new Date(request.scheduledDate).toISOString(),
         inspectorID: Number(request.inspectorID),
         force: request.force || false
-    };            try {
-                const response = await axios.post(`${baseUrl}/scheduledInspection`, formattedRequest, {
-                    headers: getAuthHeaders()
-                });
-                return response.data;    } catch (error) {
+    };
+    
+    try {
+        const response = await axios.post(`${baseUrl}/scheduledInspection`, formattedRequest, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (error) {
         console.error('Error scheduling inspection:', error);
         if (axios.isAxiosError(error)) {
             // Handle 409 Conflict with detailed message
@@ -169,6 +189,31 @@ const scheduleInspection = async (request: ScheduleInspectionRequest): Promise<v
     }
 };
 
+const getScheduledInspections = async () => {
+    const headers = getAuthHeaders();
+    const response = await axios.get<ScheduledInspection[]>(`${baseUrl}/scheduledInspection`, { headers });
+    return response.data;
+};
+
+const createScheduledInspection = async (inspection: ScheduledInspection) => {
+    const headers = getAuthHeaders();
+    const dto = toCreateUpdateDto(inspection);
+    const response = await axios.post<ScheduledInspection>(`${baseUrl}/scheduledInspection`, dto, { headers });
+    return response.data;
+};
+
+const updateScheduledInspection = async (id: string, inspection: ScheduledInspection) => {
+    const headers = getAuthHeaders();
+    const dto = toCreateUpdateDto(inspection);
+    const response = await axios.put<ScheduledInspection>(`${baseUrl}/scheduledInspection/${id}`, dto, { headers });
+    return response.data;
+};
+
+const deleteScheduledInspection = async (id: string) => {
+    const headers = getAuthHeaders();
+    await axios.delete(`${baseUrl}/scheduledInspection/${id}`, { headers });
+};
+
 const inspectionService = {
     getAll,
     getById,
@@ -178,7 +223,11 @@ const inspectionService = {
     remove,
     emailCertificate,
     getInspectionDueDates,
-    scheduleInspection
+    scheduleInspection,
+    getScheduledInspections,
+    createScheduledInspection,
+    updateScheduledInspection,
+    deleteScheduledInspection
 };
 
 export default inspectionService;

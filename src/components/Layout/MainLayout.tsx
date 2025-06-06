@@ -31,10 +31,12 @@ import HomeIcon from '@mui/icons-material/Home';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import CloudIcon from '@mui/icons-material/Cloud';
+import EventIcon from '@mui/icons-material/Event';
 import CategoryIcon from '@mui/icons-material/Category';
 import PeopleIcon from '@mui/icons-material/People';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -83,6 +85,7 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
     if (hasRole('Staff') || hasRole('Admin')) {
       baseItems.push(
         { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
+        { text: 'Scheduling', icon: <EventIcon />, path: '/scheduling' },
         { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
       );
     }
