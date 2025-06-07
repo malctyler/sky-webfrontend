@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 
 export interface MenuItem {
   text: string;
-  icon: ReactNode;
-  path: string;
-  roles?: string[];
+  icon: React.ReactElement;
+  path?: string;
+  subItems?: MenuItem[];
 }
 
 export interface UserMenuProps {

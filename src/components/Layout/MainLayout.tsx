@@ -34,9 +34,12 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import EventIcon from '@mui/icons-material/Event';
 import CategoryIcon from '@mui/icons-material/Category';
 import PeopleIcon from '@mui/icons-material/People';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -74,6 +77,16 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
   const baseItems: MenuItemType[] = [
     { text: 'Dashboard', icon: <HomeIcon />, path: '/home' }
   ];
+
+  if (hasRole('Staff') || hasRole('Admin')) {
+    baseItems.push({
+      text: 'Invoicing',
+      icon: <ReceiptIcon />,
+      subItems: [
+        { text: 'Generate Invoices', icon: <ReceiptIcon />, path: '/invoicing/generate' }
+      ]
+    });
+  }
 
   if (user?.isCustomer) {
     baseItems.push(
@@ -440,8 +453,9 @@ const MainLayout: React.FC<LayoutProps> = () => {
               key={item.text}
               disablePadding
               selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
+              onClick={() => {                    if (item.path) {
+                      navigate(item.path);
+                    }
                 if (isMobile) {
                   handleDrawerClose();
                 }
@@ -450,6 +464,17 @@ const MainLayout: React.FC<LayoutProps> = () => {
               <ListItemButton className={styles.listItemButton}>
                 <ListItemIcon className={styles.listItemIcon}>{item.icon}</ListItemIcon>
                 <ListItemText className={styles.listItemText} primary={item.text} />
+                {/* Show right arrow for items with subItems */}
+                {item.subItems && item.subItems.length > 0 && (
+                  <KeyboardArrowRightIcon 
+                    sx={{ 
+                      ml: 'auto', 
+                      color: 'text.secondary',
+                      transition: 'transform 0.2s',
+                      transform: open ? 'rotate(90deg)' : 'rotate(0deg)'
+                    }} 
+                  />
+                )}
               </ListItemButton>
             </ListItem>
           ))}

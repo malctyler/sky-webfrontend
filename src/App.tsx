@@ -18,6 +18,7 @@ import CustomerHome from './components/Customer/CustomerHome';
 import Weather from './components/Weather/Weather';
 import MainLayout from './components/Layout/MainLayout';
 import SchedulingList from './components/Scheduling/SchedulingList';
+import GenerateInvoice from './components/Invoicing/GenerateInvoice';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -261,6 +262,13 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/invoicing">
+                  <Route path="generate" element={
+                    <ProtectedRoute requireStaffOrAdmin>
+                      <GenerateInvoice />
+                    </ProtectedRoute>
+                  } />
+                </Route>
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
             </Routes>
