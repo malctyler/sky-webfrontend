@@ -9,6 +9,8 @@ interface AuthUser {
     customerId?: string | number;
     roles: string[];
     emailConfirmed: boolean;
+    firstName?: string;
+    lastName?: string;
 }
 
 interface JwtClaims {
@@ -145,12 +147,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     ...response,
                     roles,
                     customerId: customerId ? parseInt(customerId as string, 10) : undefined,
-                    emailConfirmed: decoded.EmailConfirmed === 'True'
+                    emailConfirmed: decoded.EmailConfirmed === 'True',
+                    firstName: response.firstName || '',
+                    lastName: response.lastName || ''
                 };
 
                 localStorage.setItem('user', JSON.stringify(newUser));
                 setUser(newUser);
                 return newUser;
+            } catch (error) {
+                console.error('Login failed:', error);
+                throw error;
             } finally {
                 setLoading(false);
             }

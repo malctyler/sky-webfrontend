@@ -11,8 +11,11 @@ export interface CustomerInvoiceDto {
     customerId: number;
     customerName: string;
     address: string;
-    city: string;
+    addressLine2: string;
+    addressLine3: string;
+    addressLine4: string;
     postCode: string;
+    invoiceReference: string;
     startDate: string;
     endDate: string;
     lineItems: InvoiceLineItemDto[];

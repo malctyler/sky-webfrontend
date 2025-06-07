@@ -1,7 +1,7 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
-import { CustomerInvoiceDto } from '../../types/invoiceTypes';
+import { CustomerInvoiceDto, InvoiceLineItemDto } from '../../types/invoiceTypes';
 
 Font.register({
     family: 'Helvetica',
@@ -25,11 +25,19 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         flexDirection: 'row',
-        alignItems: 'baseline',
-        alignSelf: 'flex-start',
-        borderBottom: '1 solid black',
-        paddingBottom: 2,
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
         marginBottom: 20
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        borderBottom: '1 solid black',
+        paddingBottom: 2
+    },
+    headerRight: {
+        flexDirection: 'column',
+        alignItems: 'flex-end'
     },
     skyText: {
         fontSize: 45,
@@ -42,17 +50,30 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         lineHeight: 1
     },
+    referenceText: {
+        fontSize: 9,
+        textAlign: 'right',
+        marginTop: 5,
+        marginBottom: 8
+    },
+    dateText: {
+        fontSize: 9,
+        textAlign: 'right'
+    },
     companyInfo: {
         fontSize: 9,
-        marginTop: 10
+        marginTop: 10,
+        marginBottom: 20
     },
     customerDetails: {
-        marginTop: 20,
         marginBottom: 20
     },
     invoiceHeader: {
         fontSize: 16,
         fontWeight: 'bold',
+        marginBottom: 10
+    },
+    invoiceReference: {
         marginBottom: 10
     },
     table: {
@@ -127,8 +148,14 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
             <Page size="A4" style={styles.page}>
                 {/* Header */}
                 <View style={styles.headerContainer}>
-                    <Text style={styles.skyText}>SKY</Text>
-                    <Text style={styles.technicalServicesText}>Technical Services Ltd</Text>
+                    <View style={styles.headerLeft}>
+                        <Text style={styles.skyText}>SKY</Text>
+                        <Text style={styles.technicalServicesText}>Technical Services Ltd</Text>
+                    </View>
+                    <View style={styles.headerRight}>
+                        <Text style={styles.referenceText}>Ref: {invoice.invoiceReference}</Text>
+                        <Text style={styles.dateText}>Date: {formatDate(new Date())}</Text>
+                    </View>
                 </View>
 
                 {/* Company Details */}
@@ -144,14 +171,15 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
                 <View style={styles.customerDetails}>
                     <Text style={styles.bold}>{invoice.customerName}</Text>
                     {invoice.address && <Text>{invoice.address}</Text>}
-                    {invoice.city && <Text>{invoice.city}</Text>}
+                    {invoice.addressLine2 && <Text>{invoice.addressLine2}</Text>}
+                    {invoice.addressLine3 && <Text>{invoice.addressLine3}</Text>}
+                    {invoice.addressLine4 && <Text>{invoice.addressLine4}</Text>}
                     {invoice.postCode && <Text>{invoice.postCode}</Text>}
                 </View>
 
                 {/* Invoice Header */}
                 <View>
                     <Text style={styles.invoiceHeader}>INVOICE</Text>
-                    <Text>Date: {formatDate(new Date())}</Text>
                     <Text>Period: {formatDate(invoice.startDate)} - {formatDate(invoice.endDate)}</Text>
                 </View>
 
@@ -165,7 +193,7 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
                     </View>
 
                     {/* Table Rows */}
-                    {invoice.lineItems.map((item, index) => (
+                    {invoice.lineItems.map((item: InvoiceLineItemDto, index: number) => (
                         <View key={index} style={styles.tableRow}>
                             <Text style={styles.dateCol}>{formatDate(item.inspectionDate)}</Text>
                             <Text style={styles.serialCol}>{item.serialNumber}</Text>

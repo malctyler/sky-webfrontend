@@ -16,9 +16,10 @@ import { enGB } from 'date-fns/locale';
 import { Customer } from '../../types/customerTypes';
 import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
+import { CustomerInvoiceDto } from '../../types/invoiceTypes';
 
 import { generateInvoicePdf } from './InvoiceTemplate';
-import { CustomerInvoiceDto } from '../../types/invoiceTypes';
+
 const GenerateInvoice: React.FC = () => {
   const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -27,6 +28,34 @@ const GenerateInvoice: React.FC = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Function to get user initials from first and last name
+  const getUserInitials = () => {
+    // Default to email-based initials if names are missing
+    if (!user?.firstName && !user?.lastName) {
+      if (!user?.email) return 'XX';
+      const parts = user.email.split('@')[0].split('.');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    // If we have one name but not the other, use two letters from the available name
+    if (!user.firstName && user.lastName) {
+      return user.lastName.slice(0, 2).toUpperCase();
+    }
+    if (user.firstName && !user.lastName) {
+      return user.firstName.slice(0, 2).toUpperCase();
+    }
+
+    // If we have both names, use first letter of each
+    if (user.firstName && user.lastName) {
+      return (user.firstName[0] + user.lastName[0]).toUpperCase();
+    }
+
+    return 'XX'; // Fallback
+  };
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -82,7 +111,19 @@ const GenerateInvoice: React.FC = () => {
       }
 
       const invoiceData: CustomerInvoiceDto = await response.json();
-      const pdfBlob = await generateInvoicePdf(invoiceData);
+      
+      // Generate the invoice reference
+      const startDateFormatted = format(startDate, 'ddMMyy');
+      const endDateFormatted = format(endDate, 'ddMMyy');
+      const reference = `${getUserInitials()}/${startDateFormatted}/${endDateFormatted}/${selectedCustomer.custID}`;
+      
+      // Add the reference to the invoice data
+      const invoiceWithReference = {
+        ...invoiceData,
+        invoiceReference: reference
+      };
+
+      const pdfBlob = await generateInvoicePdf(invoiceWithReference);
       
       // Create a URL for the blob and open it in a new tab
       const pdfUrl = URL.createObjectURL(pdfBlob);
