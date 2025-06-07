@@ -24,6 +24,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import inspectionService from '../../services/inspectionService';
 import ScheduleEditDialog from './ScheduleEditDialog';
 import { ScheduledInspection } from '../../types/scheduledInspectionTypes';
+import { formatDate } from '../../utils/dateUtils';
 
 type InspectionStatus = 'all' | 'complete' | 'incomplete';
 type SortField = 'customerCompanyName' | 'plantDescription' | 'serialNumber' | 'inspectorName' | 'scheduledDate' | 'isCompleted';
@@ -234,7 +235,7 @@ const SchedulingList: React.FC = () => {
                   <TableCell>{inspection.plantDescription}</TableCell>
                   <TableCell>{inspection.serialNumber}</TableCell>
                   <TableCell>{inspection.inspectorName}</TableCell>
-                  <TableCell>{new Date(inspection.scheduledDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{formatDate(inspection.scheduledDate)}</TableCell>
                   <TableCell>{inspection.isCompleted ? 'Completed' : 'Incomplete'}</TableCell>
                   <TableCell align="right">
                     <Tooltip title="Edit">

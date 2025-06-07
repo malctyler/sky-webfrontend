@@ -22,14 +22,17 @@ import {
     TableHead,
     TableRow,
 } from '@mui/material';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-import styles from './InspectionForm.module.css';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { enGB } from 'date-fns/locale';
 import inspectionService from '../../services/inspectionService';
 import inspectorService from '../../services/inspectorService';
 import { InspectionDueDate, ScheduleInspectionRequest } from '../../types/inspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
 import type { SelectChangeEvent } from '@mui/material/Select';
+import { datePickerConfig, formatDateExtended } from '../../utils/dateUtils';
+import styles from './InspectionForm.module.css';
 
 const getStatusColor = (status: string): "error" | "warning" | "success" | "default" => {
     switch (status) {
@@ -199,9 +202,8 @@ const InspectionDueDates: React.FC = () => {
                                         <TableRow key={item.serialNumber}>
                                             <TableCell>{item.categoryDescription}</TableCell>
                                             <TableCell>{item.companyName}</TableCell>
-                                            <TableCell>{item.serialNumber}</TableCell>
-                                            <TableCell>{item.formattedLastInspection}</TableCell>
-                                            <TableCell>{item.formattedDueDate}</TableCell>
+                                            <TableCell>{item.serialNumber}</TableCell>                                <TableCell>{formatDateExtended(item.lastInspection)}</TableCell>
+                                <TableCell>{formatDateExtended(item.dueDate)}</TableCell>
                                             <TableCell>{item.inspectionFrequency} months</TableCell>
                                             <TableCell>
                                                 <Chip
@@ -259,13 +261,15 @@ const InspectionDueDates: React.FC = () => {
                             <div className={styles.datePickerContainer}>
                                 <Typography variant="subtitle1" gutterBottom>
                                     Schedule Date:
-                                </Typography>
-                                <DatePicker
-                                    selected={scheduledDate}
-                                    onChange={(date: Date | null) => setScheduledDate(date)}
-                                    minDate={new Date()}
-                                    className={styles.datePicker}
-                                />
+                                </Typography>                                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+                                    <DatePicker
+                                        value={scheduledDate}
+                                        onChange={(date: Date | null) => setScheduledDate(date)}
+                                        format={datePickerConfig.format}
+                                        minDate={new Date()}
+                                        sx={{ width: '100%' }}
+                                    />
+                                </LocalizationProvider>
                             </div>
                             <FormControl fullWidth sx={{ mt: 2 }}>
                                 <InputLabel id="inspector-select-label">Inspector</InputLabel>

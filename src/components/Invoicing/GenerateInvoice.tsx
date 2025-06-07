@@ -3,31 +3,30 @@ import {
   Box,
   Paper,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Button,
   Typography,
-  SelectChangeEvent
+  Autocomplete
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { format } from 'date-fns';
+import { enGB } from 'date-fns/locale';
 import { Customer } from '../../types/customerTypes';
 import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 
-const GenerateInvoice: React.FC = () => {
-  const { user } = useAuth();
+const GenerateInvoice: React.FC = () => {  const { user } = useAuth();
   const { isDarkMode } = useCustomTheme();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -56,21 +55,17 @@ const GenerateInvoice: React.FC = () => {
     fetchCustomers();
   }, [user?.token]);
 
-  const handleCustomerChange = (event: SelectChangeEvent<string>) => {
-    setSelectedCustomer(event.target.value);
-  };
-
   const handleSubmit = async () => {
     // This will be implemented later to call the invoice generation endpoint
     console.log('Generate invoice for:', {
-      customerId: selectedCustomer,
+      customerId: selectedCustomer?.custID,
       startDate,
       endDate
     });
   };
 
   const handleCancel = () => {
-    setSelectedCustomer('');
+    setSelectedCustomer(null);
     setStartDate(null);
     setEndDate(null);
   };
@@ -98,28 +93,36 @@ const GenerateInvoice: React.FC = () => {
           Generate Invoice
         </Typography>
         
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="customer-select-label">Customer</InputLabel>
-          <Select
-            labelId="customer-select-label"
+        <FormControl fullWidth sx={{ mb: 2 }}>          <Autocomplete
+            options={customers}
+            getOptionLabel={(option) => option.companyName || 'Unnamed Customer'}
             value={selectedCustomer}
-            onChange={handleCustomerChange}
-            label="Customer"
-          >
-            {customers.map((customer) => (
-              <MenuItem key={customer.custID} value={customer.custID.toString()}>
-                {customer.companyName || 'Unnamed Customer'}
-              </MenuItem>
-            ))}
-          </Select>
+            onChange={(_event, newValue) => setSelectedCustomer(newValue)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Customer"
+                placeholder="Start typing to filter customers..."
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            )}
+            isOptionEqualToValue={(option, value) => option.custID === value.custID}
+            filterOptions={(options, { inputValue }) => {
+              const searchText = inputValue.toLowerCase();
+              return options.filter(option => 
+                (option.companyName || '').toLowerCase().includes(searchText)
+              );
+            }}
+          />
         </FormControl>
 
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
           <Box sx={{ mb: 2 }}>
             <DatePicker
               label="Start Date"
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
+              format="dd/MM/yy"
               sx={{ width: '100%', mb: 2 }}
             />
           </Box>
@@ -128,6 +131,7 @@ const GenerateInvoice: React.FC = () => {
               label="End Date"
               value={endDate}
               onChange={(newValue) => setEndDate(newValue)}
+              format="dd/MM/yy"
               sx={{ width: '100%' }}
             />
           </Box>

@@ -17,6 +17,8 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { enGB } from 'date-fns/locale';
+import { datePickerConfig } from '../../utils/dateUtils';
 import inspectorService from '../../services/inspectorService';
 import { ScheduledInspection } from '../../types/scheduledInspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
@@ -119,12 +121,12 @@ const ScheduleEditDialog: React.FC<Props> = ({ open, onClose, onSave, inspection
             Serial Number: {inspection.serialNumber}
           </Typography>
 
-          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
               <DatePicker
                 label="Scheduled Date *"
                 value={scheduledDate}
                 onChange={(newDate) => setScheduledDate(newDate)}
+                format={datePickerConfig.format}
                 slotProps={{
                   textField: {
                     fullWidth: true,

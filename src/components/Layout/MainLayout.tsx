@@ -1,3 +1,5 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   Box,
   CssBaseline,
@@ -22,7 +24,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Collapse
 } from '@mui/material';
 import { useTheme as useMuiTheme, styled } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -38,14 +41,11 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeColorOption } from '../../contexts/ThemeContext';
-import { MenuItem as MenuItemType } from '../../types/layoutTypes';
+import { MenuItem as SidebarMenuItem } from '../../types/layoutTypes';
 import styles from './MainLayout.module.css';
 
 interface AuthUser {
@@ -73,14 +73,14 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 // Update getMenuItems function to better organize menu items
-const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean): MenuItemType[] => {
-  const baseItems: MenuItemType[] = [
+const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean): SidebarMenuItem[] => {
+  const baseItems: SidebarMenuItem[] = [
     { text: 'Dashboard', icon: <HomeIcon />, path: '/home' }
   ];
 
   if (hasRole('Staff') || hasRole('Admin')) {
     baseItems.push({
-      text: 'Invoicing',
+      text: 'Invoicing', 
       icon: <ReceiptIcon />,
       subItems: [
         { text: 'Generate Invoices', icon: <ReceiptIcon />, path: '/invoicing/generate' }
@@ -113,6 +113,99 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
   }
 
   return baseItems;
+};
+
+const SubMenuItem: React.FC<{ item: SidebarMenuItem; path: string }> = ({ item, path }) => {
+  const navigate = useNavigate();
+
+  return (
+    <ListItemButton
+      onClick={() => item.path && navigate(item.path)}
+      selected={path === item.path}
+      sx={{
+        pl: 4,
+        py: 1,
+        backgroundColor: (theme) => 
+          theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.05)'
+            : 'rgba(0, 0, 0, 0.04)'
+      }}
+    >
+      <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+      <ListItemText 
+        primary={item.text}
+        primaryTypographyProps={{ 
+          variant: 'body2',
+          sx: { fontWeight: path === item.path ? 600 : 400 }
+        }} 
+      />
+    </ListItemButton>
+  );
+};
+
+const MainMenuItem: React.FC<{
+  item: SidebarMenuItem;
+  path: string;
+}> = ({ item, path }) => {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const hasSubItems = item.subItems && item.subItems.length > 0;
+
+  const handleClick = () => {
+    if (hasSubItems) {
+      setOpen(!open);
+    } else if (item.path) {
+      navigate(item.path);
+    }
+  };
+
+  const isSelected = hasSubItems 
+    ? item.subItems?.some(subItem => path === subItem.path)
+    : path === item.path;
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <ListItemButton 
+        onClick={handleClick} 
+        selected={isSelected}
+        sx={{
+          py: 1.5,
+          '&.Mui-selected': {
+            backgroundColor: (theme) => 
+              theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.1)'
+                : 'rgba(0, 0, 0, 0.08)'
+          }
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+        <ListItemText 
+          primary={item.text}
+          primaryTypographyProps={{ 
+            sx: { fontWeight: isSelected ? 600 : 400 }
+          }}
+        />
+        {hasSubItems && (
+          <KeyboardArrowDownIcon 
+            sx={{ 
+              transform: open ? 'rotate(180deg)' : 'rotate(0)',
+              transition: '0.2s',
+              opacity: 0.7
+            }} 
+          />
+        )}
+      </ListItemButton>
+      {hasSubItems && open && (
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {item.subItems?.map((subItem, index) => (
+              <SubMenuItem key={index} item={subItem} path={path} />
+            ))}
+          </List>
+        </Collapse>
+      )}
+    </Box>
+  );
 };
 
 const MainLayout: React.FC<LayoutProps> = () => {
@@ -439,46 +532,16 @@ const MainLayout: React.FC<LayoutProps> = () => {
           },
         }}
       >
-        <DrawerHeader className={styles.sidebarHeader}>
-          {isMobile && (
-            <IconButton onClick={handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          )}
+        <DrawerHeader>
+          <IconButton onClick={handleDrawerClose}>
+            <ChevronLeftIcon />
+          </IconButton>
         </DrawerHeader>
-        <Divider />
-        <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-          {menuItems.map((item) => (
-            <ListItem
-              key={item.text}
-              disablePadding
-              selected={location.pathname === item.path}
-              onClick={() => {                    if (item.path) {
-                      navigate(item.path);
-                    }
-                if (isMobile) {
-                  handleDrawerClose();
-                }
-              }}
-            >
-              <ListItemButton className={styles.listItemButton}>
-                <ListItemIcon className={styles.listItemIcon}>{item.icon}</ListItemIcon>
-                <ListItemText className={styles.listItemText} primary={item.text} />
-                {/* Show right arrow for items with subItems */}
-                {item.subItems && item.subItems.length > 0 && (
-                  <KeyboardArrowRightIcon 
-                    sx={{ 
-                      ml: 'auto', 
-                      color: 'text.secondary',
-                      transition: 'transform 0.2s',
-                      transform: open ? 'rotate(90deg)' : 'rotate(0deg)'
-                    }} 
-                  />
-                )}
-              </ListItemButton>
-            </ListItem>
+        <Divider />        <List sx={{ width: '100%', px: 1 }}>
+          {menuItems.map((item, index) => (
+            <MainMenuItem key={index} item={item} path={location.pathname} />
           ))}
-        </List>      </Drawer>      <Box        component="main"
+        </List></Drawer>      <Box        component="main"
         className={styles.mainContent}
         sx={{
           flexGrow: 1,
