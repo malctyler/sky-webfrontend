@@ -146,19 +146,16 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
     return (
         <Document>
             <Page size="A4" style={styles.page}>
-                {/* Header */}
                 <View style={styles.headerContainer}>
                     <View style={styles.headerLeft}>
                         <Text style={styles.skyText}>SKY</Text>
                         <Text style={styles.technicalServicesText}>Technical Services Ltd</Text>
                     </View>
                     <View style={styles.headerRight}>
-                        <Text style={styles.referenceText}>Ref: {invoice.invoiceReference}</Text>
+                        <Text style={styles.referenceText}>Ref: {invoice.invoiceReference || ''}</Text>
                         <Text style={styles.dateText}>Date: {formatDate(new Date())}</Text>
                     </View>
                 </View>
-
-                {/* Company Details */}
                 <View style={styles.companyInfo}>
                     <Text>Sky Technical Services Ltd</Text>
                     <Text>4 Victoria Cottages</Text>
@@ -166,24 +163,18 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
                     <Text>Tel: 01435 873355 / 07703 292932</Text>
                     <Text>Email: info@skytechnical.co.uk</Text>
                 </View>
-
-                {/* Customer Details */}
                 <View style={styles.customerDetails}>
-                    <Text style={styles.bold}>{invoice.customerName}</Text>
-                    {invoice.address && <Text>{invoice.address}</Text>}
-                    {invoice.addressLine2 && <Text>{invoice.addressLine2}</Text>}
-                    {invoice.addressLine3 && <Text>{invoice.addressLine3}</Text>}
-                    {invoice.addressLine4 && <Text>{invoice.addressLine4}</Text>}
-                    {invoice.postCode && <Text>{invoice.postCode}</Text>}
+                    <Text style={styles.bold}>{invoice.customerName || ''}</Text>
+                    {invoice.address ? <Text>{invoice.address}</Text> : null}
+                    {invoice.addressLine2 ? <Text>{invoice.addressLine2}</Text> : null}
+                    {invoice.addressLine3 ? <Text>{invoice.addressLine3}</Text> : null}
+                    {invoice.addressLine4 ? <Text>{invoice.addressLine4}</Text> : null}
+                    {invoice.postCode ? <Text>{invoice.postCode}</Text> : null}
                 </View>
-
-                {/* Invoice Header */}
                 <View>
                     <Text style={styles.invoiceHeader}>INVOICE</Text>
                     <Text>Period: {formatDate(invoice.startDate)} - {formatDate(invoice.endDate)}</Text>
                 </View>
-
-                {/* Table Header */}
                 <View style={styles.table}>
                     <View style={styles.tableHeader}>
                         <Text style={styles.dateCol}>Date</Text>
@@ -191,19 +182,15 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice }) => {
                         <Text style={styles.descriptionCol}>Description</Text>
                         <Text style={styles.amountCol}>Amount</Text>
                     </View>
-
-                    {/* Table Rows */}
                     {invoice.lineItems.map((item: InvoiceLineItemDto, index: number) => (
                         <View key={index} style={styles.tableRow}>
-                            <Text style={styles.dateCol}>{formatDate(item.inspectionDate)}</Text>
-                            <Text style={styles.serialCol}>{item.serialNumber}</Text>
-                            <Text style={styles.descriptionCol}>{item.plantDescription}</Text>
-                            <Text style={styles.amountCol}>{formatCurrency(item.inspectionFee)}</Text>
+                            <Text style={styles.dateCol}>{item.inspectionDate ? formatDate(item.inspectionDate) : ''}</Text>
+                            <Text style={styles.serialCol}>{item.serialNumber || ''}</Text>
+                            <Text style={styles.descriptionCol}>{item.plantDescription || ''}</Text>
+                            <Text style={styles.amountCol}>{item.inspectionFee ? formatCurrency(item.inspectionFee) : ''}</Text>
                         </View>
                     ))}
                 </View>
-
-                {/* Totals Section */}
                 <View style={styles.totalsSection}>
                     <View style={styles.totalRow}>
                         <Text>Subtotal:</Text>

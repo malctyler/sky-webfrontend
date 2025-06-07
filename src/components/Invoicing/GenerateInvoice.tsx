@@ -6,7 +6,11 @@ import {
   TextField,
   Button,
   Typography,
-  Autocomplete
+  Autocomplete,
+  Checkbox,
+  FormControlLabel,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,7 +21,6 @@ import { Customer } from '../../types/customerTypes';
 import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
 import { CustomerInvoiceDto } from '../../types/invoiceTypes';
-
 import { generateInvoicePdf } from './InvoiceTemplate';
 
 const GenerateInvoice: React.FC = () => {
@@ -28,10 +31,24 @@ const GenerateInvoice: React.FC = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addToLedger, setAddToLedger] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-  // Function to get user initials from first and last name
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleCancel = () => {
+    setSelectedCustomer(null);
+    setStartDate(null);
+    setEndDate(null);
+    setAddToLedger(false);
+    setError(null);
+  };
+
   const getUserInitials = () => {
-    // Default to email-based initials if names are missing
     if (!user?.firstName && !user?.lastName) {
       if (!user?.email) return 'XX';
       const parts = user.email.split('@')[0].split('.');
@@ -41,7 +58,6 @@ const GenerateInvoice: React.FC = () => {
       return parts[0].slice(0, 2).toUpperCase();
     }
 
-    // If we have one name but not the other, use two letters from the available name
     if (!user.firstName && user.lastName) {
       return user.lastName.slice(0, 2).toUpperCase();
     }
@@ -49,12 +65,96 @@ const GenerateInvoice: React.FC = () => {
       return user.firstName.slice(0, 2).toUpperCase();
     }
 
-    // If we have both names, use first letter of each
     if (user.firstName && user.lastName) {
       return (user.firstName[0] + user.lastName[0]).toUpperCase();
     }
 
-    return 'XX'; // Fallback
+    return 'XX';
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedCustomer?.custID || !startDate || !endDate) {
+      return;
+    }    try {
+      const headers = {
+        'Authorization': `Bearer ${user?.token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // First fetch the invoice data
+      setLoading(true);
+      setError(null);
+      
+      const startDateStr = format(startDate, 'yyyy-MM-dd');
+      const endDateStr = format(endDate, 'yyyy-MM-dd');
+
+      const response = await fetch(
+        `${baseUrl}/Customers/${selectedCustomer.custID}/invoices?startDate=${startDateStr}&endDate=${endDateStr}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoice data');
+      }
+
+      const invoiceData: CustomerInvoiceDto = await response.json();
+      setLoading(false);
+      
+      const startDateFormatted = format(startDate, 'ddMMyy');
+      const endDateFormatted = format(endDate, 'ddMMyy');
+      const reference = `${getUserInitials()}/${startDateFormatted}/${endDateFormatted}/${selectedCustomer.custID}`;
+      
+      const invoiceWithReference = {
+        ...invoiceData,
+        invoiceReference: reference
+      };
+      
+      if (addToLedger) {
+        const ledgerEntry = {
+          invoiceDate: new Date().toISOString(),
+          customerName: selectedCustomer.companyName,
+          invoiceRef: reference,
+          subTotal: invoiceWithReference.totalAmount * 0.8,
+          vat: invoiceWithReference.totalAmount * 0.2,
+          total: invoiceWithReference.totalAmount,
+          settled: false
+        };        setLoading(true);
+        const ledgerResponse = await fetch(`${baseUrl}/ledger`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(ledgerEntry)
+        });
+
+        if (!ledgerResponse.ok) {
+          throw new Error('Failed to add invoice to ledger');
+        }
+        setLoading(false);
+
+        setSnackbarMessage('Invoice added to ledger successfully');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+
+        // Wait a short moment for the snackbar to be visible
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+
+      // Generate PDF after ledger entry (if any)
+      setLoading(true);
+      const pdfBlob = await generateInvoicePdf(invoiceWithReference);
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process invoice';
+      setError(errorMessage);
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -69,7 +169,6 @@ const GenerateInvoice: React.FC = () => {
           throw new Error('Failed to fetch customers');
         }
         const data = await response.json();
-        // Sort customers alphabetically by company name
         const sortedCustomers = data.sort((a: Customer, b: Customer) => 
           (a.companyName || '').localeCompare(b.companyName || '')
         );
@@ -83,76 +182,6 @@ const GenerateInvoice: React.FC = () => {
 
     fetchCustomers();
   }, [user?.token]);
-
-  const handleSubmit = async () => {
-    if (!selectedCustomer?.custID || !startDate || !endDate) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const headers = {
-        'Authorization': `Bearer ${user?.token}`,
-        'Content-Type': 'application/json',
-      };
-
-      const startDateStr = format(startDate, 'yyyy-MM-dd');
-      const endDateStr = format(endDate, 'yyyy-MM-dd');
-
-      const response = await fetch(
-        `${baseUrl}/Customers/${selectedCustomer.custID}/invoices?startDate=${startDateStr}&endDate=${endDateStr}`,
-        { headers }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch invoice data');
-      }
-
-      const invoiceData: CustomerInvoiceDto = await response.json();
-      
-      // Generate the invoice reference
-      const startDateFormatted = format(startDate, 'ddMMyy');
-      const endDateFormatted = format(endDate, 'ddMMyy');
-      const reference = `${getUserInitials()}/${startDateFormatted}/${endDateFormatted}/${selectedCustomer.custID}`;
-      
-      // Add the reference to the invoice data
-      const invoiceWithReference = {
-        ...invoiceData,
-        invoiceReference: reference
-      };
-
-      const pdfBlob = await generateInvoicePdf(invoiceWithReference);
-      
-      // Create a URL for the blob and open it in a new tab
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, '_blank');
-      
-      // Clean up the URL after a delay
-      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate invoice');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setSelectedCustomer(null);
-    setStartDate(null);
-    setEndDate(null);
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Loading...</Typography>
-      </Box>
-    );
-  }
-
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
@@ -168,7 +197,8 @@ const GenerateInvoice: React.FC = () => {
           Generate Invoice
         </Typography>
         
-        <FormControl fullWidth sx={{ mb: 2 }}>          <Autocomplete
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <Autocomplete
             options={customers}
             getOptionLabel={(option) => option.companyName || 'Unnamed Customer'}
             value={selectedCustomer}
@@ -176,7 +206,8 @@ const GenerateInvoice: React.FC = () => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Customer"                placeholder="Start typing to filter customers..."
+                label="Customer"
+                placeholder="Start typing to filter customers..."
               />
             )}
             isOptionEqualToValue={(option, value) => option.custID === value.custID}
@@ -210,20 +241,42 @@ const GenerateInvoice: React.FC = () => {
           </Box>
         </LocalizationProvider>
 
+        <Box sx={{ mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={addToLedger}
+                onChange={(e) => setAddToLedger(e.target.checked)}
+              />
+            }
+            label="Add to ledger"
+          />
+        </Box>
+
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
           <Button onClick={handleCancel} variant="outlined">
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
+          <Button            onClick={handleSubmit}
             variant="contained"
             color="primary"
-            disabled={!selectedCustomer || !startDate || !endDate}
+            disabled={!selectedCustomer || !startDate || !endDate || loading}
           >
-            Generate Invoice
+            {loading ? 'Processing...' : 'Generate Invoice'}
           </Button>
         </Box>
       </Paper>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
