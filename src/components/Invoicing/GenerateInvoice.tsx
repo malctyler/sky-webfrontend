@@ -118,7 +118,9 @@ const GenerateInvoice: React.FC = () => {
           vat: invoiceWithReference.totalAmount * 0.2,
           total: invoiceWithReference.totalAmount,
           settled: false
-        };        setLoading(true);
+        };
+        
+        setLoading(true);
         const ledgerResponse = await fetch(`${baseUrl}/ledger`, {
           method: 'POST',
           headers,
@@ -126,7 +128,8 @@ const GenerateInvoice: React.FC = () => {
         });
 
         if (!ledgerResponse.ok) {
-          throw new Error('Failed to add invoice to ledger');
+          const errorData = await ledgerResponse.json();
+          throw new Error(errorData.message || 'Failed to add invoice to ledger');
         }
         setLoading(false);
 
@@ -135,7 +138,7 @@ const GenerateInvoice: React.FC = () => {
         setSnackbarOpen(true);
 
         // Wait a short moment for the snackbar to be visible
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
 
       // Generate PDF after ledger entry (if any)
