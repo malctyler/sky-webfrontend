@@ -84,7 +84,8 @@ const CustomerSummary: React.FC = () => {
     serialNumber: '',
     statusID: '',
     swl: '',
-    inspectionFrequency: '3'  // Default to 3 months
+    inspectionFrequency: '3',  // Default to 3 months
+    inspectionFee: '75'  // Default to £75
   });
 
   // Dialog states
@@ -263,7 +264,8 @@ const CustomerSummary: React.FC = () => {
         serialNumber: newPlantHolding.serialNumber,
         statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
         swl: newPlantHolding.swl,
-        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency)
+        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency),
+        inspectionFee: parseFloat(newPlantHolding.inspectionFee)
       };
       const response = await axios.post(`${baseUrl}/PlantHolding`, apiPayload, { headers });
       const newHolding = response.data;
@@ -284,7 +286,8 @@ const CustomerSummary: React.FC = () => {
         serialNumber: newPlantHolding.serialNumber,
         statusID: newPlantHolding.statusID ? parseInt(newPlantHolding.statusID) : null,
         swl: newPlantHolding.swl,
-        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency)
+        inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency),
+        inspectionFee: parseFloat(newPlantHolding.inspectionFee)
       };
       const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload, { headers });
       const updatedHolding = response.data;
@@ -398,13 +401,15 @@ const CustomerSummary: React.FC = () => {
   const openEditPlantHoldingDialog = (holding: PlantHolding) => {
     if (!custId) return;
     
-    setEditingPlantHolding(holding);    setNewPlantHolding({
+    setEditingPlantHolding(holding);
+    setNewPlantHolding({
       custID: parseInt(custId),
       plantNameID: holding.plantNameID?.toString() || '',
       serialNumber: holding.serialNumber || '',
       statusID: holding.statusID?.toString() || '',
       swl: holding.swl || '',
-      inspectionFrequency: holding.inspectionFrequency?.toString() || '3'
+      inspectionFrequency: holding.inspectionFrequency?.toString() || '3',
+      inspectionFee: holding.inspectionFee?.toString() || '75'
     });
     setPlantHoldingDialogOpen(true);
   };
@@ -616,14 +621,33 @@ const CustomerSummary: React.FC = () => {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
-          <TextField
+          </FormControl>          <TextField
             label="SWL"
             name="swl"
             value={newPlantHolding.swl}
             onChange={handlePlantHoldingChange}
             fullWidth
             margin="normal"
+          />
+          <TextField
+            label="Inspection Fee (£)"
+            name="inspectionFee"
+            value={newPlantHolding.inspectionFee}
+            onChange={handlePlantHoldingChange}
+            fullWidth
+            margin="normal"
+            type="number"
+            inputProps={{ min: "0", step: "5" }}
+          />
+          <TextField
+            label="Inspection Fee"
+            name="inspectionFee"
+            value={newPlantHolding.inspectionFee}
+            onChange={handlePlantHoldingChange}
+            fullWidth
+            margin="normal"
+            type="number"
+            InputProps={{ inputProps: { min: 0 } }}
           />
         </div>
       </DialogContent>

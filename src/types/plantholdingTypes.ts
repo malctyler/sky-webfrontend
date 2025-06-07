@@ -18,6 +18,7 @@ export interface NewPlantHolding {
   statusID: number | null;
   swl: string;
   inspectionFrequency: number;
+  inspectionFee: number;
 }
 
 export interface NewPlantHoldingForm {
@@ -27,6 +28,7 @@ export interface NewPlantHoldingForm {
   statusID: string; // String for form handling
   swl: string;
   inspectionFrequency: string; // String for form handling
+  inspectionFee: string; // String for form handling
 }
 
 export interface Plant {
@@ -36,13 +38,12 @@ export interface Plant {
 
 export interface Status {
   statusID: number;
+  id?: number;
   statusDescription: string;
-  id?: number; // Backend sometimes returns id instead of statusID
-  description?: string; // Backend sometimes returns description instead of statusDescription
 }
 
 export interface SnackbarState {
   open: boolean;
   message: string;
-  severity: 'success' | 'error' | 'info' | 'warning';
+  severity: "success" | "error" | "info" | "warning";
 }
