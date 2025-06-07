@@ -16,17 +16,17 @@ import { enGB } from 'date-fns/locale';
 import { Customer } from '../../types/customerTypes';
 import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 
-const GenerateInvoice: React.FC = () => {  const { user } = useAuth();
-  const { isDarkMode } = useCustomTheme();
+import { generateInvoicePdf } from './InvoiceTemplate';
+import { CustomerInvoiceDto } from '../../types/invoiceTypes';
+const GenerateInvoice: React.FC = () => {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -56,12 +56,46 @@ const GenerateInvoice: React.FC = () => {  const { user } = useAuth();
   }, [user?.token]);
 
   const handleSubmit = async () => {
-    // This will be implemented later to call the invoice generation endpoint
-    console.log('Generate invoice for:', {
-      customerId: selectedCustomer?.custID,
-      startDate,
-      endDate
-    });
+    if (!selectedCustomer?.custID || !startDate || !endDate) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const headers = {
+        'Authorization': `Bearer ${user?.token}`,
+        'Content-Type': 'application/json',
+      };
+
+      const startDateStr = format(startDate, 'yyyy-MM-dd');
+      const endDateStr = format(endDate, 'yyyy-MM-dd');
+
+      const response = await fetch(
+        `${baseUrl}/Customers/${selectedCustomer.custID}/invoices?startDate=${startDateStr}&endDate=${endDateStr}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoice data');
+      }
+
+      const invoiceData: CustomerInvoiceDto = await response.json();
+      const pdfBlob = await generateInvoicePdf(invoiceData);
+      
+      // Create a URL for the blob and open it in a new tab
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate invoice');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -73,7 +107,7 @@ const GenerateInvoice: React.FC = () => {  const { user } = useAuth();
   if (loading) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Loading customers...</Typography>
+        <Typography>Loading...</Typography>
       </Box>
     );
   }
@@ -101,9 +135,7 @@ const GenerateInvoice: React.FC = () => {  const { user } = useAuth();
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Customer"
-                placeholder="Start typing to filter customers..."
-                onChange={(e) => setSearchText(e.target.value)}
+                label="Customer"                placeholder="Start typing to filter customers..."
               />
             )}
             isOptionEqualToValue={(option, value) => option.custID === value.custID}

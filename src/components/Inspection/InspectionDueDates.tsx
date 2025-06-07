@@ -31,7 +31,7 @@ import inspectorService from '../../services/inspectorService';
 import { InspectionDueDate, ScheduleInspectionRequest } from '../../types/inspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import { datePickerConfig, formatDateExtended } from '../../utils/dateUtils';
+import { datePickerConfig } from '../../utils/dateUtils';
 import styles from './InspectionForm.module.css';
 
 const getStatusColor = (status: string): "error" | "warning" | "success" | "default" => {
@@ -202,38 +202,41 @@ const InspectionDueDates: React.FC = () => {
                                         <TableRow key={item.serialNumber}>
                                             <TableCell>{item.categoryDescription}</TableCell>
                                             <TableCell>{item.companyName}</TableCell>
-                                            <TableCell>{item.serialNumber}</TableCell>                                <TableCell>{formatDateExtended(item.lastInspection)}</TableCell>
-                                <TableCell>{formatDateExtended(item.dueDate)}</TableCell>
+                                            <TableCell>{item.serialNumber}</TableCell>
+                                            <TableCell>{item.formattedLastInspection}</TableCell>
+                                            <TableCell>{item.formattedDueDate}</TableCell>
                                             <TableCell>{item.inspectionFrequency} months</TableCell>
                                             <TableCell>
-                                                <Chip
-                                                    label={status}
-                                                    color={getStatusColor(status)}
+                                                <Chip 
+                                                    label={status} 
+                                                    color={getStatusColor(status)} 
                                                     size="small"
                                                 />
                                             </TableCell>
                                             <TableCell>
                                                 <Button 
                                                     variant="contained" 
-                                                    size="small"
-                                                    onClick={() => handleScheduleClick(item)}
+                                                    size="small" 
+                                                    onClick={() => handleScheduleClick(item)} 
                                                     color={item.scheduledInspectionCount > 0 ? "warning" : "primary"}
-                                                    startIcon={item.scheduledInspectionCount > 0 ? 
-                                                        <Typography variant="caption" sx={{ 
-                                                            backgroundColor: 'warning.dark',
-                                                            color: 'warning.contrastText',
-                                                            borderRadius: '50%',
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            minWidth: '20px'
-                                                        }}>
+                                                    startIcon={item.scheduledInspectionCount > 0 ? (
+                                                        <Typography 
+                                                            variant="caption" 
+                                                            sx={{ 
+                                                                backgroundColor: 'warning.dark', 
+                                                                color: 'warning.contrastText', 
+                                                                borderRadius: '50%', 
+                                                                width: '20px', 
+                                                                height: '20px', 
+                                                                display: 'flex', 
+                                                                alignItems: 'center', 
+                                                                justifyContent: 'center', 
+                                                                minWidth: '20px' 
+                                                            }}
+                                                        >
                                                             {item.scheduledInspectionCount}
-                                                        </Typography> 
-                                                        : null
-                                                    }
+                                                        </Typography>
+                                                    ) : null}
                                                 >
                                                     {item.scheduledInspectionCount > 0 ? 'Schedule Another' : 'Schedule'}
                                                 </Button>
