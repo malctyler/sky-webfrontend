@@ -628,8 +628,7 @@ const CustomerSummary: React.FC = () => {
             onChange={handlePlantHoldingChange}
             fullWidth
             margin="normal"
-          />
-          <TextField
+          />          <TextField
             label="Inspection Fee (£)"
             name="inspectionFee"
             value={newPlantHolding.inspectionFee}
@@ -638,16 +637,6 @@ const CustomerSummary: React.FC = () => {
             margin="normal"
             type="number"
             inputProps={{ min: "0", step: "5" }}
-          />
-          <TextField
-            label="Inspection Fee"
-            name="inspectionFee"
-            value={newPlantHolding.inspectionFee}
-            onChange={handlePlantHoldingChange}
-            fullWidth
-            margin="normal"
-            type="number"
-            InputProps={{ inputProps: { min: 0 } }}
           />
         </div>
       </DialogContent>
