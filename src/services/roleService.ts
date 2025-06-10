@@ -1,66 +1,47 @@
-import axios from 'axios';
-import { baseUrl } from '../config';
+import apiClient from './apiClient';
 import { 
     Role,
     CreateRoleDto,
     AssignRoleDto
 } from '../types/roleTypes';
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    const token = userStr ? JSON.parse(userStr)?.token : null;
-    return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const getRoles = async (): Promise<Role[]> => {
-    const headers = getAuthHeaders();
-    const response = await axios.get<Role[]>(`${baseUrl}/Roles`, { headers });
-    return response.data;
-};
-
-const createRole = async (roleName: string): Promise<Role> => {
-    const roleDto: CreateRoleDto = {
-        id: '', // ID will be assigned by the server
-        name: roleName
-    };
-    const headers = getAuthHeaders();
-    const response = await axios.post<Role>(`${baseUrl}/Roles`, roleDto, { headers });
-    return response.data;
-};
-
-const deleteRole = async (id: string): Promise<void> => {
-    const headers = getAuthHeaders();
-    await axios.delete(`${baseUrl}/Roles/${id}`, { headers });
-};
-
-// Get roles assigned to a user
-const getUserRoles = async (userId: string): Promise<string[]> => {
-    const headers = getAuthHeaders();
-    const response = await axios.get<string[]>(`${baseUrl}/Users/${userId}/roles`, { headers });
-    return response.data;
-};
-
-// Assign a role to a user
-const assignRoleToUser = async (userId: string, roleName: string): Promise<void> => {
-    const dto: AssignRoleDto = { roleName };
-    const headers = getAuthHeaders();
-    await axios.post(`${baseUrl}/Users/${userId}/roles`, dto, { headers });
-};
-
-// Remove a role from a user
-const removeRoleFromUser = async (userId: string, roleName: string): Promise<void> => {
-    const headers = getAuthHeaders();
-    await axios.delete(`${baseUrl}/Users/${userId}/roles/${roleName}`, { headers });
-};
-
 const roleService = {
-    getRoles,
-    createRole,
-    deleteRole,
-    getUserRoles,
-    assignRoleToUser,
-    removeRoleFromUser
+    getAll: async (): Promise<Role[]> => {
+        const response = await apiClient.get<Role[]>('roles');
+        return response.data;
+    },
+
+    getById: async (id: string): Promise<Role> => {
+        const response = await apiClient.get<Role>(`roles/${id}`);
+        return response.data;
+    },
+
+    create: async (roleDto: CreateRoleDto): Promise<Role> => {
+        const response = await apiClient.post<Role>('roles', roleDto);
+        return response.data;
+    },
+
+    update: async (id: string, roleDto: CreateRoleDto): Promise<Role> => {
+        const response = await apiClient.put<Role>(`roles/${id}`, roleDto);
+        return response.data;
+    },
+
+    delete: async (id: string): Promise<void> => {
+        await apiClient.delete(`roles/${id}`);
+    },
+
+    assignRole: async (assignRoleDto: AssignRoleDto): Promise<void> => {
+        await apiClient.post(`users/${assignRoleDto.userId}/roles/${assignRoleDto.roleId}`, null);
+    },
+
+    removeRole: async (assignRoleDto: AssignRoleDto): Promise<void> => {
+        await apiClient.delete(`users/${assignRoleDto.userId}/roles/${assignRoleDto.roleId}`);
+    },
+
+    getUserRoles: async (userId: string): Promise<Role[]> => {
+        const response = await apiClient.get<Role[]>(`users/${userId}/roles`);
+        return response.data;
+    }
 };
 
 export default roleService;

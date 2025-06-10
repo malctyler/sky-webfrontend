@@ -21,5 +21,15 @@ export const formatDateTime = (date: Date | string | null): string => {
 
 export const datePickerConfig = {
     format: 'dd/MM/yy',
-    locale: enGB
+    locale: enGB,
+    // Add explicit timezone handling
+    shouldDisableTime: () => false,
+    views: ['day'],
+    // Set to noon to avoid timezone issues
+    ampm: false,
+    value: (date: Date) => {
+        const d = new Date(date);
+        d.setHours(12, 0, 0, 0);
+        return d;
+    }
 };

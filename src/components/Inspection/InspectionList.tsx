@@ -86,20 +86,12 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
     const openDeleteDialog = (inspection: InspectionItem) => {
         setInspectionToDelete(inspection);
         setDeleteDialogOpen(true);
-    };
-
-    const handleDeleteInspection = async () => {
+    };    const handleDeleteInspection = async () => {
         if (!inspectionToDelete) return;
         
         try {
-            const response = await fetch(`${baseUrl}/inspection/${inspectionToDelete.uniqueRef}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete inspection');
-            }
-
+            await inspectionService.remove(inspectionToDelete.uniqueRef);
+            
             setInspections(prevInspections => 
                 prevInspections.filter(insp => insp.uniqueRef !== inspectionToDelete.uniqueRef)
             );

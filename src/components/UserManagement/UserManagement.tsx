@@ -32,9 +32,8 @@ const UserManagement: React.FC = () => {
   const [openRoleAdmin, setOpenRoleAdmin] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-
   const fetchUsers = async () => {
-    const data = await userService.getUsers();
+    const data = await userService.getAll();
     setUsers(data);
   };
 
@@ -61,7 +60,7 @@ const UserManagement: React.FC = () => {
     if (!userToDelete) return;
     
     try {
-      await userService.deleteUser(userToDelete.id);
+      await userService.delete(userToDelete.id);
       await fetchUsers();
       setDeleteDialogOpen(false);
       setUserToDelete(null);

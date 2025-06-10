@@ -74,10 +74,11 @@ npm install --save-dev <package-name>
 2. Implement proper TypeScript types where applicable
 3. Use Material-UI components for consistent styling
 4. Follow React best practices for state management
-5. Implement proper error handling in API calls
-6. Use async/await for asynchronous operations
-7. Implement proper form validation
-8. Use proper route protection for authenticated routes
+5. All service files MUST use the shared apiClient for API calls - no direct axios/fetch usage
+6. Implement proper error handling in API calls
+7. Use async/await for asynchronous operations
+8. Implement proper form validation
+9. Use proper route protection for authenticated routes
 
 ## Important Dependencies
 - React: ^18.2.0

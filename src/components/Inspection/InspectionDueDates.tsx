@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { startOfDay } from 'date-fns';
 import {
     Paper,
     Typography,
@@ -82,6 +83,10 @@ const InspectionDueDates: React.FC = () => {
         console.log('Selected item for scheduling:', item);
         setSelectedItem(item);
         setIsScheduleDialogOpen(true);
+        // Set initial date to start of next day to avoid timezone issues
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        setScheduledDate(startOfDay(tomorrow));
     };
 
     const handleCloseDialog = () => {
@@ -120,10 +125,14 @@ const InspectionDueDates: React.FC = () => {
         try {
             setError(null);
             console.log('Selected item before scheduling:', selectedItem);
-              const request: ScheduleInspectionRequest = {
+            
+            // Ensure we're using the start of the selected day
+            const normalizedDate = startOfDay(scheduledDate);
+            
+            const request: ScheduleInspectionRequest = {
                 holdingID: selectedItem.holdingID,
                 serialNumber: selectedItem.serialNumber,
-                scheduledDate: scheduledDate.toISOString(),
+                scheduledDate: normalizedDate.toISOString(),
                 inspectorID: Number(selectedInspector),
                 location: location || undefined,
                 notes: notes || undefined,

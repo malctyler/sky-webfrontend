@@ -11,7 +11,8 @@ export interface CreateRoleDto {
 }
 
 export interface AssignRoleDto {
-    roleName: string;
+    userId: string;
+    roleId: string;
 }
 
 // API Response types

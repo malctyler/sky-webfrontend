@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import roleService from '../../services/roleService';
-import { Role } from '../../types/roleTypes';
+import { Role, AssignRoleDto } from '../../types/roleTypes';
 import { User } from '../../types/userTypes';
 
 interface RoleManagementProps {
@@ -21,9 +21,8 @@ interface RoleManagementProps {
 
 const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [userRoles, setUserRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,11 +30,12 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
       loadData();
     }
   }, [user?.id]);
+
   const loadData = async () => {
     try {
       setError(null);
       const [roles, userRolesData] = await Promise.all([
-        roleService.getRoles(),
+        roleService.getAll(),
         roleService.getUserRoles(user.id)
       ]);
       setAvailableRoles(roles);
@@ -45,13 +45,18 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
       console.error('Error loading roles:', err);
     }
   };
+
   const handleAddRole = async () => {
     if (!selectedRole) return;
 
     try {
       setError(null);
-      await roleService.assignRoleToUser(user.id, selectedRole.name);
-      setUserRoles([...userRoles, selectedRole.name]);
+      const assignRoleDto: AssignRoleDto = {
+        userId: user.id,
+        roleId: selectedRole.id
+      };
+      await roleService.assignRole(assignRoleDto);
+      setUserRoles([...userRoles, selectedRole]);
       setSelectedRole(null);
     } catch (err: any) {
       setError(err.response?.data || 'Failed to assign role');
@@ -59,11 +64,15 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
     }
   };
 
-  const handleRemoveRole = async (roleName: string) => {
+  const handleRemoveRole = async (role: Role) => {
     try {
       setError(null);
-      await roleService.removeRoleFromUser(user.id, roleName);
-      setUserRoles(userRoles.filter(role => role !== roleName));
+      const assignRoleDto: AssignRoleDto = {
+        userId: user.id,
+        roleId: role.id
+      };
+      await roleService.removeRole(assignRoleDto);
+      setUserRoles(userRoles.filter(r => r.id !== role.id));
     } catch (err: any) {
       setError(err.response?.data || 'Failed to remove role');
       console.error('Error removing role:', err);
@@ -71,7 +80,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
   };
 
   const getAvailableRolesForAdd = () => {
-    return availableRoles.filter(role => !userRoles.includes(role.name));
+    return availableRoles.filter(role => !userRoles.some(userRole => userRole.id === role.id));
   };
 
   return (
@@ -88,6 +97,7 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
           onChange={(_, newValue) => setSelectedRole(newValue)}
           options={getAvailableRolesForAdd()}
           getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -99,22 +109,20 @@ const RoleManagement: React.FC<RoleManagementProps> = ({ user }) => {
         />
         <Button
           variant="contained"
-          color="primary"
           onClick={handleAddRole}
           disabled={!selectedRole}
-          sx={{ mt: 1 }}
-          fullWidth
+          style={{ marginTop: '0.5rem' }}
         >
           Add Role
         </Button>
       </div>
 
       <List>
-        {userRoles.map((roleName) => (
-          <ListItem key={roleName}>
-            <ListItemText primary={roleName} />
+        {userRoles.map((role) => (
+          <ListItem key={role.id}>
+            <ListItemText primary={role.name} />
             <ListItemSecondaryAction>
-              <IconButton edge="end" onClick={() => handleRemoveRole(roleName)}>
+              <IconButton edge="end" onClick={() => handleRemoveRole(role)}>
                 <DeleteIcon />
               </IconButton>
             </ListItemSecondaryAction>

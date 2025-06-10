@@ -1,65 +1,43 @@
-import axios from 'axios';
-import { baseUrl } from '../config';
+import apiClient from './apiClient';
 import { 
     User,
     CreateUserDto,
     UpdateUserDto
 } from '../types/userTypes';
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    const token = userStr ? JSON.parse(userStr)?.token : null;
-    return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const getUsers = async (): Promise<User[]> => {
-    const headers = getAuthHeaders();
-    const response = await axios.get<User[]>(`${baseUrl}/Users`, { headers });
-    return response.data;
-};
-
-const getUser = async (id: string): Promise<User> => {
-    const headers = getAuthHeaders();
-    const response = await axios.get<User>(`${baseUrl}/Users/${id}`, { headers });
-    return response.data;
-};
-
-const createUser = async (userData: CreateUserDto): Promise<User> => {
-    // Convert customerId to number if it exists, null if empty
-    const customerId = userData.customerId ? parseInt(userData.customerId.toString()) : null;
-    
-    const registerDto: CreateUserDto = {
-        email: userData.email,
-        password: userData.password,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        isCustomer: userData.isCustomer,
-        customerId: customerId,
-        emailConfirmed: userData.emailConfirmed
-    };
-    
-    const headers = getAuthHeaders();
-    const response = await axios.post<User>(`${baseUrl}/Users`, registerDto, { headers });
-    return response.data;
-};
-
-const updateUser = async (id: string, user: UpdateUserDto): Promise<void> => {
-    const headers = getAuthHeaders();
-    await axios.put<void>(`${baseUrl}/Users/${id}`, user, { headers });
-};
-
-const deleteUser = async (id: string): Promise<void> => {
-    const headers = getAuthHeaders();
-    await axios.delete(`${baseUrl}/Users/${id}`, { headers });
-};
-
 const userService = {
-    getUsers,
-    getUser,
-    createUser,
-    updateUser,
-    deleteUser,
+    getAll: async (): Promise<User[]> => {
+        const response = await apiClient.get<User[]>('users');
+        return response.data;
+    },
+
+    getById: async (id: string): Promise<User> => {
+        const response = await apiClient.get<User>(`users/${id}`);
+        return response.data;
+    },
+
+    create: async (userDto: CreateUserDto): Promise<User> => {
+        const response = await apiClient.post<User>('users', userDto);
+        return response.data;
+    },
+
+    update: async (id: string, userDto: UpdateUserDto): Promise<User> => {
+        const response = await apiClient.put<User>(`users/${id}`, userDto);
+        return response.data;
+    },
+
+    delete: async (id: string): Promise<void> => {
+        await apiClient.delete(`users/${id}`);
+    },
+
+    getCurrentUser: async (): Promise<User | null> => {
+        try {
+            const response = await apiClient.get<User>('users/current');
+            return response.data;
+        } catch (error) {
+            return null;
+        }
+    }
 };
 
 export default userService;
