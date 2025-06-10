@@ -33,6 +33,7 @@ import { Inspector } from '../../types/inspectorTypes';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { datePickerConfig } from '../../utils/dateUtils';
 import styles from './InspectionForm.module.css';
+import InspectionMap from './InspectionMap';
 
 const getStatusColor = (status: string): "error" | "warning" | "success" | "default" => {
     switch (status) {
@@ -51,6 +52,7 @@ const InspectionDueDates: React.FC = () => {
     const [dueDates, setDueDates] = useState<InspectionDueDate[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+    const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<InspectionDueDate | null>(null);
     const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
     const [selectedInspector, setSelectedInspector] = useState<string>('');
@@ -98,12 +100,9 @@ const InspectionDueDates: React.FC = () => {
                 setDueDates([]);
                 const response = await inspectionService.getInspectionDueDates();
                 console.log('Inspection due dates response:', response);
-                if (Array.isArray(response)) {
-                    console.log('First due date item:', response[0]);
-                    setDueDates(response);
-                } else {
-                    setError('Unable to load inspection due dates. Please try again later.');
-                }
+                // Log postcodes for debugging
+                console.log('Postcodes available:', response.map(i => i.postcode).filter(Boolean));
+                setDueDates(response);
             } catch (err) {
                 console.error('Error fetching inspection due dates:', err);
                 setError('The inspection due dates service is currently unavailable. Please try again later.');
@@ -161,15 +160,22 @@ const InspectionDueDates: React.FC = () => {
     };
 
     return (
-        <>
-            <Paper sx={{ p: 2, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                    Upcoming Inspections
-                </Typography>
+        <Box>
+            <Paper sx={{ p: 2, mb: 2 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="h6">Upcoming Inspections</Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setIsMapDialogOpen(true)}
+                    >
+                        View on Map
+                    </Button>
+                </Box>
                 {error ? (
-                    <Box sx={{ p: 2, textAlign: 'center' }}>
-                        <Typography color="error" variant="body1">{error}</Typography>
-                    </Box>
+                    <Typography color="error">{error}</Typography>
+                ) : dueDates.length === 0 ? (
+                    <Typography>No inspections due.</Typography>
                 ) : (
                     <TableContainer>
                         <Table size="small">
@@ -390,7 +396,37 @@ const InspectionDueDates: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </>
+
+            {/* Map Dialog */}
+            <Dialog
+                open={isMapDialogOpen}
+                onClose={() => setIsMapDialogOpen(false)}
+                maxWidth="xl"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        minHeight: '90vh',
+                        maxHeight: '90vh',
+                        m: 1
+                    }
+                }}
+            >
+                <DialogTitle>Inspection Locations</DialogTitle>
+                <DialogContent sx={{ p: 0 }}>
+                    <InspectionMap
+                        inspections={dueDates.filter(date => {
+                            const dueDate = new Date(date.dueDate);
+                            const thirtyDaysFromNow = new Date();
+                            thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                            return dueDate <= thirtyDaysFromNow;
+                        })}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsMapDialogOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
     );
 };
 

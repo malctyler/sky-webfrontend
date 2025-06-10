@@ -131,7 +131,13 @@ const getInspectionDueDates = async (): Promise<InspectionDueDatesResponse> => {
         const response = await axios.get<InspectionDueDatesResponse>(`${baseUrl}/inspectionduedates`, {
             headers
         });
-        return response.data;
+        // Log the response data to check if we're getting postcodes
+        console.log('Raw inspection due dates response:', response.data);
+        const inspectionsWithPostcodes = response.data.map(inspection => {
+            console.log(`Inspection for ${inspection.companyName}:`, inspection);
+            return inspection;
+        });
+        return inspectionsWithPostcodes;
     } catch (error) {
         console.error('Error fetching inspection due dates:', error);
         if (axios.isAxiosError(error)) {

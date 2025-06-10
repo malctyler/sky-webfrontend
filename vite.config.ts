@@ -30,6 +30,14 @@ export default defineConfig({
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   },
+  css: {
+    preprocessorOptions: {
+      css: {
+        // Make sure Leaflet CSS works properly
+        url: false,
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
