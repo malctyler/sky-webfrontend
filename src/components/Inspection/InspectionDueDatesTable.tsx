@@ -7,7 +7,8 @@ import {
     TableHead,
     TableRow,
     Chip,
-    Button
+    Button,
+    Typography
 } from '@mui/material';
 import { InspectionDueDate } from '../../types/inspectionTypes';
 
@@ -72,12 +73,32 @@ export const InspectionDueDatesTable: React.FC<Props> = ({ dueDates, onScheduleC
                                     />
                                 </TableCell>
                                 <TableCell>
+                                    <div style={{ display: 'none' }} data-postcode={item.postcode}></div>
                                     <Button
                                         variant="contained"
                                         size="small"
                                         onClick={() => onScheduleClick(item)}
+                                        color={item.scheduledInspectionCount > 0 ? "warning" : "primary"}
+                                        startIcon={item.scheduledInspectionCount > 0 ? (
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    backgroundColor: 'warning.dark',
+                                                    color: 'warning.contrastText',
+                                                    borderRadius: '50%',
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    minWidth: '20px'
+                                                }}
+                                            >
+                                                {item.scheduledInspectionCount}
+                                            </Typography>
+                                        ) : null}
                                     >
-                                        Schedule
+                                        {item.scheduledInspectionCount > 0 ? 'Schedule Another' : 'Schedule'}
                                     </Button>
                                 </TableCell>
                             </TableRow>

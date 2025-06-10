@@ -136,6 +136,7 @@ export interface InspectionDueDate {
     inspectionFrequency: number;
     dueDate: string;
     scheduledInspectionCount: number;
+    postcode: string;
 }
 
 // The API returns the array directly, no wrapper needed
