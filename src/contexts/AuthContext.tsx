@@ -137,23 +137,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         login: async (email: string, password: string) => {
             setLoading(true);
-            try {
-                const response = await loginService(email, password);
-                const decoded = jwt.jwtDecode<DecodedToken>(response.token);
-                const roles = getRolesFromToken(decoded);
-                const customerId = extractCustomerId(decoded);
-                
-                const newUser = {
-                    ...response,
-                    roles,
-                    customerId: customerId ? parseInt(customerId as string, 10) : undefined,
-                    emailConfirmed: decoded.EmailConfirmed === 'True',
-                    firstName: response.firstName || '',
-                    lastName: response.lastName || ''
-                };
-
-                localStorage.setItem('user', JSON.stringify(newUser));
-                setUser(newUser);
+            try {                const response = await loginService(email, password);
+                setUser(response);
                 return newUser;
             } catch (error) {
                 console.error('Login failed:', error);
