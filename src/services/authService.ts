@@ -19,12 +19,6 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
 };
 
 export const logout = async (): Promise<void> => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-        // If no user data exists, just resolve without making the API call
-        return;
-    }
-
     try {
         await apiClient.post<void>(`/Auth/logout`);
     } catch (error) {
@@ -35,22 +29,14 @@ export const logout = async (): Promise<void> => {
     }
 };
 
-export const validateToken = async (): Promise<TokenValidationResponse> => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-        throw new Error('No user data found');
-    }
-
+export const validateToken = async (): Promise<boolean> => {
     try {
-        const user = JSON.parse(userStr);
-        if (!user?.token) {
-            throw new Error('No token found');
-        }
-
         const response = await apiClient.get<TokenValidationResponse>(`/Auth/validate`);
-        return response.data;
+        return response.data.valid;
     } catch (error) {
-        localStorage.removeItem('user');
+        if ((error as AxiosError)?.response?.status === 401) {
+            return false;
+        }
         throw error;
     }
 };

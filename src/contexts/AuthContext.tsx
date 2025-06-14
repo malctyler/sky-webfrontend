@@ -40,8 +40,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const isValid = await validateToken();
                 if (!isValid) {
                     setUser(null);
+                    setLoading(false);
+                    setInitialized(true);
                     return;
-                }                // If token is valid, get the current user info
+                }
+
+                // If token is valid, get the current user info
                 const response = await getCurrentUser();
                 if (mounted) {
                     setUser(response.data);
