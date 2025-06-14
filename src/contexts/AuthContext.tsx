@@ -1,32 +1,14 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import * as jwt from 'jwt-decode';
-import { login as loginService, logout as logoutService, validateToken, checkEmailConfirmation } from '../services/authService';
+import { login as loginService, logout as logoutService, validateToken, checkEmailConfirmation, getCurrentUser } from '../services/authService';
 
 interface AuthUser {
     email: string;
-    token: string;
     isCustomer: boolean;
     customerId?: string | number;
     roles: string[];
     emailConfirmed: boolean;
     firstName?: string;
     lastName?: string;
-}
-
-interface JwtClaims {
-    CustomerId?: string | string[];
-    EmailConfirmed?: string;
-    role?: string | string[];
-    roles?: string | string[];
-    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"?: string | string[];
-    [key: string]: any;
-}
-
-interface DecodedToken extends JwtClaims {
-    exp: number;
-    iss: string;
-    aud: string;
 }
 
 interface AuthContextType {
@@ -48,78 +30,25 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [initialized, setInitialized] = useState<boolean>(false);
-
-    const extractCustomerId = (decoded: DecodedToken): string | undefined => {
-        if (!decoded.CustomerId) return undefined;
-        // If it's an array, take the last value (most recent)
-        const id = Array.isArray(decoded.CustomerId) 
-            ? decoded.CustomerId[decoded.CustomerId.length - 1]
-            : decoded.CustomerId;
-        return id;
-    };
-
-    const getRolesFromToken = (decoded: DecodedToken): string[] => {
-        const roleKeys = [
-            'role',
-            'roles',
-            'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
-            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'
-        ];
-        
-        for (const key of roleKeys) {
-            if (key in decoded) {
-                const roles = decoded[key];
-                return Array.isArray(roles) ? roles : [roles];
-            }
-        }
-        return [];
-    };
-
-    useEffect(() => {
+    const [initialized, setInitialized] = useState<boolean>(false);    useEffect(() => {
         let mounted = true;
 
         const checkAuth = async () => {
             if (!mounted) return;
             
             try {
-                const storedUser = localStorage.getItem('user');
-                if (!storedUser) return;
-
-                const parsedUser = JSON.parse(storedUser);
-                if (!parsedUser?.token) {
-                    localStorage.removeItem('user');
-                    return;
-                }
-
-                try {
-                    await validateToken();
-                    if (!mounted) return;
-
-                    const decoded = jwt.jwtDecode<DecodedToken>(parsedUser.token);
-                    const roles = getRolesFromToken(decoded);
-                    const customerId = extractCustomerId(decoded);
-                    
-                    const user = {
-                        ...parsedUser,
-                        roles,
-                        customerId: customerId ? parseInt(customerId as string, 10) : undefined,
-                        emailConfirmed: decoded.EmailConfirmed === 'True'
-                    };
-
-                    // Update localStorage with cleaned data
-                    localStorage.setItem('user', JSON.stringify(user));
-                    setUser(user);
-                } catch (error) {
-                    if (!mounted) return;
-                    console.error('Token validation failed:', error);
-                    localStorage.removeItem('user');
+                const isValid = await validateToken();
+                if (!isValid) {
                     setUser(null);
+                    return;
+                }                // If token is valid, get the current user info
+                const response = await getCurrentUser();
+                if (mounted) {
+                    setUser(response.data);
                 }
             } catch (error) {
                 if (!mounted) return;
                 console.error('Auth check failed:', error);
-                localStorage.removeItem('user');
                 setUser(null);
             } finally {
                 if (mounted) {
@@ -134,12 +63,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const contextValue = {
-        user,
-        login: async (email: string, password: string) => {
+        user,        login: async (email: string, password: string) => {
             setLoading(true);
-            try {                const response = await loginService(email, password);
+            try {        const response = await loginService(email, password);
                 setUser(response);
-                return newUser;
+                return response;
             } catch (error) {
                 console.error('Login failed:', error);
                 throw error;
@@ -155,21 +83,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 console.error('Error during logout:', error);
             } finally {
                 setUser(null);
-                localStorage.removeItem('user');
+
                 setLoading(false);
             }
         },
         loading,
         hasRole: (role: string) => user?.roles.includes(role) || false,
-        isEmailConfirmed: () => user?.emailConfirmed || false,
-        refreshEmailConfirmation: async () => {
+        isEmailConfirmed: () => user?.emailConfirmed || false,        refreshEmailConfirmation: async () => {
             if (!user?.email) return false;
             try {
-                const response = await checkEmailConfirmation(user.email);
-                if (response.token) {
-                    const updatedUser = { ...user, token: response.token, emailConfirmed: true };
-                    localStorage.setItem('user', JSON.stringify(updatedUser));
-                    setUser(updatedUser);
+                await checkEmailConfirmation(user.email);
+                // After checking email confirmation, get the updated user info
+                const response = await getCurrentUser();
+                if (response.data.emailConfirmed) {
+                    setUser(response.data);
                     return true;
                 }
             } catch (error) {

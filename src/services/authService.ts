@@ -4,7 +4,8 @@ import {
     RegisterData,
     AuthResponse,
     TokenValidationResponse,
-    EmailConfirmationResponse
+    EmailConfirmationResponse,
+    LoginResponse
 } from '../types/authTypes';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
@@ -56,5 +57,10 @@ export const validateToken = async (): Promise<TokenValidationResponse> => {
 
 export const checkEmailConfirmation = async (email: string): Promise<EmailConfirmationResponse> => {
     const response = await apiClient.get<EmailConfirmationResponse>(`/Auth/check-email-confirmation/${email}`);
+    return response.data;
+};
+
+export const getCurrentUser = async (): Promise<LoginResponse> => {
+    const response = await apiClient.get<LoginResponse>('/auth/current');
     return response.data;
 };
