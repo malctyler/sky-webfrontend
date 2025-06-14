@@ -69,7 +69,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const contextValue = {
         user,        login: async (email: string, password: string) => {
             setLoading(true);
-            try {        const response = await loginService(email, password);
+            try {            const response = await loginService(email, password);
+                console.log('Login response headers:', response.headers);
+                console.log('Debug token:', response.headers?.['x-debug-token']);
+                console.log('Cookies:', document.cookie);
                 setUser(response);
                 return response;
             } catch (error) {

@@ -10,6 +10,10 @@ import {
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
+    console.log('Login response:', response);
+    console.log('Response headers:', response.headers);
+    console.log('Debug token:', response.headers['x-debug-token']);
+    console.log('Cookies after login:', document.cookie);
     return response.data;
 };
 

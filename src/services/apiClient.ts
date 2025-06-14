@@ -5,7 +5,10 @@ import { ApiClientConfig } from '../types/apiTypes';
 // Create and configure the axios instance
 const instance: AxiosInstance = axios.create({
     baseURL: baseUrl,
-    withCredentials: true // This ensures cookies are sent with requests
+    withCredentials: true, // This ensures cookies are sent with requests
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
 // Configure interceptors
