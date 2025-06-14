@@ -1,5 +1,6 @@
 # Sky Web Frontend
 
+
 ## Overview
 Sky Web Frontend is a TypeScript-based web application that provides the user interface for the Sky system.
 
