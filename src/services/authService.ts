@@ -33,14 +33,33 @@ export const logout = async (): Promise<void> => {
     }
 };
 
-export const validateToken = async (): Promise<boolean> => {
+export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResponse }> => {
     try {
-        const response = await apiClient.get<TokenValidationResponse>(`/Auth/validate`);
-        return response.data.valid;
+        const response = await apiClient.get<{
+            valid: boolean;
+            userId: string;
+            email: string;
+            roles: string[];
+        }>(`/Auth/validate`);
+        
+        if (response.data.valid) {
+            // Convert the validate response to an AuthResponse format
+            const user: AuthResponse = {
+                id: response.data.userId,
+                email: response.data.email,
+                roles: response.data.roles,
+                isCustomer: response.data.roles.includes('Customer'),
+                emailConfirmed: true, // We know it's confirmed if the token is valid
+            };
+            return { valid: true, user };
+        }
+        
+        return { valid: false };
     } catch (error) {
         if ((error as AxiosError)?.response?.status === 401) {
-            return false;
+            return { valid: false };
         }
+        console.error('Token validation error:', error);
         throw error;
     }
 };

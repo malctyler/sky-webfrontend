@@ -37,42 +37,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (!mounted) return;
             
             try {
-                const isValid = await validateToken();
-                if (!isValid) {
-                    setUser(null);
-                    setLoading(false);
-                    setInitialized(true);
+                setLoading(true);
+                const validationResult = await validateToken();
+                
+                if (!validationResult.valid || !validationResult.user) {
+                    if (mounted) {
+                        setUser(null);
+                        setLoading(false);
+                        setInitialized(true);
+                    }
                     return;
                 }
 
-                // If token is valid, get the current user info
-                const response = await getCurrentUser();
                 if (mounted) {
-                    setUser(response.data);
+                    // Use the user data from the validation response
+                    setUser(validationResult.user);
+                    setLoading(false);
+                    setInitialized(true);
                 }
             } catch (error) {
-                if (!mounted) return;
                 console.error('Auth check failed:', error);
-                setUser(null);
-            } finally {
                 if (mounted) {
+                    setUser(null);
                     setLoading(false);
                     setInitialized(true);
                 }
             }
         };
 
-        checkAuth();
+        if (!initialized) {
+            checkAuth();
+        }
+
         return () => { mounted = false; };
-    }, []);
+    }, [initialized]);
 
     const contextValue = {
         user,        login: async (email: string, password: string) => {
             setLoading(true);
-            try {            const response = await loginService(email, password);
-                console.log('Login response headers:', response.headers);
-                console.log('Debug token:', response.headers?.['x-debug-token']);
-                console.log('Cookies:', document.cookie);
+            try {
+                const response = await loginService(email, password);
                 setUser(response);
                 return response;
             } catch (error) {
