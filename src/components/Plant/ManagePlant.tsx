@@ -22,9 +22,9 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import { Search as SearchIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../../types/plantTypes';
+import apiClient from '../../services/apiClient';
+import { AxiosError } from 'axios';
 import styles from './ManagePlant.module.css';
-import axios from 'axios';
-import { baseUrl } from '../../config';
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -55,6 +55,14 @@ const ManagePlant: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [plantToDelete, setPlantToDelete] = useState<Plant | null>(null);
 
+  const showError = (message: string) => {
+    setSnackbar({
+      open: true,
+      message,
+      severity: 'error'
+    });
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -67,19 +75,24 @@ const ManagePlant: React.FC = () => {
   }, []);
 
   const handleError = (error: unknown) => {
-    if (error instanceof Error) {
+    if (error instanceof AxiosError) {
+      const message = error.response?.data?.error || error.message;
+      setError(message);
+      showError(message);
+    } else if (error instanceof Error) {
       setError(error.message);
+      showError(error.message);
     } else {
       setError('An unknown error occurred');
+      showError('An unknown error occurred');
     }
     setLoading(false);
   };    
 
   const fetchplant = async (): Promise<void> => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.get(`${baseUrl}/AllPlant`, { headers });
-      console.log('Fetched plant:', response.data); // Debug log
+      const response = await apiClient.get('/AllPlant');
+      console.log('Fetched plant:', response.data);
       setplant(response.data);
       setLoading(false);
     } catch (error: unknown) {
@@ -89,9 +102,8 @@ const ManagePlant: React.FC = () => {
 
   const fetchCategories = async (): Promise<void> => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.get(`${baseUrl}/PlantCategories`, { headers });
-      console.log('Fetched categories:', response.data);  // Debug log
+      const response = await apiClient.get('/PlantCategories');
+      console.log('Fetched categories:', response.data);
       setCategories(response.data);
     } catch (error: unknown) {
       handleError(error);
@@ -123,14 +135,6 @@ const ManagePlant: React.FC = () => {
     });
   };
 
-  const showError = (message: string) => {
-    setSnackbar({
-      open: true,
-      message,
-      severity: 'error'
-    });
-  };
-
   const handleCreatePlant = async (): Promise<void> => {
     // Validate required fields
     if (!plantData.plantCategory) {
@@ -148,8 +152,8 @@ const ManagePlant: React.FC = () => {
 
     try {
       const headers = getAuthHeaders();
-      const response = await axios.post<Plant>(
-        `${baseUrl}/AllPlant`,
+      const response = await apiClient.post<Plant>(
+        '/AllPlant',
         {
           plantNameID: 0, // API will assign the real ID
           plantDescription: plantData.plantDescription,
@@ -202,7 +206,7 @@ const ManagePlant: React.FC = () => {
         normalPrice: parseFloat(plantData.normalPrice).toFixed(2)
       };
       
-      await axios.put(`${baseUrl}/AllPlant/${editingPlant.plantNameID}`, updatePayload, { headers });
+      await apiClient.put(`/AllPlant/${editingPlant.plantNameID}`, updatePayload, { headers });
       
       // Fetch fresh data to ensure we have the correct state
       await fetchplant();
@@ -226,7 +230,7 @@ const ManagePlant: React.FC = () => {
 
     try {
       const headers = getAuthHeaders();
-      await axios.delete(`${baseUrl}/AllPlant/${plantToDelete.plantNameID}`, { headers });
+      await apiClient.delete(`/AllPlant/${plantToDelete.plantNameID}`, { headers });
       setplant(prev => prev.filter(plant => plant.plantNameID !== plantToDelete.plantNameID));
       setDeleteDialogOpen(false);
       setPlantToDelete(null);

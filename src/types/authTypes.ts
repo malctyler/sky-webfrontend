@@ -24,25 +24,23 @@ export interface AuthUser {
     roles: string[];
 }
 
-export interface AuthResponse {    token: string;
-    userId: string;
+export interface AuthResponse {
+    token: string;
+    expiration: string;
     email: string;
     roles: string[];
     emailConfirmed: boolean;
-    firstName?: string;
-    lastName?: string;
-    customerId?: string;
-    isCustomer: boolean;
 }
 
 export interface TokenValidationResponse {
     valid: boolean;
-    user?: AuthResponse;
+    userId?: string;
+    email?: string;
+    roles?: string[];
 }
 
 export interface EmailConfirmationResponse {
-    confirmed: boolean;
-    token?: string;
+    isConfirmed: boolean;
 }
 
 // Typed API responses
