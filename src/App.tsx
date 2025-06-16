@@ -1,6 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { enGB } from 'date-fns/locale';
 import AllCustomers from './components/Customer/AllCustomers';
 import CustomerNotes from './components/Customer/CustomerNotes';
 import CustomerSummary from './components/Customer/CustomerSummary';
@@ -19,6 +22,7 @@ import Weather from './components/Weather/Weather';
 import MainLayout from './components/Layout/MainLayout';
 import SchedulingList from './components/Scheduling/SchedulingList';
 import GenerateInvoice from './components/Invoicing/GenerateInvoice';
+import LedgerList from './components/Invoicing/Ledger/LedgerList';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -127,151 +131,157 @@ function App() {
       <CustomThemeProvider>
         <AuthProvider>
           <Router>
-            <Routes>
-              <Route path="/login" element={
-                <Box
-                  component="main"
-                  sx={{
-                    minHeight: '100vh',
-                    width: '100%',
-                    bgcolor: 'background.default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 3
-                  }}
-                >
-                  <Paper
-                    elevation={3}
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+              <Routes>
+                <Route path="/login" element={
+                  <Box
+                    component="main"
                     sx={{
-                      p: 4,
+                      minHeight: '100vh',
                       width: '100%',
-                      maxWidth: 400,
-                      bgcolor: 'background.paper'
-                    }}
-                  >                  <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    Login
-                  </Typography>
-                  <LoginForm redirectTo="/home" />
-                  </Paper>
-                </Box>
-              } />
-              <Route path="/register" element={
-                <Box
-                  component="main"
-                  sx={{
-                    minHeight: '100vh',
-                    width: '100%',
-                    bgcolor: 'background.default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 3
-                  }}
-                >
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      p: 4,
-                      width: '100%',
-                      maxWidth: 400,
-                      bgcolor: 'background.paper'
+                      bgcolor: 'background.default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 3
                     }}
                   >
-                    <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                      Register
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        p: 4,
+                        width: '100%',
+                        maxWidth: 400,
+                        bgcolor: 'background.paper'
+                      }}
+                    >                  <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                      Login
                     </Typography>
-                    <Register />
-                  </Paper>
-                </Box>
-              } />
-              <Route
-                path="/certificate/:id"
-                element={
-                  <ProtectedRoute requireStaffOrAdmin>
-                    <CertificatePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route element={<AuthCheck><MainLayout /></AuthCheck>}>
-                <Route path="/" element={
-                  <Navigate to="/home" replace />
+                    <LoginForm redirectTo="/home" />
+                    </Paper>
+                  </Box>
                 } />
-                <Route path="/home" element={
-                  <AuthCheck>
-                    {({ user }: { user: any }) => (
-                      user?.isCustomer ? <CustomerHome /> : <Home />
-                    )}
-                  </AuthCheck>
+                <Route path="/register" element={
+                  <Box
+                    component="main"
+                    sx={{
+                      minHeight: '100vh',
+                      width: '100%',
+                      bgcolor: 'background.default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 3
+                    }}
+                  >
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        p: 4,
+                        width: '100%',
+                        maxWidth: 400,
+                        bgcolor: 'background.paper'
+                      }}
+                    >
+                      <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                        Register
+                      </Typography>
+                      <Register />
+                    </Paper>
+                  </Box>
                 } />
-                <Route path="/weather" element={<Weather />} />
-                <Route path="/plant-holding" element={<CustomerPlantHolding />} />
                 <Route
-                  path="/customers"
+                  path="/certificate/:id"
                   element={
                     <ProtectedRoute requireStaffOrAdmin>
-                      <AllCustomers />
+                      <CertificatePage />
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/customers/:custId"
-                  element={
-                    <ProtectedRoute requireStaffOrAdmin>
-                      <CustomerSummary />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/customers/:custId/notes"
-                  element={
-                    <ProtectedRoute requireStaffOrAdmin>
-                      <CustomerNotes />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/scheduling"
-                  element={
-                    <ProtectedRoute requireStaffOrAdmin>
-                      <SchedulingList />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/plant-categories"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <PlantCategories />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/manage-plant"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <ManagePlant />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/user-management"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <UserManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/invoicing">
-                  <Route path="generate" element={
-                    <ProtectedRoute requireStaffOrAdmin>
-                      <GenerateInvoice />
-                    </ProtectedRoute>
+                <Route element={<AuthCheck><MainLayout /></AuthCheck>}>
+                  <Route path="/" element={
+                    <Navigate to="/home" replace />
                   } />
+                  <Route path="/home" element={
+                    <AuthCheck>
+                      {({ user }: { user: any }) => (
+                        user?.isCustomer ? <CustomerHome /> : <Home />
+                      )}
+                    </AuthCheck>
+                  } />
+                  <Route path="/weather" element={<Weather />} />
+                  <Route path="/plant-holding" element={<CustomerPlantHolding />} />
+                  <Route
+                    path="/customers"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <AllCustomers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/customers/:custId"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <CustomerSummary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/customers/:custId/notes"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <CustomerNotes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/scheduling"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <SchedulingList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/plant-categories"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <PlantCategories />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/manage-plant"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <ManagePlant />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/user-management"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <UserManagement />
+                      </ProtectedRoute>
+                    }
+                  />                <Route path="/invoicing">
+                    <Route path="generate" element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <GenerateInvoice />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="ledger" element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <LedgerList />
+                      </ProtectedRoute>
+                    } />
+                  </Route>
+                  <Route path="*" element={<Navigate to="/login" replace />} />
                 </Route>
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Route>
-            </Routes>
+              </Routes>
+            </LocalizationProvider>
           </Router>
         </AuthProvider>
       </CustomThemeProvider>

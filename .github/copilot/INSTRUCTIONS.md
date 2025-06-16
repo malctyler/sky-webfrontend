@@ -110,3 +110,22 @@ npm install --save-dev <package-name>
 3. Use HTTPS for API calls
 4. Don't expose sensitive information in logs or errors
 5. Validate JWT tokens properly
+
+## API Integration Guidelines
+1. The `apiClient` in `/src/services/apiClient.ts` is preconfigured with the base URL including '/api'
+2. When creating new service files:
+   - DO NOT include '/api' in the endpoint paths
+   - CORRECT: `apiClient.get('/users')`
+   - INCORRECT: `apiClient.get('/api/users')`  // This would result in '/api/api/users'
+3. All API calls must use the shared `apiClient` instance
+4. Always implement proper error handling
+5. Use TypeScript interfaces for request/response types
+6. Keep endpoints organized by domain (e.g., users, auth, etc.)
+7. Use proper HTTP methods (GET, POST, PUT, DELETE)
+
+## Common Pitfalls to Avoid
+1. Double '/api' prefix in service endpoints
+2. Direct use of axios or fetch instead of apiClient
+3. Missing error handling in API calls
+4. Inconsistent endpoint naming
+5. Missing TypeScript interfaces for API models

@@ -79,11 +79,11 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
   ];
 
   if (hasRole('Staff') || hasRole('Admin')) {
-    baseItems.push({
-      text: 'Invoicing', 
+    baseItems.push({      text: 'Invoicing', 
       icon: <ReceiptIcon />,
       subItems: [
-        { text: 'Generate Invoices', icon: <ReceiptIcon />, path: '/invoicing/generate' }
+        { text: 'Generate Invoices', icon: <ReceiptIcon />, path: '/invoicing/generate' },
+        { text: 'Ledger', icon: <ReceiptIcon />, path: '/invoicing/ledger' }
       ]
     });
   }
