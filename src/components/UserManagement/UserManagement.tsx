@@ -18,7 +18,7 @@ import {
 import UserForm from './UserForm';
 import RoleManagement from './RoleManagement';
 import ClaimManagement from './ClaimManagement';
-import userService from '../../services/userService';
+import * as userService from '../../services/userService';
 import RoleAdmin from './RoleAdmin';
 
 import type { User } from '../../types/userTypes';
@@ -60,7 +60,7 @@ const UserManagement: React.FC = () => {
     if (!userToDelete) return;
     
     try {
-      await userService.delete(userToDelete.id);
+      await userService.deleteUser(userToDelete.id);
       await fetchUsers();
       setDeleteDialogOpen(false);
       setUserToDelete(null);

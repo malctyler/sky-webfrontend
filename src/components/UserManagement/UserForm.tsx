@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { TextField, Button, Checkbox, FormControlLabel } from '@mui/material';
-import userService from '../../services/userService';
+import * as userService from '../../services/userService';
 import { User, CreateUserDto, UpdateUserDto } from '../../types/userTypes';
 
 interface UserFormProps {
@@ -59,11 +59,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSuccess, onCancel }) => {  
     setError('');
 
     try {
-      const dto = convertFormToDto(form);
-      if (user) {
-        await userService.updateUser(user.id, dto);
+      const dto = convertFormToDto(form);      if (user) {
+        await userService.update(user.id, dto);
       } else {
-        await userService.createUser(dto as CreateUserDto);
+        await userService.create(dto as CreateUserDto);
       }
       onSuccess();
     } catch (err: any) {

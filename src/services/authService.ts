@@ -7,14 +7,16 @@ import {
     EmailConfirmationResponse,
     LoginResponse
 } from '../types/authTypes';
-import { setAuthToken, removeAuthToken, getAuthToken } from '../utils/authUtils';
+import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo } from '../utils/authUtils';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
     
     // Store the token if it's in the response
     if (response.data.token) {
+        // Use 60 minutes for token expiration to match backend JWT settings
         setAuthToken(response.data.token);
+        setUserInfo(response.data);
     }
     
     return response.data;
@@ -38,9 +40,9 @@ export const logout = async (): Promise<void> => {
         // If we get a 401, that's fine - the token is already invalid
         if ((error as AxiosError)?.response?.status !== 401) {
             throw error;
-        }
-    } finally {        // Always clear the token on logout
+        }    } finally {        // Always clear the token and user info on logout
         removeAuthToken();
+        removeUserInfo();
     }
 };
 
@@ -52,17 +54,12 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
         }
 
         const response = await apiClient.get<TokenValidationResponse>(`/Auth/validate`);
-        
-        if (response.data.valid && response.data.email && response.data.roles) {
+          if (response.data.valid && response.data.email) {
+            // Get the current user data to ensure we have the complete user state
+            const currentUserResponse = await getCurrentUser();
             return {
                 valid: true,
-                user: {
-                    token,
-                    email: response.data.email,
-                    roles: response.data.roles,
-                    expiration: '', // This will be handled by the JWT expiration
-                    emailConfirmed: true // This will be validated by the server
-                }
+                user: currentUserResponse.data
             };
         }
         
