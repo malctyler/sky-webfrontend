@@ -38,6 +38,7 @@ import InspectionList from '../Inspection/InspectionList';
 import MuiAlert from '@mui/material/Alert';
 import axios from 'axios';
 import { baseUrl } from '../../config';
+import { getAuthHeaders } from '../../utils/authUtils';
 import { Customer, SnackbarState, Note } from '../../types/customerTypes';
 import { PlantHolding, NewPlantHolding, NewPlantHoldingForm, Plant, Status } from '../../types/plantholdingTypes';
 
@@ -47,11 +48,7 @@ type RouterParams = {
 };
 
 // Helper function to get auth headers
-const getAuthHeaders = () => {
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr)?.token : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+
 
 const CustomerSummary: React.FC = () => {
   const { custId } = useParams<RouterParams>();

@@ -7,13 +7,14 @@ import {
     EmailConfirmationResponse,
     LoginResponse
 } from '../types/authTypes';
+import { setAuthToken, removeAuthToken, getAuthToken } from '../utils/authUtils';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
     
     // Store the token if it's in the response
     if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
+        setAuthToken(response.data.token);
     }
     
     return response.data;
@@ -24,7 +25,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
     
     // Store the token if it's in the response
     if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
+        setAuthToken(response.data.token);
     }
     
     return response.data;
@@ -38,15 +39,14 @@ export const logout = async (): Promise<void> => {
         if ((error as AxiosError)?.response?.status !== 401) {
             throw error;
         }
-    } finally {
-        // Always clear the token on logout
-        localStorage.removeItem('authToken');
+    } finally {        // Always clear the token on logout
+        removeAuthToken();
     }
 };
 
 export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResponse }> => {
     try {
-        const token = localStorage.getItem('authToken');
+        const token = getAuthToken();
         if (!token) {
             return { valid: false };
         }
@@ -67,9 +67,8 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
         }
         
         return { valid: false };
-    } catch (error) {
-        console.error('Token validation error:', error);
-        localStorage.removeItem('authToken'); // Clear invalid token
+    } catch (error) {        console.error('Token validation error:', error);
+        removeAuthToken(); // Clear invalid token
         return { valid: false };
     }
 };

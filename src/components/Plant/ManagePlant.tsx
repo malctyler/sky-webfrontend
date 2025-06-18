@@ -25,13 +25,7 @@ import { Plant, PlantCategory, PlantFormData, SnackbarState } from '../../types/
 import apiClient from '../../services/apiClient';
 import { AxiosError } from 'axios';
 import styles from './ManagePlant.module.css';
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr)?.token : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import { getAuthHeaders } from '../../utils/authUtils';
 
 const ManagePlant: React.FC = () => {  
   const { isDarkMode } = useCustomTheme();

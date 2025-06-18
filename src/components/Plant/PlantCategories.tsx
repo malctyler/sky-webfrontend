@@ -19,6 +19,7 @@ import { AlertColor } from '@mui/material';
 import styles from './PlantCategories.module.css';
 import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
+import { getAuthHeaders } from '../../utils/authUtils';
 
 interface PlantCategory {
   categoryID: number;
@@ -47,10 +48,6 @@ const PlantCategories: React.FC = () => {
     severity: 'success'
   });
 
-  const getAuthHeaders = (): HeadersInit => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${user?.token}`,
-  });
 
   const fetchCategories = async (): Promise<void> => {
     setLoading(true);
@@ -71,12 +68,11 @@ const PlantCategories: React.FC = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    if (user?.token) {
+    if (user) {
       fetchCategories();
     }
-  }, [user?.token]);
+  }, [user]);
 
   const handleSnackbarClose = (): void => {
     setSnackbar(prev => ({ ...prev, open: false }));
