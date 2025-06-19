@@ -16,8 +16,19 @@ export const isTokenValid = (token: string): boolean => {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const currentTime = Date.now() / 1000;
+        const currentTimeDate = new Date().toISOString();
+        const expDate = new Date(payload.exp * 1000).toISOString();
+        
+        console.log('Debug: Token validation check:');
+        console.log('Debug: Current time (Unix):', currentTime);
+        console.log('Debug: Current time (ISO):', currentTimeDate);
+        console.log('Debug: Token exp (Unix):', payload.exp);
+        console.log('Debug: Token exp (ISO):', expDate);
+        console.log('Debug: Token is valid:', payload.exp > currentTime);
+        
         return payload.exp > currentTime;
-    } catch {
+    } catch (error) {
+        console.log('Debug: Token validation failed with error:', error);
         return false;
     }
 };
