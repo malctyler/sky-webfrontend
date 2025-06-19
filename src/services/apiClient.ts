@@ -1,25 +1,31 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { baseUrl } from '../config';
 import { ApiClientConfig } from '../types/apiTypes';
-import { getAuthToken, removeAuthToken } from '../utils/authUtils';
+import { getAuthToken, removeAuthToken, isTokenValid } from '../utils/authUtils';
 
 // Create and configure the axios instance
 const instance: AxiosInstance = axios.create({
     baseURL: baseUrl,
-    withCredentials: true, // This ensures cookies are sent with requests
+    withCredentials: true, // This ensures cookies are sent with requests (for same-domain scenarios)
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
 // Configure interceptors
-instance.interceptors.request.use((config: ApiClientConfig) => {    // Get the token from cookie
+instance.interceptors.request.use((config: ApiClientConfig) => {
+    // Get token using our improved auth utils (handles Azure Static Web Apps vs same-domain)
     const token = getAuthToken();
     
-    // If token exists, add it to the Authorization header
-    if (token) {
+    if (token && isTokenValid(token)) {
         config.headers = config.headers || {};
         config.headers['Authorization'] = `Bearer ${token}`;
+        console.log('Debug: Adding Authorization header with valid token');
+    } else if (token) {
+        console.log('Debug: Token found but invalid/expired, removing it');
+        removeAuthToken();
+    } else {
+        console.log('Debug: No token found');
     }
     
     return config;
@@ -31,10 +37,10 @@ instance.interceptors.request.use((config: ApiClientConfig) => {    // Get the t
 instance.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-        if (error.response?.status === 401) {            // Clear the token if it's invalid or expired
+        if (error.response?.status === 401) {
+            // Clear any client-side auth remnants
             removeAuthToken();
-            // Let the component handle navigation through its error handling
-            console.log('Unauthorized request:', error.config?.url);
+            console.log('Unauthorized request, cleared auth token:', error.config?.url);
         }
         return Promise.reject(error);
     }

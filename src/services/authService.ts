@@ -7,17 +7,19 @@ import {
     EmailConfirmationResponse,
     LoginResponse
 } from '../types/authTypes';
-import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo } from '../utils/authUtils';
+import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
     
-    // Store the token if it's in the response
+    // Store token using our improved auth utils (handles Azure Static Web Apps vs same-domain)
     if (response.data.token) {
-        // Use 60 minutes for token expiration to match backend JWT settings
+        console.log('Debug: Login response contains token, storing it');
         setAuthToken(response.data.token);
-        setUserInfo(response.data);
     }
+    
+    // Store user info in state
+    setUserInfo(response.data);
     
     return response.data;
 };
@@ -25,10 +27,11 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 export const register = async (userData: RegisterData): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>(`/Auth/register`, userData);
     
-    // Store the token if it's in the response
+    // Store token and user info
     if (response.data.token) {
         setAuthToken(response.data.token);
     }
+    setUserInfo(response.data);
     
     return response.data;
 };
@@ -40,7 +43,9 @@ export const logout = async (): Promise<void> => {
         // If we get a 401, that's fine - the token is already invalid
         if ((error as AxiosError)?.response?.status !== 401) {
             throw error;
-        }    } finally {        // Always clear the token and user info on logout
+        }
+    } finally {
+        // Always clear the token and user info on logout
         removeAuthToken();
         removeUserInfo();
     }
@@ -48,24 +53,33 @@ export const logout = async (): Promise<void> => {
 
 export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResponse }> => {
     try {
+        // Check if we have a token
         const token = getAuthToken();
         if (!token) {
+            console.log('Debug: No token found for validation');
             return { valid: false };
         }
-
-        const response = await apiClient.get<TokenValidationResponse>(`/Auth/validate`);
-          if (response.data.valid && response.data.email) {
-            // Get the current user data to ensure we have the complete user state
-            const currentUserResponse = await getCurrentUser();
-            return {
-                valid: true,
-                user: currentUserResponse.data
-            };
+        
+        // Check if token is structurally valid and not expired
+        if (!isTokenValid(token)) {
+            console.log('Debug: Token found but invalid or expired');
+            removeAuthToken();
+            removeUserInfo();
+            return { valid: false };
         }
         
-        return { valid: false };
-    } catch (error) {        console.error('Token validation error:', error);
+        console.log('Debug: Token is valid, attempting server validation');
+        
+        // Try to get current user (this will use the Authorization header)
+        const response = await getCurrentUser();
+        return {
+            valid: true,
+            user: response.data
+        };
+    } catch (error) {
+        console.error('Token validation error:', error);
         removeAuthToken(); // Clear invalid token
+        removeUserInfo(); // Clear user info
         return { valid: false };
     }
 };
