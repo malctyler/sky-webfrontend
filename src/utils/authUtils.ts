@@ -23,10 +23,15 @@ export const isTokenValid = (token: string): boolean => {
 };
 
 export const getAuthToken = (): string | null => {
+    console.log('Debug: Getting auth token...');
+    console.log('Debug: Current hostname:', window.location.hostname);
+    console.log('Debug: Is Azure Static Web App:', isAzureStaticWebApp());
+    console.log('Debug: All cookies:', document.cookie);
+    
     // For Azure Static Web Apps, use localStorage since cross-domain cookies don't work reliably
     if (isAzureStaticWebApp()) {
         const token = localStorage.getItem(TOKEN_KEY);
-        console.log('Debug: Getting token from localStorage (Azure Static Web Apps):', !!token);
+        console.log('Debug: Getting token from localStorage (Azure Static Web Apps):', !!token, token?.length || 0);
         return token;
     }
     
@@ -34,23 +39,30 @@ export const getAuthToken = (): string | null => {
     let token = getCookie(AUTH_TOKEN_COOKIE);
     if (!token) {
         token = localStorage.getItem(TOKEN_KEY);
-        console.log('Debug: Getting token from localStorage (fallback):', !!token);
+        console.log('Debug: Getting token from localStorage (fallback):', !!token, token?.length || 0);
     } else {
-        console.log('Debug: Getting token from cookie:', !!token);
+        console.log('Debug: Getting token from cookie:', !!token, token?.length || 0);
     }
     return token;
 };
 
 export const setAuthToken = (token: string) => {
+    console.log('Debug: Setting auth token...');
+    console.log('Debug: Token length:', token.length);
+    console.log('Debug: Current hostname:', window.location.hostname);
+    console.log('Debug: Is Azure Static Web App:', isAzureStaticWebApp());
+    
     if (isAzureStaticWebApp()) {
         // For Azure Static Web Apps, use localStorage
         localStorage.setItem(TOKEN_KEY, token);
         console.log('Debug: Storing token in localStorage (Azure Static Web Apps)');
+        console.log('Debug: Cookies after localStorage set:', document.cookie);
     } else {
         // For same-domain scenarios, use both cookie and localStorage
         setCookie(AUTH_TOKEN_COOKIE, token);
         localStorage.setItem(TOKEN_KEY, token);
         console.log('Debug: Storing token in both cookie and localStorage');
+        console.log('Debug: Cookies after setCookie:', document.cookie);
     }
 };
 

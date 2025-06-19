@@ -10,12 +10,29 @@ import {
 import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
+    console.log('Debug: Starting login process');
+    
+    // Log existing cookies before login
+    console.log('Debug: Cookies before login:', document.cookie);
+    
     const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
+    
+    console.log('Debug: Login response received:', {
+        hasToken: !!response.data.token,
+        tokenLength: response.data.token?.length || 0,
+        email: response.data.email
+    });
+    
+    // Log cookies after login response
+    console.log('Debug: Cookies after login response:', document.cookie);
     
     // Store token using our improved auth utils (handles Azure Static Web Apps vs same-domain)
     if (response.data.token) {
         console.log('Debug: Login response contains token, storing it');
         setAuthToken(response.data.token);
+        
+        // Log cookies after setting token
+        console.log('Debug: Cookies after setAuthToken:', document.cookie);
     }
     
     // Store user info in state
