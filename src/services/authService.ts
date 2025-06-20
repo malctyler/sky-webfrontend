@@ -11,6 +11,9 @@ import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInf
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Debug: Starting login process');
+    console.log('Debug: Current time (local):', new Date().toString());
+    console.log('Debug: Current time (UTC):', new Date().toISOString());
+    console.log('Debug: Timezone offset (minutes):', new Date().getTimezoneOffset());
     
     // Log existing cookies before login
     console.log('Debug: Cookies before login:', document.cookie);
@@ -22,6 +25,22 @@ export const login = async (email: string, password: string): Promise<AuthRespon
         tokenLength: response.data.token?.length || 0,
         email: response.data.email
     });
+    
+    // Decode and log the token details
+    if (response.data.token) {
+        try {
+            const payload = JSON.parse(atob(response.data.token.split('.')[1]));
+            const expDate = new Date(payload.exp * 1000);
+            console.log('Debug: Token payload:', {
+                exp: payload.exp,
+                expUTC: expDate.toISOString(),
+                expLocal: expDate.toString(),
+                issuedAt: payload.iat ? new Date(payload.iat * 1000).toISOString() : 'N/A'
+            });
+        } catch (e) {
+            console.log('Debug: Could not decode token:', e);
+        }
+    }
     
     // Log cookies after login response
     console.log('Debug: Cookies after login response:', document.cookie);
