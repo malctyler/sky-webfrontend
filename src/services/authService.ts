@@ -4,8 +4,7 @@ import {
     RegisterData,
     AuthResponse,
     TokenValidationResponse,
-    EmailConfirmationResponse,
-    LoginResponse
+    EmailConfirmationResponse
 } from '../types/authTypes';
 import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
 
@@ -108,15 +107,13 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
             return { valid: false };
         }
         
-        console.log('Debug: Token is valid, attempting server validation');
-        
-        try {
+        console.log('Debug: Token is valid, attempting server validation');        try {
             // Try to get current user (this will use the Authorization header)
-            const response = await getCurrentUser();
-            console.log('Debug: Server validation successful');
+            const user = await getCurrentUser();
+            console.log('Debug: Server validation successful, user:', user);
             return {
                 valid: true,
-                user: response.data
+                user: user // getCurrentUser now returns AuthResponse directly
             };
         } catch (serverError) {
             console.error('Debug: Server validation failed:', serverError);
@@ -159,7 +156,7 @@ export const checkEmailConfirmation = async (email: string): Promise<EmailConfir
     return response.data;
 };
 
-export const getCurrentUser = async (): Promise<LoginResponse> => {
-    const response = await apiClient.get<LoginResponse>('/auth/current');
+export const getCurrentUser = async (): Promise<AuthResponse> => {
+    const response = await apiClient.get<AuthResponse>('/auth/current');
     return response.data;
 };
