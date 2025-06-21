@@ -89,12 +89,16 @@ export const logout = async (): Promise<void> => {
 
 export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResponse }> => {
     try {
+        console.log('Debug: Starting token validation...');
+        
         // Check if we have a token
         const token = getAuthToken();
         if (!token) {
             console.log('Debug: No token found for validation');
             return { valid: false };
         }
+        
+        console.log('Debug: Token found, checking if valid...');
         
         // Check if token is structurally valid and not expired
         if (!isTokenValid(token)) {
@@ -106,12 +110,42 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
         
         console.log('Debug: Token is valid, attempting server validation');
         
-        // Try to get current user (this will use the Authorization header)
-        const response = await getCurrentUser();
-        return {
-            valid: true,
-            user: response.data
-        };
+        try {
+            // Try to get current user (this will use the Authorization header)
+            const response = await getCurrentUser();
+            console.log('Debug: Server validation successful');
+            return {
+                valid: true,
+                user: response.data
+            };
+        } catch (serverError) {
+            console.error('Debug: Server validation failed:', serverError);
+            
+            // For Azure Static Web Apps, if server validation fails but token is locally valid,
+            // we can try to extract user info from the token itself
+            if (window.location.hostname.includes('azurestaticapps.net')) {
+                console.log('Debug: Azure Static Web App detected, trying token-based user info');
+                try {                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const userFromToken = {
+                        token: token,
+                        expiration: new Date(payload.exp * 1000).toISOString(),
+                        email: payload.email,
+                        roles: Array.isArray(payload.role) ? payload.role : [payload.role].filter(Boolean),
+                        emailConfirmed: payload.EmailConfirmed === 'True'
+                    };
+                    console.log('Debug: Successfully extracted user from token:', userFromToken);
+                    return {
+                        valid: true,
+                        user: userFromToken
+                    };
+                } catch (tokenParseError) {
+                    console.error('Debug: Failed to parse user info from token:', tokenParseError);
+                    throw serverError; // Fall back to original error
+                }
+            } else {
+                throw serverError; // Not Azure Static Web App, re-throw original error
+            }
+        }
     } catch (error) {
         console.error('Token validation error:', error);
         removeAuthToken(); // Clear invalid token

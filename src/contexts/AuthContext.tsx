@@ -31,16 +31,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [initialized, setInitialized] = useState<boolean>(false);    useEffect(() => {
-        let mounted = true;
-
-        const checkAuth = async () => {
+        let mounted = true;        const checkAuth = async () => {
             if (!mounted) return;
+            
+            console.log('Debug: AuthContext - Starting authentication check...');
             
             try {
                 setLoading(true);
                 const validationResult = await validateToken();
                 
+                console.log('Debug: AuthContext - Validation result:', validationResult);
+                
                 if (!validationResult.valid || !validationResult.user) {
+                    console.log('Debug: AuthContext - No valid user found, setting user to null');
                     if (mounted) {
                         setUser(null);
                         setLoading(false);
@@ -49,6 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     return;
                 }
 
+                console.log('Debug: AuthContext - Valid user found, setting user state');
                 if (mounted) {
                     // Use the user data from the validation response
                     setUser(validationResult.user);
