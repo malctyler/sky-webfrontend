@@ -1,5 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { login as loginService, logout as logoutService, validateToken, checkEmailConfirmation, getCurrentUser } from '../services/authService';
+import { ActivityMonitor } from '../utils/activityMonitor';
+import { AuthResponse } from '../types/authTypes';
+
+// Helper function to convert AuthResponse to AuthUser
+const mapAuthResponseToUser = (authResponse: AuthResponse): AuthUser => {
+    return {
+        email: authResponse.email,
+        isCustomer: authResponse.roles.includes('Customer'),
+        customerId: undefined, // This would need to come from user profile data
+        roles: authResponse.roles,
+        emailConfirmed: authResponse.emailConfirmed,
+        firstName: '', // These would need to come from user profile data
+        lastName: ''
+    };
+};
 
 interface AuthUser {
     email: string;
@@ -30,8 +45,53 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [initialized, setInitialized] = useState<boolean>(false);    useEffect(() => {
-        let mounted = true;        const checkAuth = async () => {
+    const [initialized, setInitialized] = useState<boolean>(false);
+    const activityMonitorRef = useRef<ActivityMonitor | null>(null);    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await logoutService();
+        } catch (error) {
+            console.error('Error during logout:', error);
+        } finally {
+            setUser(null);
+            setLoading(false);
+            
+            // Destroy activity monitor on logout
+            if (activityMonitorRef.current) {
+                activityMonitorRef.current.destroy();
+                activityMonitorRef.current = null;
+            }
+        }
+    };    const handleLogin = async (email: string, password: string): Promise<AuthUser> => {
+        setLoading(true);
+        try {
+            const response = await loginService(email, password);
+            const user = mapAuthResponseToUser(response);
+            setUser(user);
+            
+            // Initialize activity monitor after successful login
+            if (activityMonitorRef.current) {
+                activityMonitorRef.current.destroy();
+            }
+            
+            activityMonitorRef.current = new ActivityMonitor(30, async () => {
+                console.log('[AuthContext] User inactive - logging out');
+                await handleLogout();
+            });
+            
+            return user;
+        } catch (error) {
+            console.error('Login failed:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        let mounted = true;
+
+        const checkAuth = async () => {
             if (!mounted) return;
             
             console.log('Debug: AuthContext - Starting authentication check...');
@@ -48,16 +108,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         setUser(null);
                         setLoading(false);
                         setInitialized(true);
+                        
+                        // Destroy activity monitor when not logged in
+                        if (activityMonitorRef.current) {
+                            activityMonitorRef.current.destroy();
+                            activityMonitorRef.current = null;
+                        }
                     }
                     return;
-                }
-
-                console.log('Debug: AuthContext - Valid user found, setting user state');
+                }                console.log('Debug: AuthContext - Valid user found, setting user state');
                 if (mounted) {
                     // Use the user data from the validation response
-                    setUser(validationResult.user);
+                    const user = mapAuthResponseToUser(validationResult.user);
+                    setUser(user);
                     setLoading(false);
                     setInitialized(true);
+                    
+                    // Initialize activity monitor when logged in
+                    if (activityMonitorRef.current) {
+                        activityMonitorRef.current.destroy();
+                    }
+                    
+                    activityMonitorRef.current = new ActivityMonitor(30, async () => {
+                        console.log('[AuthContext] User inactive - logging out');
+                        await handleLogout();
+                    });
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
@@ -65,6 +140,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     setUser(null);
                     setLoading(false);
                     setInitialized(true);
+                    
+                    // Destroy activity monitor on error
+                    if (activityMonitorRef.current) {
+                        activityMonitorRef.current.destroy();
+                        activityMonitorRef.current = null;
+                    }
                 }
             }
         };
@@ -73,45 +154,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             checkAuth();
         }
 
-        return () => { mounted = false; };
-    }, [initialized]);
-
-    const contextValue = {
-        user,        login: async (email: string, password: string) => {
-            setLoading(true);
-            try {
-                const response = await loginService(email, password);
-                setUser(response);
-                return response;
-            } catch (error) {
-                console.error('Login failed:', error);
-                throw error;
-            } finally {
-                setLoading(false);
+        return () => { 
+            mounted = false; 
+            if (activityMonitorRef.current) {
+                activityMonitorRef.current.destroy();
+                activityMonitorRef.current = null;
             }
-        },
-        logout: async () => {
-            setLoading(true);
-            try {
-                await logoutService();
-            } catch (error) {
-                console.error('Error during logout:', error);
-            } finally {
-                setUser(null);
-
-                setLoading(false);
-            }
-        },
+        };
+    }, [initialized]);    const contextValue = {
+        user,
+        login: handleLogin,
+        logout: handleLogout,
         loading,
         hasRole: (role: string) => user?.roles.includes(role) || false,
         isEmailConfirmed: () => user?.emailConfirmed || false,        refreshEmailConfirmation: async () => {
             if (!user?.email) return false;
             try {
-                await checkEmailConfirmation(user.email);
-                // After checking email confirmation, get the updated user info
+                await checkEmailConfirmation(user.email);                // After checking email confirmation, get the updated user info
                 const response = await getCurrentUser();
-                if (response.data.emailConfirmed) {
-                    setUser(response.data);
+                if (response.emailConfirmed) {
+                    const user = mapAuthResponseToUser(response);
+                    setUser(user);
                     return true;
                 }
             } catch (error) {

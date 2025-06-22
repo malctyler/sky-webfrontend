@@ -29,19 +29,19 @@ export default defineConfig({
       '@types': resolve(__dirname, 'src/types')
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
-  },
-  css: {
+  },  css: {
     preprocessorOptions: {
-      css: {
+      scss: {
         // Make sure Leaflet CSS works properly
-        url: false,
       }
     }
-  },
-  test: {
+  },test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    deps: {
+      inline: ['@mui/material', '@mui/x-date-pickers', '@mui/icons-material']
+    }
   },
   optimizeDeps: {
     esbuildOptions: {
