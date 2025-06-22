@@ -43,14 +43,19 @@ const CustomerPlantHolding: React.FC = () => {
       }
     }
   }, [mounted]);
-
   useEffect(() => {
     setMounted(true);
     if (user) {
+      console.log('Debug: CustomerPlantHolding - Full user object:', user);
       const customerId = user.customerId;
+      console.log('Debug: CustomerPlantHolding - Customer ID:', customerId);
+      console.log('Debug: CustomerPlantHolding - Is Customer:', user.isCustomer);
+      console.log('Debug: CustomerPlantHolding - User roles:', user.roles);
+      
       if (customerId) {
         fetchHoldings(customerId);
       } else if (mounted) {
+        console.error('Debug: CustomerPlantHolding - No customer ID found for user:', user.email);
         setError('No customer ID found for this user.');
         setLoading(false);
       }

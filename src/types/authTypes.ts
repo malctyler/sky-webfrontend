@@ -26,10 +26,15 @@ export interface AuthUser {
 
 export interface AuthResponse {
     token: string;
-    expiration: string;
+    expiration?: string;
+    id?: string;
     email: string;
+    firstName?: string;
+    lastName?: string;
     roles: string[];
+    isCustomer?: boolean;
     emailConfirmed: boolean;
+    customerId?: number | null;
 }
 
 export interface TokenValidationResponse {

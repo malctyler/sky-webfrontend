@@ -116,18 +116,28 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
             };
         } catch (serverError) {
             console.error('Debug: Server validation failed:', serverError);
-            
-            // For Azure Static Web Apps, if server validation fails but token is locally valid,
+              // For Azure Static Web Apps, if server validation fails but token is locally valid,
             // we can try to extract user info from the token itself
             if (window.location.hostname.includes('azurestaticapps.net')) {
                 console.log('Debug: Azure Static Web App detected, trying token-based user info');
-                try {                    const payload = JSON.parse(atob(token.split('.')[1]));
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    console.log('Debug: JWT payload:', payload);
+                    
                     const userFromToken = {
                         token: token,
                         expiration: new Date(payload.exp * 1000).toISOString(),
-                        email: payload.email,
-                        roles: Array.isArray(payload.role) ? payload.role : [payload.role].filter(Boolean),
-                        emailConfirmed: payload.EmailConfirmed === 'True'
+                        email: payload.email || payload[Object.keys(payload).find(k => k.includes('email')) || ''],
+                        firstName: payload[Object.keys(payload).find(k => k.includes('givenname')) || ''] || '',
+                        lastName: payload[Object.keys(payload).find(k => k.includes('surname')) || ''] || '',
+                        roles: Array.isArray(payload.role) ? payload.role : 
+                               payload[Object.keys(payload).find(k => k.includes('role')) || ''] ? 
+                               [payload[Object.keys(payload).find(k => k.includes('role')) || '']] : [],
+                        isCustomer: payload.IsCustomer === 'True' || payload.IsCustomer === true || 
+                                   (payload.role && (Array.isArray(payload.role) ? 
+                                    payload.role.includes('Customer') : payload.role === 'Customer')),
+                        emailConfirmed: payload.EmailConfirmed === 'True' || payload.EmailConfirmed === true,
+                        customerId: payload.CustomerId ? parseInt(payload.CustomerId) : null
                     };
                     console.log('Debug: Successfully extracted user from token:', userFromToken);
                     return {

@@ -7,12 +7,12 @@ import { AuthResponse } from '../types/authTypes';
 const mapAuthResponseToUser = (authResponse: AuthResponse): AuthUser => {
     return {
         email: authResponse.email,
-        isCustomer: authResponse.roles.includes('Customer'),
-        customerId: undefined, // This would need to come from user profile data
+        isCustomer: authResponse.isCustomer ?? authResponse.roles.includes('Customer'),
+        customerId: authResponse.customerId ?? undefined,
         roles: authResponse.roles,
         emailConfirmed: authResponse.emailConfirmed,
-        firstName: '', // These would need to come from user profile data
-        lastName: ''
+        firstName: authResponse.firstName || '',
+        lastName: authResponse.lastName || ''
     };
 };
 
