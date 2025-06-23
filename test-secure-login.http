@@ -1,0 +1,30 @@
+### Test Secure Login Endpoint
+### This tests the new secure login endpoint with hashed passwords
+
+# First, test the old endpoint to show it's different
+POST http://localhost:5207/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@skyinspections.com",
+  "password": "password"
+}
+
+### 
+# Now test the new secure endpoint
+# Note: You need to generate the passwordHash using the frontend utility
+# Run this in browser console: PasswordSecurity.createSecureLoginPayload("admin@skyinspections.com", "password")
+
+POST http://localhost:5207/api/auth/secure-login
+Content-Type: application/json
+
+{
+  "email": "admin@skyinspections.com",
+  "passwordHash": "REPLACE_WITH_ACTUAL_HASH",
+  "nonce": "REPLACE_WITH_ACTUAL_NONCE",
+  "timestamp": 1719073200000
+}
+
+###
+# Test health endpoint
+GET http://localhost:5207/api/status

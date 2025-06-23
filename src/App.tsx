@@ -23,6 +23,8 @@ import MainLayout from './components/Layout/MainLayout';
 import SchedulingList from './components/Scheduling/SchedulingList';
 import GenerateInvoice from './components/Invoicing/GenerateInvoice';
 import LedgerList from './components/Invoicing/Ledger/LedgerList';
+import { demonstratePasswordSecurity } from './utils/passwordSecurityTest';
+import { testPasswordSecurity } from '../test/passwordSecurityTest';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -125,7 +127,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-function App() {
+function App() {  // Make password security demo available in development mode
+  if (process.env.NODE_ENV === 'development') {
+    (window as any).demonstratePasswordSecurity = demonstratePasswordSecurity;
+    (window as any).testPasswordSecurity = testPasswordSecurity;
+    console.log('🔒 Password Security Tools available!');
+    console.log('• Run demonstratePasswordSecurity() - See old vs new approach demo');
+    console.log('• Run testPasswordSecurity() - Comprehensive security tests');
+  }
+
   return (
     <ErrorBoundary>
       <CustomThemeProvider>

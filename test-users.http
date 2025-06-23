@@ -1,0 +1,41 @@
+### Quick test to check what users exist and test secure login
+
+# 1. Check if the backend is responding
+GET http://localhost:5207/api/status
+
+###
+
+# 2. Test the old login endpoint to see what works
+POST http://localhost:5207/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Admin123!"
+}
+
+###
+
+# 3. Test with a different email format
+POST http://localhost:5207/api/auth/login  
+Content-Type: application/json
+
+{
+  "email": "admin@skyinspections.com",
+  "password": "Admin123!"
+}
+
+###
+
+# 4. Test registration to create a user we can test with
+POST http://localhost:5207/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "TestPassword123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "isCustomer": false,
+  "emailConfirmed": true
+}

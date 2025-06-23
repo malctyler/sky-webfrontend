@@ -7,10 +7,30 @@ import {
     EmailConfirmationResponse
 } from '../types/authTypes';
 import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
-import { secureTokenStorage } from '../utils/secureTokenStorage';
+import { PasswordSecurity } from '../utils/passwordSecurity';
+
+// Temporary migration login function
+export const loginForMigration = async (email: string, password: string): Promise<AuthResponse> => {
+    console.log('Debug: Starting migration login (old endpoint)');
+    
+    const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
+    
+    console.log('Debug: Migration login response received');
+    
+    // Store token using our improved auth utils
+    if (response.data.token) {
+        console.log('Debug: Migration login successful, storing token');
+        setAuthToken(response.data.token, undefined, response.data);
+    }
+    
+    // Store user info in state
+    setUserInfo(response.data);
+    
+    return response.data;
+};
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
-    console.log('Debug: Starting login process');
+    console.log('Debug: Starting secure login process');
     console.log('Debug: Current time (local):', new Date().toString());
     console.log('Debug: Current time (UTC):', new Date().toISOString());
     console.log('Debug: Timezone offset (minutes):', new Date().getTimezoneOffset());
@@ -18,7 +38,11 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     // Log existing cookies before login
     console.log('Debug: Cookies before login:', document.cookie);
     
-    const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
+    // Create secure login payload with hashed password
+    const securePayload = PasswordSecurity.createSecureLoginPayload(email, password);
+    console.log('Debug: Created secure login payload (password hidden)');
+    
+    const response = await apiClient.post<AuthResponse>(`/Auth/secure-login`, securePayload);
     
     console.log('Debug: Login response received:', {
         hasToken: !!response.data.token,

@@ -79,9 +79,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 await handleLogout();
             });
             
-            return user;
-        } catch (error) {
+            return user;        } catch (error) {
             console.error('Login failed:', error);
+            // Add more detailed error logging for debugging
+            if (error instanceof Error) {
+                console.error('Error message:', error.message);
+                console.error('Error details:', error);
+            }
             throw error;
         } finally {
             setLoading(false);
