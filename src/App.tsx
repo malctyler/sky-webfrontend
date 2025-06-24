@@ -1,30 +1,53 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, CircularProgress } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
-import AllCustomers from './components/Customer/AllCustomers';
-import CustomerNotes from './components/Customer/CustomerNotes';
-import CustomerSummary from './components/Customer/CustomerSummary';
-import PlantCategories from './components/Plant/PlantCategories';
-import ManagePlant from './components/Plant/ManagePlant';
-import CertificatePage from './components/Inspection/CertificatePage';
+
+// Critical components that should load immediately
 import LoginForm from './components/Auth/LoginForm';
 import Register from './components/Auth/Register';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import CustomerPlantHolding from './components/Customer/CustomerPlantHolding';
-import UserManagement from './components/UserManagement/UserManagement';
+import MainLayout from './components/Layout/MainLayout';
 import Home from './components/Common/Home';
 import CustomerHome from './components/Customer/CustomerHome';
-import Weather from './components/Weather/Weather';
-import MainLayout from './components/Layout/MainLayout';
-import SchedulingList from './components/Scheduling/SchedulingList';
-import GenerateInvoice from './components/Invoicing/GenerateInvoice';
-import LedgerList from './components/Invoicing/Ledger/LedgerList';
 import { demonstratePasswordSecurity } from './utils/passwordSecurityTest';
 import { testPasswordSecurity } from '../test/passwordSecurityTest';
+
+// Lazy load components that aren't needed immediately
+const AllCustomers = React.lazy(() => import('./components/Customer/AllCustomers'));
+const CustomerNotes = React.lazy(() => import('./components/Customer/CustomerNotes'));
+const CustomerSummary = React.lazy(() => import('./components/Customer/CustomerSummary'));
+const PlantCategories = React.lazy(() => import('./components/Plant/PlantCategories'));
+const ManagePlant = React.lazy(() => import('./components/Plant/ManagePlant'));
+const CertificatePage = React.lazy(() => import('./components/Inspection/CertificatePage'));
+const CustomerPlantHolding = React.lazy(() => import('./components/Customer/CustomerPlantHolding'));
+const UserManagement = React.lazy(() => import('./components/UserManagement/UserManagement'));
+const Weather = React.lazy(() => import('./components/Weather/Weather'));
+const SchedulingList = React.lazy(() => import('./components/Scheduling/SchedulingList'));
+const GenerateInvoice = React.lazy(() => import('./components/Invoicing/GenerateInvoice'));
+const LedgerList = React.lazy(() => import('./components/Invoicing/Ledger/LedgerList'));
+
+// Loading component for lazy-loaded routes
+const LoadingFallback: React.FC = () => (
+  <Box sx={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    minHeight: '200px' 
+  }}>
+    <CircularProgress />
+  </Box>
+);
+
+// Helper component to wrap lazy-loaded components with Suspense
+const LazyWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<LoadingFallback />}>
+    {children}
+  </Suspense>
+);
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -204,7 +227,9 @@ function App() {  // Make password security demo available in development mode
                   path="/certificate/:id"
                   element={
                     <ProtectedRoute requireStaffOrAdmin>
-                      <CertificatePage />
+                      <LazyWrapper>
+                        <CertificatePage />
+                      </LazyWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -219,13 +244,23 @@ function App() {  // Make password security demo available in development mode
                       )}
                     </AuthCheck>
                   } />
-                  <Route path="/weather" element={<Weather />} />
-                  <Route path="/plant-holding" element={<CustomerPlantHolding />} />
+                  <Route path="/weather" element={
+                    <LazyWrapper>
+                      <Weather />
+                    </LazyWrapper>
+                  } />
+                  <Route path="/plant-holding" element={
+                    <LazyWrapper>
+                      <CustomerPlantHolding />
+                    </LazyWrapper>
+                  } />
                   <Route
                     path="/customers"
                     element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <AllCustomers />
+                        <LazyWrapper>
+                          <AllCustomers />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -233,7 +268,9 @@ function App() {  // Make password security demo available in development mode
                     path="/customers/:custId"
                     element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <CustomerSummary />
+                        <LazyWrapper>
+                          <CustomerSummary />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -241,7 +278,9 @@ function App() {  // Make password security demo available in development mode
                     path="/customers/:custId/notes"
                     element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <CustomerNotes />
+                        <LazyWrapper>
+                          <CustomerNotes />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -249,7 +288,9 @@ function App() {  // Make password security demo available in development mode
                     path="/scheduling"
                     element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <SchedulingList />
+                        <LazyWrapper>
+                          <SchedulingList />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -257,7 +298,9 @@ function App() {  // Make password security demo available in development mode
                     path="/plant-categories"
                     element={
                       <ProtectedRoute requireAdmin>
-                        <PlantCategories />
+                        <LazyWrapper>
+                          <PlantCategories />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -265,7 +308,9 @@ function App() {  // Make password security demo available in development mode
                     path="/manage-plant"
                     element={
                       <ProtectedRoute requireAdmin>
-                        <ManagePlant />
+                        <LazyWrapper>
+                          <ManagePlant />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />
@@ -273,18 +318,24 @@ function App() {  // Make password security demo available in development mode
                     path="/user-management"
                     element={
                       <ProtectedRoute requireAdmin>
-                        <UserManagement />
+                        <LazyWrapper>
+                          <UserManagement />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     }
                   />                <Route path="/invoicing">
                     <Route path="generate" element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <GenerateInvoice />
+                        <LazyWrapper>
+                          <GenerateInvoice />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     } />
                     <Route path="ledger" element={
                       <ProtectedRoute requireStaffOrAdmin>
-                        <LedgerList />
+                        <LazyWrapper>
+                          <LedgerList />
+                        </LazyWrapper>
                       </ProtectedRoute>
                     } />
                   </Route>

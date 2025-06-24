@@ -48,6 +48,12 @@ export interface EmailConfirmationResponse {
     isConfirmed: boolean;
 }
 
+export interface ChangePasswordData {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+}
+
 // Typed API responses
 export type LoginResponse = ApiResponse<AuthResponse>;
 export type RegisterResponse = ApiResponse<AuthResponse>;

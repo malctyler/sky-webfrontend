@@ -42,10 +42,12 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeColorOption } from '../../contexts/ThemeContext';
 import { MenuItem as SidebarMenuItem } from '../../types/layoutTypes';
+import ChangePasswordDialog from '../Auth/ChangePasswordDialog';
 import styles from './MainLayout.module.css';
 
 interface AuthUser {
@@ -218,6 +220,7 @@ const MainLayout: React.FC<LayoutProps> = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [colorMenuAnchorEl, setColorMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [showThemeDemo, setShowThemeDemo] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   useEffect(() => {
@@ -247,6 +250,11 @@ const MainLayout: React.FC<LayoutProps> = () => {
     logout();
     navigate('/login');
   }, [logout, navigate]);
+
+  const handleChangePassword = () => {
+    handleUserMenuClose();
+    setChangePasswordOpen(true);
+  };
 
   const handleColorMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setColorMenuAnchorEl(event.currentTarget);
@@ -418,6 +426,10 @@ const MainLayout: React.FC<LayoutProps> = () => {
               <ColorLensIcon />
               <ListItemText primary="Change Theme Color" sx={{ ml: 2 }} />
             </MenuItem>
+            <MenuItem onClick={handleChangePassword}>
+              <LockIcon />
+              <ListItemText primary="Change Password" sx={{ ml: 2 }} />
+            </MenuItem>
             <MenuItem onClick={handleLogout}>
               Logout
             </MenuItem>
@@ -560,6 +572,11 @@ const MainLayout: React.FC<LayoutProps> = () => {
           <Outlet />
         </Box>
       </Box>
+      
+      <ChangePasswordDialog 
+        open={changePasswordOpen} 
+        onClose={() => setChangePasswordOpen(false)} 
+      />
     </Box>
   );
 };

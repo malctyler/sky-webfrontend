@@ -71,11 +71,68 @@ export default defineConfig({
     minify: 'esbuild',
     target: 'es2020',
     outDir: 'build',
-    chunkSizeWarningLimit: 2200,
+    chunkSizeWarningLimit: 1500, // Reduce to encourage smaller chunks
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', '@mui/material', '@mui/icons-material'],
+        manualChunks: (id) => {
+          // React core libraries
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
+          
+          // MUI components
+          if (id.includes('@mui/material') || id.includes('@mui/system') || id.includes('@mui/base')) {
+            return 'mui-core';
+          }
+          
+          // MUI icons (separate chunk as it's large)
+          if (id.includes('@mui/icons-material')) {
+            return 'mui-icons';
+          }
+          
+          // MUI date pickers
+          if (id.includes('@mui/x-date-pickers')) {
+            return 'mui-date-pickers';
+          }
+          
+          // Date utilities
+          if (id.includes('date-fns') || id.includes('dayjs')) {
+            return 'date-utils';
+          }
+          
+          // Leaflet and mapping libraries
+          if (id.includes('leaflet') || id.includes('react-leaflet')) {
+            return 'maps';
+          }
+          
+          // PDF and chart libraries
+          if (id.includes('@react-pdf') || id.includes('recharts') || id.includes('chart')) {
+            return 'charts-pdf';
+          }
+          
+          // Router and navigation
+          if (id.includes('react-router')) {
+            return 'router';
+          }
+          
+          // HTTP and API libraries
+          if (id.includes('axios') || id.includes('fetch')) {
+            return 'http-utils';
+          }
+          
+          // Emotion styling
+          if (id.includes('@emotion')) {
+            return 'emotion';
+          }
+          
+          // Other large vendors
+          if (id.includes('node_modules/')) {
+            // Group smaller libraries together
+            if (id.includes('lodash') || id.includes('ramda') || id.includes('uuid')) {
+              return 'utils';
+            }
+            return 'vendor';
+          }
         },
       },
     },

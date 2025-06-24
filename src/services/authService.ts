@@ -3,8 +3,8 @@ import { AxiosError } from 'axios';
 import { 
     RegisterData,
     AuthResponse,
-    TokenValidationResponse,
-    EmailConfirmationResponse
+    EmailConfirmationResponse,
+    ChangePasswordData
 } from '../types/authTypes';
 import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
 import { PasswordSecurity } from '../utils/passwordSecurity';
@@ -192,4 +192,8 @@ export const checkEmailConfirmation = async (email: string): Promise<EmailConfir
 export const getCurrentUser = async (): Promise<AuthResponse> => {
     const response = await apiClient.get<AuthResponse>('/auth/current');
     return response.data;
+};
+
+export const changePassword = async (passwordData: ChangePasswordData): Promise<void> => {
+    await apiClient.post('/Auth/change-password', passwordData);
 };
