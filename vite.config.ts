@@ -44,7 +44,16 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['leaflet', 'react-leaflet', 'react', 'react-dom'],
+    include: [
+      'leaflet', 
+      'react-leaflet', 
+      'react', 
+      'react-dom',
+      '@emotion/react',
+      '@emotion/styled',
+      '@mui/material',
+      '@mui/system'
+    ],
     esbuildOptions: {
       target: 'es2020',
       supported: { 
@@ -124,9 +133,9 @@ export default defineConfig({
             return 'http-utils';
           }
           
-          // Emotion styling
+          // Emotion styling - keep together and load early
           if (id.includes('@emotion')) {
-            return 'emotion';
+            return 'react-vendor'; // Bundle with React to avoid initialization issues
           }
           
           // Other large vendors
