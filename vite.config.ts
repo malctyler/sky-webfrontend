@@ -44,7 +44,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['leaflet', 'react-leaflet'],
+    include: ['leaflet', 'react-leaflet', 'react', 'react-dom'],
     esbuildOptions: {
       target: 'es2020',
       supported: { 
@@ -57,6 +57,9 @@ export default defineConfig({
         '.tsx': 'tsx',
       }
     }
+  },
+  define: {
+    global: 'globalThis',
   },
   server: {
     port: 3000,
@@ -101,9 +104,9 @@ export default defineConfig({
             return 'date-utils';
           }
           
-          // Leaflet and mapping libraries
+          // Leaflet and mapping libraries - keep with React
           if (id.includes('leaflet') || id.includes('react-leaflet')) {
-            return 'maps';
+            return 'react-vendor'; // Bundle with React instead of separate chunk
           }
           
           // PDF and chart libraries
