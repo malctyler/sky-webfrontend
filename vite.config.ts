@@ -45,15 +45,18 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'leaflet', 
-      'react-leaflet', 
+      'react/jsx-runtime',
       'react', 
       'react-dom',
+      'react-dom/client',
       '@emotion/react',
       '@emotion/styled',
       '@mui/material',
-      '@mui/system'
+      '@mui/system',
+      'leaflet', 
+      'react-leaflet'
     ],
+    exclude: ['react/jsx-dev-runtime'],
     esbuildOptions: {
       target: 'es2020',
       supported: { 
@@ -86,14 +89,23 @@ export default defineConfig({
     outDir: 'build',
     chunkSizeWarningLimit: 1500, // Reduce to encourage smaller chunks
     rollupOptions: {
+      external: (id) => {
+        // Don't externalize anything - bundle everything
+        return false;
+      },
       output: {
         manualChunks: (id) => {
-          // React core libraries
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'react-vendor';
+          // React core libraries - keep together and prioritize
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-core';
           }
           
-          // MUI components
+          // React-related libraries that depend on React
+          if (id.includes('react-router') || id.includes('@emotion') || id.includes('react-leaflet')) {
+            return 'react-deps';
+          }
+          
+          // MUI components - separate from React core
           if (id.includes('@mui/material') || id.includes('@mui/system') || id.includes('@mui/base')) {
             return 'mui-core';
           }
@@ -113,9 +125,9 @@ export default defineConfig({
             return 'date-utils';
           }
           
-          // Leaflet and mapping libraries - keep with React
-          if (id.includes('leaflet') || id.includes('react-leaflet')) {
-            return 'react-vendor'; // Bundle with React instead of separate chunk
+          // Leaflet mapping libraries
+          if (id.includes('leaflet') && !id.includes('react-leaflet')) {
+            return 'leaflet';
           }
           
           // PDF and chart libraries
@@ -123,19 +135,9 @@ export default defineConfig({
             return 'charts-pdf';
           }
           
-          // Router and navigation
-          if (id.includes('react-router')) {
-            return 'router';
-          }
-          
           // HTTP and API libraries
           if (id.includes('axios') || id.includes('fetch')) {
             return 'http-utils';
-          }
-          
-          // Emotion styling - keep together and load early
-          if (id.includes('@emotion')) {
-            return 'react-vendor'; // Bundle with React to avoid initialization issues
           }
           
           // Other large vendors
