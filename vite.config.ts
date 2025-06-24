@@ -44,6 +44,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
+    include: ['leaflet', 'react-leaflet'],
     esbuildOptions: {
       target: 'es2020',
       supported: { 
