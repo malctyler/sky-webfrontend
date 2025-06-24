@@ -53,6 +53,35 @@ updateUserInfo(userInfo)
 - **Secure Storage Integration**: Uses SecureTokenStorage for all token operations
 - **Type Mapping**: Converts backend AuthResponse to frontend AuthUser format
 
+### 5. Token Revocation System
+
+**Purpose**: Secure server-side token invalidation for immediate logout and security incident response.
+
+**Backend Components**:
+- **RevokedToken Entity**: Database storage for revoked token metadata
+- **TokenRevocationService**: Service layer for token lifecycle management
+- **TokenRevocationMiddleware**: Request-level token validation middleware
+
+**Features**:
+- **JTI Claims**: Every JWT includes a unique token identifier (JTI claim)
+- **Database Tracking**: Revoked tokens stored with expiration and metadata
+- **Middleware Validation**: All API requests checked against revocation list
+- **Automatic Cleanup**: Expired revoked tokens automatically purged
+- **Frontend Integration**: 401 responses trigger automatic localStorage clearing
+
+**Flow**:
+1. **Login**: JWT issued with unique JTI claim
+2. **Request**: Middleware validates token against revocation database
+3. **Logout**: Token JTI added to revocation table with expiration
+4. **Revoked Access**: Subsequent requests with revoked token return 401
+5. **Frontend Cleanup**: 401 response triggers automatic token clearing
+
+**Security Benefits**:
+- **Immediate Revocation**: Tokens invalidated instantly on logout
+- **Incident Response**: Bulk user token revocation for security events
+- **Stolen Token Protection**: Compromised tokens can be revoked server-side
+- **Audit Trail**: Complete record of token revocation events
+
 ## Security Headers (CSP)
 
 **Location**: `public/index.html`
@@ -153,6 +182,7 @@ const userInfo = secureTokenStorage.getUserInfo();
 3. **Expiry**: Automatic cleanup of stale tokens
 4. **Activity Monitoring**: Auto-logout on inactivity
 5. **CSP**: Content Security Policy headers
+6. **Token Revocation**: Server-side token invalidation system
 
 ### Known Limitations (Free Tier)
 1. **localStorage Exposure**: Still vulnerable to XSS (mitigated by encryption)
