@@ -80,7 +80,7 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
     { text: 'Dashboard', icon: <HomeIcon />, path: '/home' }
   ];
 
-  if (hasRole('Staff') || hasRole('Admin')) {
+  if (hasRole('Admin')) {
     baseItems.push({      text: 'Invoicing', 
       icon: <ReceiptIcon />,
       subItems: [

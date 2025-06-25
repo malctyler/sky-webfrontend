@@ -25,7 +25,23 @@ import { generateInvoicePdf } from './InvoiceTemplate';
 import { getAuthToken } from '../../utils/authUtils';
 
 const GenerateInvoice: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  
+  // Admin role check
+  if (!hasRole('Admin')) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+          <Typography variant="h5" color="error" gutterBottom>
+            Access Denied
+          </Typography>
+          <Typography>
+            Only administrators can access the invoice generation feature.
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);

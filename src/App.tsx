@@ -325,14 +325,14 @@ function App() {  // Make password security demo available in development mode
                     }
                   />                <Route path="/invoicing">
                     <Route path="generate" element={
-                      <ProtectedRoute requireStaffOrAdmin>
+                      <ProtectedRoute requireAdmin>
                         <LazyWrapper>
                           <GenerateInvoice />
                         </LazyWrapper>
                       </ProtectedRoute>
                     } />
                     <Route path="ledger" element={
-                      <ProtectedRoute requireStaffOrAdmin>
+                      <ProtectedRoute requireAdmin>
                         <LazyWrapper>
                           <LedgerList />
                         </LazyWrapper>

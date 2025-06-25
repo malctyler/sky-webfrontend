@@ -23,10 +23,29 @@ import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
 import debounce from 'lodash/debounce';
 import ledgerService, { LedgerDto, LedgerFilters } from '@/services/ledgerService';
 import { formatCurrency } from '@/utils/formatters';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DEBOUNCE_DELAY = 500;
 
-const LedgerList: React.FC = () => {    
+const LedgerList: React.FC = () => {
+    const { hasRole } = useAuth();
+    
+    // Admin role check
+    if (!hasRole('Admin')) {
+        return (
+            <Box sx={{ p: 3 }}>
+                <Paper sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+                    <Typography variant="h5" color="error" gutterBottom>
+                        Access Denied
+                    </Typography>
+                    <Typography>
+                        Only administrators can access the ledger.
+                    </Typography>
+                </Paper>
+            </Box>
+        );
+    }
+    
     const [ledgerEntries, setLedgerEntries] = useState<LedgerDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
