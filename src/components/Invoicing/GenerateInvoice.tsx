@@ -22,6 +22,7 @@ import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
 import { CustomerInvoiceDto } from '../../types/invoiceTypes';
 import { generateInvoicePdf } from './InvoiceTemplate';
+import { getAuthToken } from '../../utils/authUtils';
 
 const GenerateInvoice: React.FC = () => {
   const { user } = useAuth();
@@ -76,8 +77,9 @@ const GenerateInvoice: React.FC = () => {
     if (!selectedCustomer?.custID || !startDate || !endDate) {
       return;
     }    try {
+      const token = getAuthToken();
       const headers = {
-        'Authorization': `Bearer ${user?.token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
 
@@ -163,8 +165,9 @@ const GenerateInvoice: React.FC = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
+        const token = getAuthToken();
         const headers = {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         };
         const response = await fetch(`${baseUrl}/Customers`, { headers });
@@ -184,7 +187,7 @@ const GenerateInvoice: React.FC = () => {
     };
 
     fetchCustomers();
-  }, [user?.token]);
+  }, [user]); // Depend on user object instead of token
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
