@@ -148,6 +148,16 @@ const InnerLoginForm: React.FC<LoginFormProps> = ({ redirectTo }) => {
           </Button>
         </form>
         <Box sx={{ textAlign: 'center', mt: 1 }}>
+          <Button
+            component={Link}
+            to="/forgot-password"
+            variant="text"
+            color="primary"
+            sx={{ mb: 2, textTransform: 'none' }}
+            disabled={loading}
+          >
+            Forgot password?
+          </Button>
           <Typography variant="body2" sx={{ mb: 1 }}>
             Don't have an account?
           </Typography>

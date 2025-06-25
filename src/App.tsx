@@ -8,6 +8,8 @@ import { enGB } from 'date-fns/locale';
 // Critical components that should load immediately
 import LoginForm from './components/Auth/LoginForm';
 import Register from './components/Auth/Register';
+import ForgotPassword from './components/Auth/ForgotPassword';
+import ResetPassword from './components/Auth/ResetPassword';
 import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainLayout from './components/Layout/MainLayout';
@@ -220,6 +222,64 @@ function App() {  // Make password security demo available in development mode
                         Register
                       </Typography>
                       <Register />
+                    </Paper>
+                  </Box>
+                } />
+                <Route path="/forgot-password" element={
+                  <Box
+                    component="main"
+                    sx={{
+                      minHeight: '100vh',
+                      width: '100%',
+                      bgcolor: 'background.default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 3
+                    }}
+                  >
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        p: 4,
+                        width: '100%',
+                        maxWidth: 400,
+                        bgcolor: 'background.paper'
+                      }}
+                    >
+                      <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                        Forgot Password
+                      </Typography>
+                      <ForgotPassword />
+                    </Paper>
+                  </Box>
+                } />
+                <Route path="/reset-password" element={
+                  <Box
+                    component="main"
+                    sx={{
+                      minHeight: '100vh',
+                      width: '100%',
+                      bgcolor: 'background.default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 3
+                    }}
+                  >
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        p: 4,
+                        width: '100%',
+                        maxWidth: 400,
+                        bgcolor: 'background.paper'
+                      }}
+                    >
+                      <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                        Reset Password
+                      </Typography>
+                      <ResetPassword />
                     </Paper>
                   </Box>
                 } />

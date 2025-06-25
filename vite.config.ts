@@ -77,9 +77,9 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://sky-webapi-hna3fdbegqcqhuf9.uksouth-01.azurewebsites.net',
+        target: 'http://localhost:5207',
         changeOrigin: true,
-        secure: true
+        secure: false
       }
     }
   },
