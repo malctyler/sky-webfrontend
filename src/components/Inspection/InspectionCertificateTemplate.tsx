@@ -153,7 +153,7 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
             
             try {
                 // Use apiClient instead of fetch to include authentication headers
-                const response = await apiClient.get(`/api/Signature/${encodeURIComponent(formattedName)}`, {
+                const response = await apiClient.get(`/Signature/${encodeURIComponent(formattedName)}`, {
                     responseType: 'blob' // Since we're fetching an image
                 });
                 
