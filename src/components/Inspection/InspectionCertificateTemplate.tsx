@@ -3,6 +3,7 @@ import { Page, Text, View, Document, StyleSheet, Font, Image, pdf } from '@react
 import { format } from 'date-fns';
 import { baseUrl } from '../../config';
 import { InspectionCertificate } from '../../types/inspectionTypes';
+import apiClient from '../../services/apiClient';
 
 Font.register({
     family: 'Helvetica',
@@ -150,24 +151,43 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                 return;
             }
             const formattedName = inspectorName.toLowerCase().replace(/\s+/g, '_');
-            const path = `${baseUrl}/Signature/${encodeURIComponent(formattedName)}`;
             
             try {
-                const response = await fetch(path);
-                if (response.ok) {
-                    setSignaturePath(path);
+                // Use apiClient instead of fetch to include authentication headers
+                const response = await apiClient.get(`/api/Signature/${encodeURIComponent(formattedName)}`, {
+                    responseType: 'blob' // Since we're fetching an image
+                });
+                
+                if (response.status === 200) {
+                    // Create a blob URL for the image
+                    const blob = response.data;
+                    const imageUrl = URL.createObjectURL(blob);
+                    setSignaturePath(imageUrl);
                 } else {
-                    console.warn('Signature image not found:', path);
+                    console.warn('Signature image not found for inspector:', inspectorName);
                 }
-            } catch (error) {
-                console.error('Error loading signature:', error);
+            } catch (error: any) {
+                if (error.response?.status === 401) {
+                    console.error('Authentication required for signature access:', error);
+                } else if (error.response?.status === 404) {
+                    console.warn('Signature image not found for inspector:', inspectorName);
+                } else {
+                    console.error('Error loading signature:', error);
+                }
             }
         };
         
         if (!preloadedSignaturePath) {
             loadSignature();
         }
-    }, [inspection.inspectorsName, preloadedSignaturePath]);
+
+        // Cleanup function to revoke blob URLs
+        return () => {
+            if (signaturePath && signaturePath.startsWith('blob:')) {
+                URL.revokeObjectURL(signaturePath);
+            }
+        };
+    }, [inspection.inspectorsName, preloadedSignaturePath, signaturePath]);
 
     const formatDate = (date: string | undefined | null): string => {
         if (!date) return 'N/A';
