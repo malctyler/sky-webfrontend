@@ -394,13 +394,11 @@ export const loadSignatureUrl = async (inspectorName: string | undefined): Promi
         console.warn('No inspector name provided for signature');
         return undefined;
     }
-    const formattedName = inspectorName.trim().toLowerCase().replace(/\s+/g, '_');
-    
-    try {
-        // Use apiClient instead of fetch to include authentication headers
-        const response = await apiClient.get(`/api/Signature/${encodeURIComponent(formattedName)}`, {
-            responseType: 'blob' // Since we're fetching an image
-        });
+    const formattedName = inspectorName.trim().toLowerCase().replace(/\s+/g, '_');            try {
+                // Use apiClient instead of fetch to include authentication headers
+                const response = await apiClient.get(`/Signature/${encodeURIComponent(formattedName)}`, {
+                    responseType: 'blob' // Since we're fetching an image
+                });
         
         if (response.status === 200) {
             // Create a blob URL for the image
