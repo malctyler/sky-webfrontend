@@ -9,26 +9,6 @@ import {
 import { setAuthToken, removeAuthToken, getAuthToken, setUserInfo, removeUserInfo, isTokenValid } from '../utils/authUtils';
 import { PasswordSecurity } from '../utils/passwordSecurity';
 
-// Temporary migration login function
-export const loginForMigration = async (email: string, password: string): Promise<AuthResponse> => {
-    console.log('Debug: Starting migration login (old endpoint)');
-    
-    const response = await apiClient.post<AuthResponse>(`/Auth/login`, { email, password });
-    
-    console.log('Debug: Migration login response received');
-    
-    // Store token using our improved auth utils
-    if (response.data.token) {
-        console.log('Debug: Migration login successful, storing token');
-        setAuthToken(response.data.token, undefined, response.data);
-    }
-    
-    // Store user info in state
-    setUserInfo(response.data);
-    
-    return response.data;
-};
-
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Debug: Starting secure login process');
     console.log('Debug: Current time (local):', new Date().toString());

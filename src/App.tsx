@@ -15,8 +15,6 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainLayout from './components/Layout/MainLayout';
 import Home from './components/Common/Home';
 import CustomerHome from './components/Customer/CustomerHome';
-import { demonstratePasswordSecurity } from './utils/passwordSecurityTest';
-import { testPasswordSecurity } from '../test/passwordSecurityTest';
 
 // Lazy load components that aren't needed immediately
 const AllCustomers = React.lazy(() => import('./components/Customer/AllCustomers'));
@@ -152,15 +150,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-function App() {  // Make password security demo available in development mode
-  if (process.env.NODE_ENV === 'development') {
-    (window as any).demonstratePasswordSecurity = demonstratePasswordSecurity;
-    (window as any).testPasswordSecurity = testPasswordSecurity;
-    console.log('🔒 Password Security Tools available!');
-    console.log('• Run demonstratePasswordSecurity() - See old vs new approach demo');
-    console.log('• Run testPasswordSecurity() - Comprehensive security tests');
-  }
-
+function App() {
   return (
     <ErrorBoundary>
       <CustomThemeProvider>
