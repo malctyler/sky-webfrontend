@@ -1,7 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font, Image, pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
-import { baseUrl } from '../../config';
 import { InspectionCertificate } from '../../types/inspectionTypes';
 import apiClient from '../../services/apiClient';
 
@@ -396,18 +395,30 @@ export const loadSignatureUrl = async (inspectorName: string | undefined): Promi
         return undefined;
     }
     const formattedName = inspectorName.trim().toLowerCase().replace(/\s+/g, '_');
-    const path = `${baseUrl}/Signature/${encodeURIComponent(formattedName)}`;
     
     try {
-        const response = await fetch(path);
-        if (response.ok) {
-            return path;
+        // Use apiClient instead of fetch to include authentication headers
+        const response = await apiClient.get(`/api/Signature/${encodeURIComponent(formattedName)}`, {
+            responseType: 'blob' // Since we're fetching an image
+        });
+        
+        if (response.status === 200) {
+            // Create a blob URL for the image
+            const blob = response.data;
+            const imageUrl = URL.createObjectURL(blob);
+            return imageUrl;
         } else {
-            console.warn('Signature image not found:', path);
+            console.warn('Signature image not found for inspector:', inspectorName);
             return undefined;
         }
-    } catch (error) {
-        console.error('Error loading signature:', error);
+    } catch (error: any) {
+        if (error.response?.status === 401) {
+            console.error('Authentication required for signature access:', error);
+        } else if (error.response?.status === 404) {
+            console.warn('Signature image not found for inspector:', inspectorName);
+        } else {
+            console.error('Error loading signature:', error);
+        }
         return undefined;
     }
 };
