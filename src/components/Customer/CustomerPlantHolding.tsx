@@ -34,6 +34,7 @@ const CustomerPlantHolding: React.FC = () => {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [inspectionErrors, setInspectionErrors] = useState<Set<number>>(new Set());
   const locationState = location.state as LocationState;
 
   // Utility function to calculate inspection status (RAG)
@@ -80,7 +81,7 @@ const CustomerPlantHolding: React.FC = () => {
   };
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
-    if (!customerId) return;
+    if (!customerId || loading) return; // Prevent concurrent calls
     
     setLoading(true);
     setError(null);
@@ -90,6 +91,16 @@ const CustomerPlantHolding: React.FC = () => {
       // Fetch inspection data for each holding
       const holdingsWithInspections = await Promise.all(
         holdingsData.map(async (holding): Promise<PlantHoldingWithInspection> => {
+          // Skip inspection fetch if we've already encountered errors for this holding
+          if (inspectionErrors.has(holding.holdingID)) {
+            return {
+              ...holding,
+              formattedLastInspection: 'Access Denied',
+              formattedNextDue: 'N/A',
+              inspectionStatus: 'Overdue' as const
+            };
+          }
+
           try {
             const inspections = await inspectionService.getByPlantHolding(holding.holdingID);
             
@@ -121,15 +132,17 @@ const CustomerPlantHolding: React.FC = () => {
             if (inspectionError && typeof inspectionError === 'object' && 'response' in inspectionError) {
               const axiosError = inspectionError as any;
               if (axiosError.response?.status === 403) {
-                console.warn(`Authorization issue for holding ${holding.holdingID} - API deployment may be pending`);
+                console.warn(`Authorization issue for holding ${holding.holdingID} - marking as permanently failed`);
+                // Add to error set to prevent future retries
+                setInspectionErrors(prev => new Set(prev).add(holding.holdingID));
               }
             }
             
-            // Return holding without inspection data for now
+            // Return holding without inspection data
             return {
               ...holding,
-              formattedLastInspection: 'Pending Authorization',
-              formattedNextDue: 'Pending Authorization',
+              formattedLastInspection: 'Access Denied',
+              formattedNextDue: 'N/A',
               inspectionStatus: 'Overdue' as const
             };
           }
@@ -147,7 +160,7 @@ const CustomerPlantHolding: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [mounted, calculateNextDueDate, getInspectionStatus, formatDisplayDate]);
+  }, [mounted, calculateNextDueDate, getInspectionStatus, formatDisplayDate, loading, inspectionErrors]);
   
   useEffect(() => {
     setMounted(true);
