@@ -26,6 +26,7 @@ export interface InspectionItem {
     location?: string;
     inspectorID?: number;
     inspectorName?: string;
+    inspectorsName?: string; // Backend uses this field name
     inspectorSignature?: string;
     status?: 'Pending' | 'Completed' | 'Failed';
     emailSent?: boolean;
@@ -159,17 +160,6 @@ export interface ScheduleInspectionRequest {
     location?: string;
     notes?: string;
     force?: boolean;
-}
-
-// Scheduled Inspection types
-export interface ScheduledInspection {
-    id: string;
-    customerId: string;
-    customerName: string;
-    plantId: string;
-    plantName: string;
-    scheduledDate: string;
-    status: string;
 }
 
 export interface ScheduledInspectionDto {

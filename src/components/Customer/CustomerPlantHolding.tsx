@@ -311,7 +311,7 @@ const CustomerPlantHolding: React.FC = () => {
                         <strong>Location:</strong> {holding.latestInspection.location || 'Not specified'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Inspector:</strong> {holding.latestInspection.inspectorName || 'Unknown'}
+                        <strong>Inspector:</strong> {holding.latestInspection.inspectorsName || 'Unknown'}
                       </Typography>
                       {holding.latestInspection.miscNotes && (
                         <Typography variant="body2">
