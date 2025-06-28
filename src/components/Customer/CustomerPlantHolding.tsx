@@ -7,7 +7,6 @@ import { PlantHolding } from '../../types/plantholdingTypes';
 import { InspectionItem } from '../../types/inspectionTypes';
 import plantHoldingService from '../../services/plantHoldingService';
 import inspectionService from '../../services/inspectionService';
-import { getAuthToken } from '../../utils/authUtils';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -36,21 +35,6 @@ const CustomerPlantHolding: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const locationState = location.state as LocationState;
-
-  // Helper function to get customer ID directly from JWT token
-  const getCustomerIdFromToken = (): string | number | null => {
-    try {
-      const token = getAuthToken();
-      if (token) {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('Debug: JWT payload full:', payload);
-        return payload.CustomerId ? parseInt(payload.CustomerId) : null;
-      }
-    } catch (e) {
-      console.error('Could not extract customer ID from token:', e);
-    }
-    return null;
-  };
 
   // Utility function to calculate inspection status (RAG)
   const getInspectionStatus = (lastInspectionDate: string | undefined, inspectionFrequency: number | undefined): 'Up to Date' | 'Due Soon' | 'Overdue' => {
@@ -96,19 +80,12 @@ const CustomerPlantHolding: React.FC = () => {
   };
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
-    console.log('=== FETCH HOLDINGS DEBUG ===');
-    console.log('Debug: fetchHoldings called with customerId:', customerId);
-    console.log('Debug: fetchHoldings customerId type:', typeof customerId);
-    console.log('=== END FETCH HOLDINGS DEBUG ===');
-    
     if (!customerId) return;
     
     setLoading(true);
     setError(null);
     try {
-      console.log('Debug: About to call plantHoldingService.getByCustomerId with:', customerId);
       const holdingsData = await plantHoldingService.getByCustomerId(customerId);
-      console.log('Debug: plantHoldingService returned:', holdingsData);
       
       // Fetch inspection data for each holding
       const holdingsWithInspections = await Promise.all(
@@ -157,17 +134,6 @@ const CustomerPlantHolding: React.FC = () => {
     } catch (err) {
       if (mounted) {
         console.error('Error fetching plant holdings:', err);
-        console.error('Error details - customerId used:', customerId);
-        console.error('Error details - full error object:', err);
-        
-        // Check if it's a specific HTTP error
-        if (err && typeof err === 'object' && 'response' in err) {
-          const axiosError = err as any;
-          console.error('HTTP Status:', axiosError.response?.status);
-          console.error('HTTP Data:', axiosError.response?.data);
-          console.error('Request URL:', axiosError.config?.url);
-        }
-        
         setError('Unable to load your plant holdings. Please try again later.');
         setLoading(false);
       }
@@ -177,49 +143,8 @@ const CustomerPlantHolding: React.FC = () => {
   useEffect(() => {
     setMounted(true);
     if (user) {
-      console.log('=== CUSTOMER ID DEBUG SESSION ===');
-      console.log('Debug: CustomerPlantHolding - Full user object:', user);
       console.log('Debug: CustomerPlantHolding - Customer ID:', user.customerId);
-      console.log('Debug: CustomerPlantHolding - Customer ID type:', typeof user.customerId);
-      console.log('Debug: CustomerPlantHolding - Is Customer:', user.isCustomer);
-      console.log('Debug: CustomerPlantHolding - User roles:', user.roles);
-      console.log('Debug: CustomerPlantHolding - User email:', user.email);
-      
-      // Check the raw token to see what it contains
-      try {
-        const token = getAuthToken();
-        if (token) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          console.log('Debug: JWT payload full:', payload);
-          console.log('Debug: JWT CustomerId claim:', payload.CustomerId);
-          console.log('Debug: JWT CustomerId type:', typeof payload.CustomerId);
-          
-          // Check if there's a mismatch between JWT and user object
-          const jwtCustomerId = payload.CustomerId;
-          const userCustomerId = user.customerId;
-          if (jwtCustomerId && userCustomerId && jwtCustomerId.toString() !== userCustomerId.toString()) {
-            console.error('🚨 MISMATCH DETECTED! 🚨');
-            console.error('JWT CustomerId:', jwtCustomerId, '(type:', typeof jwtCustomerId, ')');
-            console.error('User CustomerId:', userCustomerId, '(type:', typeof userCustomerId, ')');
-            console.error('This explains why you see both customer IDs in the logs!');
-          } else {
-            console.log('✅ JWT and User customer IDs match');
-          }
-          
-          // Also check what getCustomerIdFromToken returns
-          const tokenCustomerId = getCustomerIdFromToken();
-          console.log('Debug: getCustomerIdFromToken returns:', tokenCustomerId, '(type:', typeof tokenCustomerId, ')');
-        } else {
-          console.error('Debug: No token found!');
-        }
-      } catch (e) {
-        console.error('Debug: Could not decode token:', e);
-      }
-      
-      console.log('=== END DEBUG SESSION ===');
-      
       const customerId = user.customerId;
-      console.log('Debug: About to call fetchHoldings with customerId from user object:', customerId);
       
       if (customerId) {
         fetchHoldings(customerId);
@@ -230,7 +155,7 @@ const CustomerPlantHolding: React.FC = () => {
       }
     }
     return () => setMounted(false);
-  }, [user, fetchHoldings, getCustomerIdFromToken]);
+  }, [user, fetchHoldings]);
 
   // Update filtered holdings when search term or holdings change
   useEffect(() => {
@@ -311,11 +236,7 @@ const CustomerPlantHolding: React.FC = () => {
             variant="contained"
             color="primary"
             onClick={() => {
-              console.log('Debug: Try Again button clicked');
               const customerId = user.customerId;
-              const tokenCustomerId = getCustomerIdFromToken();
-              console.log('Debug: Try Again - user.customerId:', customerId);
-              console.log('Debug: Try Again - getCustomerIdFromToken():', tokenCustomerId);
               if (customerId) fetchHoldings(customerId);
             }}
             sx={{ mt: 2 }}
