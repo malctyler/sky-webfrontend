@@ -5,8 +5,10 @@ import { useLocation } from 'react-router-dom';
 import { Button, Typography, Box, Chip } from '@mui/material';
 import { PlantHolding } from '../../types/plantholdingTypes';
 import { InspectionItem } from '../../types/inspectionTypes';
+import { Customer } from '../../types/customerTypes';
 import plantHoldingService from '../../services/plantHoldingService';
 import inspectionService from '../../services/inspectionService';
+import customerService from '../../services/customerService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -69,6 +71,7 @@ const CustomerPlantHolding: React.FC = () => {
   const location = useLocation();
   const [holdings, setHoldings] = useState<PlantHoldingWithInspection[]>([]);
   const [filteredHoldings, setFilteredHoldings] = useState<PlantHoldingWithInspection[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -76,6 +79,20 @@ const CustomerPlantHolding: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [inspectionErrors, setInspectionErrors] = useState<Set<number>>(new Set());
   const locationState = location.state as LocationState;
+
+  const fetchCustomer = useCallback(async (customerId: string | number) => {
+    if (!customerId) return;
+    
+    try {
+      const customerData = await customerService.getById(Number(customerId));
+      if (mounted) {
+        setCustomer(customerData);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch customer data:', err);
+      // Don't set an error for customer fetch failure as it's not critical
+    }
+  }, [mounted]);
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
     if (!customerId) return;
@@ -166,6 +183,7 @@ const CustomerPlantHolding: React.FC = () => {
       const customerId = user.customerId;
       
       if (customerId) {
+        fetchCustomer(customerId);
         fetchHoldings(customerId);
       } else if (mounted) {
         console.error('Debug: CustomerPlantHolding - No customer ID found for user:', user.email);
@@ -174,7 +192,7 @@ const CustomerPlantHolding: React.FC = () => {
       }
     }
     return () => setMounted(false);
-  }, [user, fetchHoldings]);
+  }, [user, fetchCustomer, fetchHoldings]);
 
   // Update filtered holdings when search term or holdings change
   useEffect(() => {
@@ -230,7 +248,7 @@ const CustomerPlantHolding: React.FC = () => {
   return (
     <div className={`${styles.plantContainer} ${isDarkMode ? styles.dark : styles.light}`}>
       <div className={styles.headerActions}>
-        <h2>My Plant Holdings</h2>
+        <h2>Plant Holdings - {customer?.companyName || 'Loading...'}</h2>
         {holdings.length > 0 && (
           <input
             type="text"
