@@ -23,6 +23,46 @@ interface PlantHoldingWithInspection extends PlantHolding {
   latestInspection?: InspectionItem;
 }
 
+// Utility functions moved outside component to prevent recreation on every render
+const getInspectionStatus = (lastInspectionDate: string | undefined, inspectionFrequency: number | undefined): 'Up to Date' | 'Due Soon' | 'Overdue' => {
+  if (!lastInspectionDate || !inspectionFrequency) return 'Overdue';
+  
+  const lastInspection = new Date(lastInspectionDate);
+  const today = new Date();
+  const monthsAgo = (today.getTime() - lastInspection.getTime()) / (1000 * 60 * 60 * 24 * 30.44); // Average days per month
+  
+  if (monthsAgo > inspectionFrequency) return 'Overdue';
+  if (monthsAgo > inspectionFrequency - 1) return 'Due Soon'; // Due within 1 month
+  return 'Up to Date';
+};
+
+const getStatusColor = (status: 'Up to Date' | 'Due Soon' | 'Overdue'): "error" | "warning" | "success" => {
+  switch (status) {
+    case 'Overdue': return 'error';
+    case 'Due Soon': return 'warning';
+    case 'Up to Date': return 'success';
+  }
+};
+
+const calculateNextDueDate = (lastInspectionDate: string | undefined, inspectionFrequency: number | undefined): string | undefined => {
+  if (!lastInspectionDate || !inspectionFrequency) return undefined;
+  
+  const lastInspection = new Date(lastInspectionDate);
+  const nextDue = new Date(lastInspection);
+  nextDue.setMonth(nextDue.getMonth() + inspectionFrequency);
+  
+  return nextDue.toISOString();
+};
+
+const formatDisplayDate = (dateString: string | undefined): string => {
+  if (!dateString) return 'Never';
+  return new Date(dateString).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
 const CustomerPlantHolding: React.FC = () => {
   const { user } = useAuth();
   const { isDarkMode } = useCustomTheme();
@@ -36,49 +76,6 @@ const CustomerPlantHolding: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [inspectionErrors, setInspectionErrors] = useState<Set<number>>(new Set());
   const locationState = location.state as LocationState;
-
-  // Utility function to calculate inspection status (RAG)
-  const getInspectionStatus = (lastInspectionDate: string | undefined, inspectionFrequency: number | undefined): 'Up to Date' | 'Due Soon' | 'Overdue' => {
-    if (!lastInspectionDate || !inspectionFrequency) return 'Overdue';
-    
-    const lastInspection = new Date(lastInspectionDate);
-    const today = new Date();
-    const monthsAgo = (today.getTime() - lastInspection.getTime()) / (1000 * 60 * 60 * 24 * 30.44); // Average days per month
-    
-    if (monthsAgo > inspectionFrequency) return 'Overdue';
-    if (monthsAgo > inspectionFrequency - 1) return 'Due Soon'; // Due within 1 month
-    return 'Up to Date';
-  };
-
-  // Utility function to get status color for Chip component
-  const getStatusColor = (status: 'Up to Date' | 'Due Soon' | 'Overdue'): "error" | "warning" | "success" => {
-    switch (status) {
-      case 'Overdue': return 'error';
-      case 'Due Soon': return 'warning';
-      case 'Up to Date': return 'success';
-    }
-  };
-
-  // Calculate next due date
-  const calculateNextDueDate = (lastInspectionDate: string | undefined, inspectionFrequency: number | undefined): string | undefined => {
-    if (!lastInspectionDate || !inspectionFrequency) return undefined;
-    
-    const lastInspection = new Date(lastInspectionDate);
-    const nextDue = new Date(lastInspection);
-    nextDue.setMonth(nextDue.getMonth() + inspectionFrequency);
-    
-    return nextDue.toISOString();
-  };
-
-  // Format date for display
-  const formatDisplayDate = (dateString: string | undefined): string => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
     if (!customerId) return;
@@ -160,7 +157,7 @@ const CustomerPlantHolding: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [mounted, calculateNextDueDate, getInspectionStatus, formatDisplayDate, inspectionErrors]);
+  }, [mounted, inspectionErrors]);
   
   useEffect(() => {
     setMounted(true);
