@@ -116,11 +116,20 @@ const CustomerPlantHolding: React.FC = () => {
             };
           } catch (inspectionError) {
             console.warn(`Failed to fetch inspections for holding ${holding.holdingID}:`, inspectionError);
-            // Return holding without inspection data
+            
+            // Check if it's a 403 error (authorization issue)
+            if (inspectionError && typeof inspectionError === 'object' && 'response' in inspectionError) {
+              const axiosError = inspectionError as any;
+              if (axiosError.response?.status === 403) {
+                console.warn(`Authorization issue for holding ${holding.holdingID} - API deployment may be pending`);
+              }
+            }
+            
+            // Return holding without inspection data for now
             return {
               ...holding,
-              formattedLastInspection: 'Never',
-              formattedNextDue: 'Unknown',
+              formattedLastInspection: 'Pending Authorization',
+              formattedNextDue: 'Pending Authorization',
               inspectionStatus: 'Overdue' as const
             };
           }
