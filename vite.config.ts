@@ -20,7 +20,11 @@ export default defineConfig({
       }
     }),
     tsconfigPaths()
-  ],  resolve: {
+  ],
+  // Add polyfills for Node.js globals
+  define: {
+    global: 'globalThis',
+  },  resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
       '@components': resolve(__dirname, 'src/components'),
@@ -72,11 +76,6 @@ export default defineConfig({
         '.tsx': 'tsx',
       }
     }
-  },
-  define: {
-    global: 'globalThis',
-    // Add Buffer polyfill for @react-pdf/renderer
-    'global.Buffer': 'Buffer',
   },
   server: {
     port: 3000,
