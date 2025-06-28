@@ -59,7 +59,13 @@ const InspectionList: React.FC<InspectionListProps> = ({ holdingId }) => {
     const loadInspections = useCallback(async () => {
         try {
             const data = await inspectionService.getByPlantHolding(holdingId);
-            setInspections(data);
+            // Sort inspections by inspection date, most recent first
+            const sortedData = data.sort((a, b) => {
+                const dateA = a.inspectionDate ? new Date(a.inspectionDate).getTime() : 0;
+                const dateB = b.inspectionDate ? new Date(b.inspectionDate).getTime() : 0;
+                return dateB - dateA; // Descending order (most recent first)
+            });
+            setInspections(sortedData);
             setError(null);
         } catch (error) {
             console.error('Error loading inspections:', error);
