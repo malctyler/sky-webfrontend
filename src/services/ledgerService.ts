@@ -57,6 +57,16 @@ class LedgerService {
     async deleteLedgerEntry(id: number): Promise<void> {
         await apiClient.delete(`/ledger/${id}`);
     }
+
+    async settleLedgerEntry(id: number): Promise<LedgerDto> {
+        const response: AxiosResponse<LedgerDto> = await apiClient.put(`/ledger/${id}/settle`);
+        return response.data;
+    }
+
+    async unsettleLedgerEntry(id: number): Promise<LedgerDto> {
+        const response: AxiosResponse<LedgerDto> = await apiClient.put(`/ledger/${id}/unsettle`);
+        return response.data;
+    }
 }
 
 export default new LedgerService();
