@@ -21,13 +21,32 @@ const claimService = {
         await apiClient.put(`claims/${id}`, claim);
     },
 
-    deleteClaim: async (id: number): Promise<void> => {
+    deleteClaimById: async (id: number): Promise<void> => {
         await apiClient.delete(`claims/${id}`);
     },
 
     getAllClaimTypes: async (): Promise<ClaimType[]> => {
         const response = await apiClient.get<ClaimType[]>('claims/types');
         return response.data;
+    },
+
+    // User-specific claim methods
+    getClaims: async (userId: string): Promise<Claim[]> => {
+        const response = await apiClient.get<Claim[]>(`claims/${userId}`);
+        // Filter out internal claims that shouldn't be managed through UI
+        const filteredClaims = response.data.filter(claim => 
+            claim.type !== 'TransmissionPasswordHash'
+        );
+        return filteredClaims;
+    },
+
+    addUserClaim: async (userId: string, claim: AddClaimDto): Promise<Claim> => {
+        const response = await apiClient.post<Claim>(`claims/${userId}/claims`, claim);
+        return response.data;
+    },
+
+    deleteClaim: async (userId: string, claimType: ClaimType): Promise<void> => {
+        await apiClient.delete(`claims/${userId}/claims/${encodeURIComponent(claimType)}`);
     }
 };
 

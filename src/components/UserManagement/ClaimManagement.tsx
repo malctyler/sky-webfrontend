@@ -47,7 +47,7 @@ const ClaimManagement: React.FC<ClaimManagementProps> = ({ user, onClose, open }
         type: newClaim.type,
         value: newClaim.value
       };
-      await claimService.addClaim(user.id, addClaimDto);
+      await claimService.addUserClaim(user.id, addClaimDto);
       await fetchClaims();
       setNewClaim({ type: '', value: '' });
     } catch (err) {
