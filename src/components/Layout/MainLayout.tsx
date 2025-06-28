@@ -10,7 +10,6 @@ import {
   Typography,
   Divider,
   IconButton,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -40,7 +39,6 @@ import PeopleIcon from '@mui/icons-material/People';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../../contexts/AuthContext';
@@ -50,13 +48,15 @@ import { MenuItem as SidebarMenuItem } from '../../types/layoutTypes';
 import ChangePasswordDialog from '../Auth/ChangePasswordDialog';
 import styles from './MainLayout.module.css';
 
+// Define a local type that matches what we get from useAuth
 interface AuthUser {
   email: string;
-  token: string;
   isCustomer: boolean;
   customerId?: string | number;
   roles: string[];
   emailConfirmed: boolean;
+  firstName?: string;
+  lastName?: string;
 }
 
 // Drawer width constant
@@ -326,7 +326,7 @@ const MainLayout: React.FC<LayoutProps> = () => {
             edge="start"
             sx={{ 
               mr: 2,
-              display: { sm: 'none' }
+              display: { sm: open ? 'none' : 'inline-flex' }
             }}
           >
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
