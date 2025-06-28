@@ -26,7 +26,9 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@contexts': resolve(__dirname, 'src/contexts'),
       '@services': resolve(__dirname, 'src/services'),
-      '@types': resolve(__dirname, 'src/types')
+      '@types': resolve(__dirname, 'src/types'),
+      // Add Buffer polyfill for @react-pdf/renderer
+      buffer: 'buffer',
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   },  css: {
@@ -54,7 +56,8 @@ export default defineConfig({
       '@mui/material',
       '@mui/system',
       'leaflet', 
-      'react-leaflet'
+      'react-leaflet',
+      'buffer'
     ],
     exclude: ['react/jsx-dev-runtime'],
     esbuildOptions: {
@@ -72,6 +75,8 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
+    // Add Buffer polyfill for @react-pdf/renderer
+    'global.Buffer': 'Buffer',
   },
   server: {
     port: 3000,

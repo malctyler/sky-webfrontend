@@ -149,6 +149,12 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                 console.warn('No inspector name provided for signature');
                 return;
             }
+            
+            // If we already have a signature path, don't reload unless preloaded path changes
+            if (signaturePath && !preloadedSignaturePath) {
+                return;
+            }
+            
             const formattedName = inspectorName.toLowerCase().replace(/\s+/g, '_');
             
             try {
@@ -158,6 +164,11 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                 });
                 
                 if (response.status === 200) {
+                    // Clean up previous blob URL if it exists
+                    if (signaturePath && signaturePath.startsWith('blob:')) {
+                        URL.revokeObjectURL(signaturePath);
+                    }
+                    
                     // Create a blob URL for the image
                     const blob = response.data;
                     const imageUrl = URL.createObjectURL(blob);
@@ -186,7 +197,7 @@ const InspectionCertificateTemplate: React.FC<InspectionCertificateTemplateProps
                 URL.revokeObjectURL(signaturePath);
             }
         };
-    }, [inspection.inspectorsName, preloadedSignaturePath, signaturePath]);
+    }, [inspection.inspectorsName, preloadedSignaturePath]);
 
     const formatDate = (date: string | undefined | null): string => {
         if (!date) return 'N/A';
