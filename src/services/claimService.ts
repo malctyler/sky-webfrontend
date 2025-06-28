@@ -35,7 +35,9 @@ const claimService = {
         const response = await apiClient.get<Claim[]>(`claims/${userId}`);
         // Filter out internal claims that shouldn't be managed through UI
         const filteredClaims = response.data.filter(claim => 
-            claim.type !== 'TransmissionPasswordHash'
+            claim.type !== 'TransmissionPasswordHash' &&
+            claim.type !== 'IsCustomer' &&
+            claim.type !== 'CustomerId'
         );
         return filteredClaims;
     },
