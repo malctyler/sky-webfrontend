@@ -81,7 +81,7 @@ const CustomerPlantHolding: React.FC = () => {
   };
 
   const fetchHoldings = useCallback(async (customerId: string | number) => {
-    if (!customerId || loading) return; // Prevent concurrent calls
+    if (!customerId) return;
     
     setLoading(true);
     setError(null);
@@ -160,7 +160,7 @@ const CustomerPlantHolding: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [mounted, calculateNextDueDate, getInspectionStatus, formatDisplayDate, loading, inspectionErrors]);
+  }, [mounted, calculateNextDueDate, getInspectionStatus, formatDisplayDate, inspectionErrors]);
   
   useEffect(() => {
     setMounted(true);
