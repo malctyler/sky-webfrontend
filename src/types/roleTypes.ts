@@ -6,7 +6,7 @@ export interface Role {
 }
 
 export interface CreateRoleDto {
-    id: string;
+    id?: string;
     name: string;
 }
 

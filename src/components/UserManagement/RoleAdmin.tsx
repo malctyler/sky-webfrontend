@@ -14,7 +14,7 @@ const RoleAdmin: React.FC = () => {
   const fetchRoles = async (): Promise<void> => {
     try {
       setError('');
-      const data = await roleService.getRoles();
+      const data = await roleService.getAll();
       setRoles(data);
     } catch (err: any) {
       console.error('Error fetching roles:', err);
@@ -40,7 +40,7 @@ const RoleAdmin: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await roleService.createRole(newRole.trim());
+      await roleService.create({ id: '', name: newRole.trim() });
       setNewRole('');
       await fetchRoles();
     } catch (err: any) {
@@ -64,7 +64,7 @@ const RoleAdmin: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await roleService.deleteRole(role.id);
+      await roleService.delete(role.id);
       await fetchRoles();
     } catch (err: any) {
       console.error('Error deleting role:', err);
