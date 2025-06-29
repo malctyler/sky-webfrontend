@@ -27,7 +27,21 @@ const ForgotPassword: React.FC = () => {
       await apiClient.post('/Auth/forgot-password', { email });
       setMessage('If the email exists in our system, a password reset link has been sent.');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while sending the reset email.');
+      console.error('Forgot password error:', err);
+      
+      if (err.response?.status === 503) {
+        // Handle service unavailable (email not configured)
+        const errorData = err.response?.data;
+        if (errorData?.Error === 'EMAIL_SERVICE_UNAVAILABLE') {
+          setError('Email service is currently unavailable. Please contact an administrator to reset your password.');
+        } else if (errorData?.Error === 'EMAIL_DELIVERY_FAILED') {
+          setError('Email service is experiencing technical difficulties. Please try again later or contact an administrator.');
+        } else {
+          setError('Email service is temporarily unavailable. Please try again later.');
+        }
+      } else {
+        setError(err.response?.data?.message || 'An error occurred while sending the reset email.');
+      }
     } finally {
       setLoading(false);
     }
