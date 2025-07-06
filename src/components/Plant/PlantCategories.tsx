@@ -11,20 +11,17 @@ import {
   Snackbar,
   Paper,
   Typography,
-  CircularProgress 
+  CircularProgress,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import MuiAlert from '@mui/material/Alert';
 import { AlertColor } from '@mui/material';
 import styles from './PlantCategories.module.css';
-import { baseUrl } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAuthHeaders } from '../../utils/authUtils';
-
-interface PlantCategory {
-  categoryID: number;
-  categoryDescription: string;
-}
+import { PlantCategory } from '../../types/plantTypes';
+import apiClient from '../../services/apiClient';
 
 interface SnackbarState {
   open: boolean;
@@ -41,6 +38,7 @@ const PlantCategories: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [categoryToDelete, setCategoryToDelete] = useState<PlantCategory | null>(null);
   const [categoryDescription, setCategoryDescription] = useState<string>('');
+  const [multiInspect, setMultiInspect] = useState<boolean>(false);
   const [editingCategory, setEditingCategory] = useState<PlantCategory | null>(null);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
@@ -52,18 +50,15 @@ const PlantCategories: React.FC = () => {
   const fetchCategories = async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/PlantCategories`, {
-        headers: getAuthHeaders(),
-      });
-      if (!response.ok) {
-        if (response.status === 401) throw new Error('Unauthorized: Please check login and permissions.');
-        throw new Error(`Failed to fetch categories (status: ${response.status})`);
-      }
-      const data = await response.json();
-      setCategories(data);
+      const response = await apiClient.get('/plantcategories');
+      setCategories(response.data);
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        setError('Unauthorized: Please check login and permissions.');
+      } else {
+        setError(err.response?.data?.message || err.message || 'An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -115,32 +110,24 @@ const PlantCategories: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${baseUrl}/PlantCategories`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          categoryDescription: categoryDescription
-        }),
+      const response = await apiClient.post('/plantcategories', {
+        categoryDescription: categoryDescription,
+        multiInspect: multiInspect
       });
 
-      const errorData = await response.text();
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Please check login and permissions.');
-        }
-        if (errorData.includes('already exists')) {
-          throw new Error('A category with this description already exists.');
-        }
-        throw new Error(errorData || 'Failed to create category');
-      }
-
-      const newCategory = JSON.parse(errorData);
-      setCategories(prev => [...prev, newCategory]);
+      setCategories(prev => [...prev, response.data]);
       setCategoryDescription('');
+      setMultiInspect(false);
       setDialogOpen(false);
       showSuccess('Category created successfully');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to create category');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        showError('Unauthorized: Please check login and permissions.');
+      } else if (err.response?.data?.message?.includes('already exists')) {
+        showError('A category with this description already exists.');
+      } else {
+        showError(err.response?.data?.message || err.message || 'Failed to create category');
+      }
     }
   };
 
@@ -157,37 +144,30 @@ const PlantCategories: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${baseUrl}/PlantCategories/${editingCategory.categoryID}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ...editingCategory,
-          categoryDescription
-        }),
+      await apiClient.put(`/plantcategories/${editingCategory.categoryID}`, {
+        ...editingCategory,
+        categoryDescription,
+        multiInspect
       });
-
-      const errorData = await response.text();
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Please check login and permissions.');
-        }
-        if (errorData.includes('already exists')) {
-          throw new Error('A category with this description already exists.');
-        }
-        throw new Error(errorData || 'Failed to update category');
-      }
 
       setCategories(prev => prev.map(cat => 
         cat.categoryID === editingCategory.categoryID 
-          ? { ...cat, categoryDescription: categoryDescription }
+          ? { ...cat, categoryDescription: categoryDescription, multiInspect: multiInspect }
           : cat
       ));
       setEditingCategory(null);
       setCategoryDescription('');
+      setMultiInspect(false);
       setDialogOpen(false);
       showSuccess('Category updated successfully');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to update category');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        showError('Unauthorized: Please check login and permissions.');
+      } else if (err.response?.data?.message?.includes('already exists')) {
+        showError('A category with this description already exists.');
+      } else {
+        showError(err.response?.data?.message || err.message || 'Failed to update category');
+      }
     }
   };
 
@@ -202,33 +182,32 @@ const PlantCategories: React.FC = () => {
   const handleDeleteCategory = async (): Promise<void> => {
     if (!categoryToDelete) return;
     try {
-      const response = await fetch(`${baseUrl}/PlantCategories/${categoryToDelete.categoryID}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(response.status === 401 ? 'Unauthorized' : errorData || 'Failed to delete category');
-      }
+      await apiClient.delete(`/plantcategories/${categoryToDelete.categoryID}`);
+      
       setCategories(prev => prev.filter(cat => cat.categoryID !== categoryToDelete.categoryID));
       showSuccess('Category deleted successfully');
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to delete category');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        showError('Unauthorized: Please check login and permissions.');
+      } else {
+        showError(err.response?.data?.message || err.message || 'Failed to delete category');
+      }
     }
   };
 
   const openCreateDialog = (): void => {
     setEditingCategory(null);
     setCategoryDescription('');
+    setMultiInspect(false);
     setDialogOpen(true);
   };
 
   const openEditDialog = (category: PlantCategory): void => {
     setEditingCategory(category);
     setCategoryDescription(category.categoryDescription);
+    setMultiInspect(category.multiInspect);
     setDialogOpen(true);
   };
   // Create a memoized sorted list of categories
@@ -278,12 +257,21 @@ const PlantCategories: React.FC = () => {
               flexDirection: 'row', 
               justifyContent: 'space-between',
               alignItems: 'center',
-              minHeight: '60px' // Reduced height (about 60% of original)
+              minHeight: '80px' // Increased height to accommodate multi-inspect status
             }}
           >
-            <Typography variant="body1" component="div" sx={{ fontWeight: 'medium' }}>
-              {category.categoryDescription}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+              <Typography variant="body1" component="div" sx={{ fontWeight: 'medium' }}>
+                {category.categoryDescription}
+              </Typography>
+              <Typography variant="body2" component="div" sx={{ 
+                color: category.multiInspect ? 'success.main' : 'text.secondary',
+                fontWeight: category.multiInspect ? 'medium' : 'normal',
+                fontSize: '0.75rem'
+              }}>
+                {category.multiInspect ? 'Multi-Inspection Enabled' : 'Single Inspection Only'}
+              </Typography>
+            </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>              <IconButton onClick={() => openEditDialog(category)} size="small" aria-label="edit category" color="primary">
                 <EditIcon fontSize="small" />
               </IconButton>
@@ -308,6 +296,17 @@ const PlantCategories: React.FC = () => {
             fullWidth
             value={categoryDescription}
             onChange={(e) => setCategoryDescription(e.target.value)}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={multiInspect}
+                onChange={(e) => setMultiInspect(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Enable for Multi-Inspection"
+            sx={{ mt: 2 }}
           />
         </DialogContent>
         <DialogActions>          <Button color="inherit" onClick={() => setDialogOpen(false)}>Cancel</Button>

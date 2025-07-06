@@ -22,7 +22,7 @@ export const login = async (email: string, password: string): Promise<AuthRespon
     const securePayload = PasswordSecurity.createSecureLoginPayload(email, password);
     console.log('Debug: Created secure login payload (password hidden)');
     
-    const response = await apiClient.post<AuthResponse>(`/Auth/secure-login`, securePayload);
+    const response = await apiClient.post<AuthResponse>(`/auth/secure-login`, securePayload);
     
     console.log('Debug: Login response received:', {
         hasToken: !!response.data.token,
@@ -64,7 +64,7 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 };
 
 export const register = async (userData: RegisterData): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>(`/Auth/register`, userData);
+    const response = await apiClient.post<AuthResponse>(`/auth/register`, userData);
       // Store token and user info
     if (response.data.token) {
         setAuthToken(response.data.token, undefined, response.data);
@@ -76,7 +76,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
 
 export const logout = async (): Promise<void> => {
     try {
-        await apiClient.post<void>(`/Auth/logout`);
+        await apiClient.post<void>(`/auth/logout`);
     } catch (error) {
         // If we get a 401, that's fine - the token is already invalid
         if ((error as AxiosError)?.response?.status !== 401) {
@@ -165,7 +165,7 @@ export const validateToken = async (): Promise<{ valid: boolean; user?: AuthResp
 };
 
 export const checkEmailConfirmation = async (email: string): Promise<EmailConfirmationResponse> => {
-    const response = await apiClient.get<EmailConfirmationResponse>(`/Auth/check-email-confirmation/${email}`);
+    const response = await apiClient.get<EmailConfirmationResponse>(`/auth/check-email-confirmation/${email}`);
     return response.data;
 };
 
@@ -175,5 +175,5 @@ export const getCurrentUser = async (): Promise<AuthResponse> => {
 };
 
 export const changePassword = async (passwordData: ChangePasswordData): Promise<void> => {
-    await apiClient.post('/Auth/change-password', passwordData);
+    await apiClient.post('/auth/change-password', passwordData);
 };

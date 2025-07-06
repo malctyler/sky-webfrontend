@@ -8,6 +8,7 @@ export interface Plant {
 export interface PlantCategory {
   categoryID: number;
   categoryDescription: string;
+  multiInspect: boolean;
 }
 
 export interface PlantFormData {

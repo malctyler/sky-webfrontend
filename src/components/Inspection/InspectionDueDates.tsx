@@ -29,6 +29,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
 import inspectionService from '../../services/inspectionService';
 import inspectorService from '../../services/inspectorService';
+import { toLocalISOString } from '../../utils/dateUtils';
 import { InspectionDueDate, ScheduleInspectionRequest } from '../../types/inspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
 import type { SelectChangeEvent } from '@mui/material/Select';
@@ -132,7 +133,7 @@ const InspectionDueDates: React.FC = () => {
             const request: ScheduleInspectionRequest = {
                 holdingID: selectedItem.holdingID,
                 serialNumber: selectedItem.serialNumber,
-                scheduledDate: normalizedDate.toISOString(),
+                scheduledDate: toLocalISOString(normalizedDate),
                 inspectorID: Number(selectedInspector),
                 location: location || undefined,
                 notes: notes || undefined,
@@ -376,7 +377,7 @@ const InspectionDueDates: React.FC = () => {
                                 const request: ScheduleInspectionRequest = {
                                     holdingID: selectedItem.holdingID,
                                     serialNumber: selectedItem.serialNumber,
-                                    scheduledDate: scheduledDate.toISOString(),
+                                    scheduledDate: toLocalISOString(scheduledDate),
                                     inspectorID: Number(selectedInspector),
                                     location: location || undefined,
                                     notes: notes || undefined,

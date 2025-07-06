@@ -27,6 +27,9 @@ const CustomerPlantHolding = React.lazy(() => import('./components/Customer/Cust
 const UserManagement = React.lazy(() => import('./components/UserManagement/UserManagement'));
 const Weather = React.lazy(() => import('./components/Weather/Weather'));
 const SchedulingList = React.lazy(() => import('./components/Scheduling/SchedulingList'));
+const MultiInspectionPage = React.lazy(() => import('./components/Inspection/MultiInspectionPage'));
+const ViewMultiCertificate = React.lazy(() => import('./components/Inspection/ViewMultiCertificate'));
+const SendMultiCertificate = React.lazy(() => import('./components/Inspection/SendMultiCertificate'));
 const GenerateInvoice = React.lazy(() => import('./components/Invoicing/GenerateInvoice'));
 const LedgerList = React.lazy(() => import('./components/Invoicing/Ledger/LedgerList'));
 
@@ -340,6 +343,46 @@ function App() {
                       <ProtectedRoute requireStaffOrAdmin>
                         <LazyWrapper>
                           <SchedulingList />
+                        </LazyWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/multi-inspection"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <LazyWrapper>
+                          <MultiInspectionPage />
+                        </LazyWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/multi-inspection/enter"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <LazyWrapper>
+                          <MultiInspectionPage />
+                        </LazyWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/multi-inspection/view-certificate"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <LazyWrapper>
+                          <ViewMultiCertificate />
+                        </LazyWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/multi-inspection/send-certificate"
+                    element={
+                      <ProtectedRoute requireStaffOrAdmin>
+                        <LazyWrapper>
+                          <SendMultiCertificate />
                         </LazyWrapper>
                       </ProtectedRoute>
                     }

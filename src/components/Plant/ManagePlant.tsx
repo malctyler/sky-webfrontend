@@ -96,7 +96,7 @@ const ManagePlant: React.FC = () => {
 
   const fetchCategories = async (): Promise<void> => {
     try {
-      const response = await apiClient.get('/PlantCategories');
+      const response = await apiClient.get('/plantcategories');
       console.log('Fetched categories:', response.data);
       setCategories(response.data);
     } catch (error: unknown) {

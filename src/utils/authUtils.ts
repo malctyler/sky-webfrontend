@@ -130,5 +130,14 @@ export const removeUserInfo = () => {
 
 export const getAuthHeaders = (): Record<string, string> => {
     const token = getAuthToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+    
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
 };

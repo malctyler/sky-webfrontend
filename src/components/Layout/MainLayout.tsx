@@ -41,6 +41,10 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LockIcon from '@mui/icons-material/Lock';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import AddTaskIcon from '@mui/icons-material/AddTask';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeColorOption } from '../../contexts/ThemeContext';
@@ -101,6 +105,15 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
       baseItems.push(
         { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
         { text: 'Scheduling', icon: <EventIcon />, path: '/scheduling' },
+        { 
+          text: 'Multi-Inspections', 
+          icon: <PlaylistAddCheckIcon />, 
+          subItems: [
+            { text: 'Enter-Multi', icon: <AddTaskIcon />, path: '/multi-inspection/enter' },
+            { text: 'View-Multi-Certificate', icon: <VisibilityIcon />, path: '/multi-inspection/view-certificate' },
+            { text: 'Send-Multi-Certificate', icon: <SendIcon />, path: '/multi-inspection/send-certificate' }
+          ]
+        },
         { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
       );
     }

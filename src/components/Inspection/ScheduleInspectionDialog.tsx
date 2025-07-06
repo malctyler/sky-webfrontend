@@ -18,6 +18,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { ScheduleInspectionRequest } from '../../types/inspectionTypes';
 import inspectionService from '../../services/inspectorService';
+import { toLocalISOString } from '../../utils/dateUtils';
 
 interface Inspector {
     inspectorID: number;
@@ -76,7 +77,7 @@ export const ScheduleInspectionDialog: React.FC<Props> = ({
         try {
             await onSubmit({
                 serialNumber,
-                scheduledDate: scheduledDate.toISOString(),
+                scheduledDate: toLocalISOString(scheduledDate),
                 inspectorID: inspectorID as number,
                 notes: notes.trim() || undefined
             });

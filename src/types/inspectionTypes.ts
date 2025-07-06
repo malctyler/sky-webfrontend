@@ -168,3 +168,71 @@ export interface ScheduledInspectionDto {
     scheduledDate: string;
     status: string;
 }
+
+// Multi-inspection types
+export interface MultiInspectionItem {
+    holdingID: number;
+    plantDescription?: string;
+    serialNumber?: string;
+    swl?: string; // Safe Working Load
+    statusDescription?: string;
+    defects?: string; // Editable per item
+    included: boolean; // Boolean per item
+    custID?: number;
+    categoryDescription?: string;
+    statusID?: number;
+}
+
+export interface MultiInspectionRequest {
+    customerId: number;
+    categoryIds: number[];
+}
+
+export interface CreateMultiInspection {
+    customerId: number;
+    inspectorID: number;
+    inspectionDate: string;
+    location?: string;
+    latestDate?: string; // Made optional
+    testDetails?: string;
+    miscNotes?: string;
+    items: MultiInspectionItemCreate[];
+}
+
+export interface MultiInspectionItemCreate {
+    holdingID: number;
+    defects?: string;
+    recentCheck?: string;
+    previousCheck?: string;
+    safeWorking?: string;
+    rectified?: string;
+    included: boolean; // Whether this item should be included in the inspection
+}
+
+export interface MultiInspectionCertificate {
+    inspectionDate: string;
+    location?: string;
+    inspectorName?: string;
+    inspectorSignature?: string;
+    testDetails?: string;
+    miscNotes?: string;
+    items: {
+        plantDescription: string;
+        serialNumber: string;
+        location?: string;
+        safeWorking: string;
+        defects: string;
+    }[];
+    companyName?: string;
+    contactTitle?: string;
+    contactFirstNames?: string;
+    contactSurname?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    county?: string;
+    postcode?: string;
+}
+
+export type MultiInspectionItemsResponse = ApiResponse<MultiInspectionItem[]>;
+export type CreateMultiInspectionResponse = ApiResponse<InspectionItem[]>;

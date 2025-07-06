@@ -18,7 +18,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
-import { datePickerConfig } from '../../utils/dateUtils';
+import { datePickerConfig, toLocalISOString } from '../../utils/dateUtils';
 import inspectorService from '../../services/inspectorService';
 import { ScheduledInspection } from '../../types/scheduledInspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
@@ -79,7 +79,7 @@ const ScheduleEditDialog: React.FC<Props> = ({ open, onClose, onSave, inspection
     try {
       await onSave({
         ...inspection,
-        scheduledDate: scheduledDate.toISOString(),
+        scheduledDate: toLocalISOString(scheduledDate),
         inspectorID: Number(selectedInspector),
         location,
         notes,
