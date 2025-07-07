@@ -330,11 +330,18 @@ const CustomerSummary: React.FC = () => {
     if (!custId || !editingCustomer) return;
     
     try {
+      console.log('Updating customer with data:', editingCustomer);
       await customerService.update(parseInt(custId), editingCustomer);
       setCustomer(editingCustomer);
       setEditDialogOpen(false);
       showSuccess('Customer updated successfully');
     } catch (error: unknown) {
+      console.error('Customer update error:', error);
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        console.error('Error response:', axiosError.response?.data);
+        console.error('Error status:', axiosError.response?.status);
+      }
       handleError(error);
     }
   };
