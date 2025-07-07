@@ -104,7 +104,7 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
     if (hasRole('Staff') || hasRole('Admin')) {
       baseItems.push(
         { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
-        { text: 'Scheduling', icon: <EventIcon />, path: '/scheduling' },
+        { text: 'Scheduled', icon: <EventIcon />, path: '/scheduled' },
         { 
           text: 'Multi-Inspections', 
           icon: <PlaylistAddCheckIcon />, 

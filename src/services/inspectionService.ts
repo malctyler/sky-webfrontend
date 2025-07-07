@@ -136,7 +136,7 @@ const getInspectionDueDates = async (): Promise<InspectionDueDatesResponse> => {
 
 const scheduleInspection = async (request: ScheduleInspectionRequest): Promise<void> => {
     if (!request.holdingID) {
-        throw new Error('HoldingID is required for scheduling an inspection');
+        throw new Error('HoldingID is required for scheduled an inspection');
     }
 
     // Convert the scheduled date using our safe conversion method

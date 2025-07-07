@@ -81,7 +81,7 @@ const InspectionDueDates: React.FC = () => {
     }, [isScheduleDialogOpen]);
 
     const handleScheduleClick = (item: InspectionDueDate) => {
-        console.log('Selected item for scheduling:', item);
+        console.log('Selected item for scheduled:', item);
         setSelectedItem(item);
         setIsScheduleDialogOpen(true);
         // Set initial date to start of next day to avoid timezone issues
@@ -125,7 +125,7 @@ const InspectionDueDates: React.FC = () => {
 
         try {
             setError(null);
-            console.log('Selected item before scheduling:', selectedItem);
+            console.log('Selected item before scheduled:', selectedItem);
             
             // Ensure we're using the start of the selected day
             const normalizedDate = startOfDay(scheduledDate);
@@ -164,7 +164,7 @@ const InspectionDueDates: React.FC = () => {
             console.error('Error in handleScheduleInspection:', err);
             const errorMessage = err instanceof Error 
                 ? err.message 
-                : 'An error occurred while scheduling the inspection. Please try again.';
+                : 'An error occurred while scheduled the inspection. Please try again.';
             setError(errorMessage);
         }
     };
@@ -395,7 +395,7 @@ const InspectionDueDates: React.FC = () => {
                                 console.error('Error in force schedule inspection:', err);
                                 const errorMessage = err instanceof Error 
                                     ? err.message 
-                                    : 'An error occurred while scheduling the inspection.';
+                                    : 'An error occurred while scheduled the inspection.';
                                 setError(errorMessage);
                             }
                         }}

@@ -26,7 +26,7 @@ const CertificatePage = React.lazy(() => import('./components/Inspection/Certifi
 const CustomerPlantHolding = React.lazy(() => import('./components/Customer/CustomerPlantHolding'));
 const UserManagement = React.lazy(() => import('./components/UserManagement/UserManagement'));
 const Weather = React.lazy(() => import('./components/Weather/Weather'));
-const SchedulingList = React.lazy(() => import('./components/Scheduling/SchedulingList'));
+const ScheduledList = React.lazy(() => import('./components/Scheduled/ScheduledList'));
 const MultiInspectionPage = React.lazy(() => import('./components/Inspection/MultiInspectionPage'));
 const ViewMultiCertificate = React.lazy(() => import('./components/Inspection/ViewMultiCertificate'));
 const SendMultiCertificate = React.lazy(() => import('./components/Inspection/SendMultiCertificate'));
@@ -338,11 +338,11 @@ function App() {
                     }
                   />
                   <Route
-                    path="/scheduling"
+                    path="/scheduled"
                     element={
                       <ProtectedRoute requireStaffOrAdmin>
                         <LazyWrapper>
-                          <SchedulingList />
+                          <ScheduledList />
                         </LazyWrapper>
                       </ProtectedRoute>
                     }
