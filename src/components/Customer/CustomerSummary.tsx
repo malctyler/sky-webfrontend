@@ -36,9 +36,9 @@ import {
 import styles from './CustomerSummary.module.css';
 import InspectionList from '../Inspection/InspectionList';
 import MuiAlert from '@mui/material/Alert';
-import axios from 'axios';
-import { baseUrl } from '../../config';
-import { getAuthHeaders } from '../../utils/authUtils';
+import { customerService } from '../../services/customerService';
+import plantHoldingService from '../../services/plantHoldingService';
+import apiClient from '../../services/apiClient';
 import { Customer, SnackbarState, Note } from '../../types/customerTypes';
 import { PlantHolding, NewPlantHolding, NewPlantHoldingForm, Plant, Status } from '../../types/plantholdingTypes';
 
@@ -102,13 +102,13 @@ const CustomerSummary: React.FC = () => {
   };
   const fetchCustomerAndNotes = useCallback(async () => {
     try {
-      const headers = getAuthHeaders();
-      const [customerResponse, notesResponse] = await Promise.all([
-        axios.get(`${baseUrl}/Customers/${custId}`, { headers }),
-        axios.get(`${baseUrl}/Notes`, { headers })
+      if (!custId) return;
+      
+      const [customerData, notesData] = await Promise.all([
+        customerService.getById(parseInt(custId)),
+        apiClient.get('/Notes').then(response => response.data)
       ]);
-      const customerData = customerResponse.data;
-      const notesData = notesResponse.data;
+      
       setCustomer(customerData);
       setEditingCustomer(customerData);
       const filteredNotes = notesData
@@ -127,19 +127,18 @@ const CustomerSummary: React.FC = () => {
   }, [custId]);
     const fetchPlantHoldings = useCallback(async () => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.get(`${baseUrl}/PlantHolding/customer/${custId}`, { headers });
-      setPlantHoldings(response.data);
+      if (!custId) return;
+      const response = await plantHoldingService.getByCustomerId(custId);
+      setPlantHoldings(response);
     } catch (err: unknown) {
       handleError(err);
     }
   }, [custId]);
     const fetchPlantAndStatusOptions = useCallback(async () => {
     try {
-      const headers = getAuthHeaders();
       const [plantResponse, statusesResponse] = await Promise.all([
-        axios.get(`${baseUrl}/AllPlant`, { headers }),
-        axios.get(`${baseUrl}/Status`, { headers })
+        apiClient.get('/AllPlant'),
+        apiClient.get('/Status')
       ]);
       setAllplant(plantResponse.data);
       setAllStatuses(statusesResponse.data);
@@ -192,35 +191,35 @@ const CustomerSummary: React.FC = () => {
       serialNumber: '',
       statusID: '',
       swl: '',
-      inspectionFrequency: '3' // Default to 3 months
+      inspectionFrequency: '3', // Default to 3 months
+      inspectionFee: '75' // Default to £75
     });
   };
   // Customer actions
-  const handleDeleteCustomer = () => {
+  const handleDeleteCustomer = async () => {
     if (!custId) return;
     
-    const headers = getAuthHeaders();
-    axios.delete(`${baseUrl}/Customers/${custId}`, { headers })
-      .then(() => {
-        showSuccess('Customer deleted successfully');
-        setDeleteCustomerDialog(false);
-        setTimeout(() => {
-          navigate('/customers');
-        }, 1000);
-      })
-      .catch((error: unknown) => {
-        handleError(error);
-      });
+    try {
+      await customerService.delete(parseInt(custId));
+      showSuccess('Customer deleted successfully');
+      setDeleteCustomerDialog(false);
+      setTimeout(() => {
+        navigate('/customers');
+      }, 1000);
+    } catch (error: unknown) {
+      handleError(error);
+    }
   };
   // Note actions
   const handleCreateNote = async () => {
-    if (!custId) return;    try {
-      const headers = getAuthHeaders();
-      const response = await axios.post(`${baseUrl}/Notes`, {
+    if (!custId) return;
+    
+    try {
+      const response = await apiClient.post('/Notes', {
         custID: parseInt(custId),
         date: new Date().toISOString(),
         notes: newNoteText
-      }, { headers });
+      });
       const newNote = response.data;
       setNotes(prev => [newNote, ...prev]);
       setNoteDialogOpen(false);
@@ -233,11 +232,10 @@ const CustomerSummary: React.FC = () => {
   const handleUpdateNote = async () => {
     if (!editingNote) return;
     try {
-      const headers = getAuthHeaders();
-      await axios.put(`${baseUrl}/Notes/${editingNote.noteID}`, {
+      await apiClient.put(`/Notes/${editingNote.noteID}`, {
         ...editingNote,
         notes: newNoteText
-      }, { headers });
+      });
       setNotes(prev => prev.map(note => 
         note.noteID === editingNote.noteID 
           ? { ...note, notes: newNoteText }
@@ -249,13 +247,14 @@ const CustomerSummary: React.FC = () => {
       showSuccess('Note updated successfully');
     } catch (error) {
       handleError(error);
-    }  };
+    }
+  };
 
   // Plant holding management
   const handleCreatePlantHolding = async () => {
     if (!custId) return;
     try {
-      const headers = getAuthHeaders();      const apiPayload: NewPlantHolding = {
+      const apiPayload: NewPlantHolding = {
         custID: parseInt(custId),
         plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
         serialNumber: newPlantHolding.serialNumber,
@@ -264,7 +263,7 @@ const CustomerSummary: React.FC = () => {
         inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency),
         inspectionFee: parseFloat(newPlantHolding.inspectionFee)
       };
-      const response = await axios.post(`${baseUrl}/PlantHolding`, apiPayload, { headers });
+      const response = await apiClient.post('/PlantHolding', apiPayload);
       const newHolding = response.data;
       setPlantHoldings(prev => [...prev, newHolding]);
       setPlantHoldingDialogOpen(false);
@@ -272,12 +271,13 @@ const CustomerSummary: React.FC = () => {
       showSuccess('Plant holding created successfully');
     } catch (error: unknown) {
       handleError(error);
-    }  };
+    }
+  };
 
   const handleUpdatePlantHolding = async () => {
     if (!editingPlantHolding || !custId) return;
     try {
-      const headers = getAuthHeaders();      const apiPayload: NewPlantHolding = {
+      const apiPayload: NewPlantHolding = {
         custID: parseInt(custId),
         plantNameID: newPlantHolding.plantNameID ? parseInt(newPlantHolding.plantNameID) : null,
         serialNumber: newPlantHolding.serialNumber,
@@ -286,7 +286,7 @@ const CustomerSummary: React.FC = () => {
         inspectionFrequency: parseInt(newPlantHolding.inspectionFrequency),
         inspectionFee: parseFloat(newPlantHolding.inspectionFee)
       };
-      const response = await axios.put(`${baseUrl}/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload, { headers });
+      const response = await apiClient.put(`/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload);
       const updatedHolding = response.data;
       setPlantHoldings(prev => prev.map(holding => 
         holding.holdingID === editingPlantHolding.holdingID ? updatedHolding : holding
@@ -326,24 +326,22 @@ const CustomerSummary: React.FC = () => {
       ...prev,
       [name]: value || ''
     }));
-  };  const handleCustomerUpdate = () => {
+  };  const handleCustomerUpdate = async () => {
     if (!custId || !editingCustomer) return;
     
-    const headers = getAuthHeaders();
-    axios.put(`${baseUrl}/Customers/${custId}`, editingCustomer, { headers })
-      .then(() => {
-        setCustomer(editingCustomer);
-        setEditDialogOpen(false);
-        showSuccess('Customer updated successfully');
-      })
-      .catch((error: unknown) => {
-        handleError(error);
-      });
+    try {
+      await customerService.update(parseInt(custId), editingCustomer);
+      setCustomer(editingCustomer);
+      setEditDialogOpen(false);
+      showSuccess('Customer updated successfully');
+    } catch (error: unknown) {
+      handleError(error);
+    }
   };
   const handleDeleteNote = async () => {
     if (!noteToDelete) return;
     try {
-      await axios.delete(`${baseUrl}/Notes/${noteToDelete.noteID}`);
+      await apiClient.delete(`/Notes/${noteToDelete.noteID}`);
       setNotes(prev => prev.filter(n => n.noteID !== noteToDelete.noteID));
       setDeleteNoteDialog(false);
       setNoteToDelete(null);
@@ -360,8 +358,7 @@ const CustomerSummary: React.FC = () => {
   const handleDeletePlantHolding = async () => {
     if (!holdingToDelete) return;
     try {
-      const headers = getAuthHeaders();
-      await axios.delete(`${baseUrl}/PlantHolding/${holdingToDelete.holdingID}`, { headers });
+      await apiClient.delete(`/PlantHolding/${holdingToDelete.holdingID}`);
       setPlantHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
       setDeleteHoldingDialog(false);
       setHoldingToDelete(null);

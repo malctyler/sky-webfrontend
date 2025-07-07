@@ -35,7 +35,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "check-axios": "grep -r \"import.*axios\" src/ --include=\"*.ts\" --include=\"*.tsx\" --exclude=\"src/services/apiClient.ts\" --exclude=\"src/services/apiClient.d.ts\" || echo \"✅ No direct axios imports found outside apiClient\"",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint:fix": "eslint src/ --ext .ts,.tsx --fix"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.27.1",
