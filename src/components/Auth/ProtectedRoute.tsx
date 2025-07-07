@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // If user is a customer, they can only access their own plant holdings and weather
     if (user.isCustomer) {
-        const allowedPaths = ['/plant-holding', '/weather'];
+        const allowedPaths = ['/plant-holding', '/auxiliary-holding', '/weather'];
         const currentPath = window.location.pathname;
     
         if (!allowedPaths.includes(currentPath)) {

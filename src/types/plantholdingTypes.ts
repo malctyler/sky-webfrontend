@@ -34,6 +34,13 @@ export interface NewPlantHoldingForm {
 export interface Plant {
   plantNameID: number;
   plantDescription: string;
+  plantCategory?: number;
+}
+
+export interface PlantCategory {
+  categoryID: number;
+  categoryDescription: string;
+  multiInspect: boolean;
 }
 
 export interface Status {

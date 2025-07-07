@@ -40,7 +40,7 @@ import { customerService } from '../../services/customerService';
 import plantHoldingService from '../../services/plantHoldingService';
 import apiClient from '../../services/apiClient';
 import { Customer, SnackbarState, Note } from '../../types/customerTypes';
-import { PlantHolding, NewPlantHolding, NewPlantHoldingForm, Plant, Status } from '../../types/plantholdingTypes';
+import { PlantHolding, NewPlantHolding, NewPlantHoldingForm, Plant, PlantCategory, Status } from '../../types/plantholdingTypes';
 
 type RouterParams = {
   [key: string]: string | undefined;
@@ -60,6 +60,7 @@ const CustomerSummary: React.FC = () => {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [plantHoldings, setPlantHoldings] = useState<PlantHolding[]>([]);
+  const [auxiliaryHoldings, setAuxiliaryHoldings] = useState<PlantHolding[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,11 +126,43 @@ const CustomerSummary: React.FC = () => {
       setLoading(false);
     }
   }, [custId]);
-    const fetchPlantHoldings = useCallback(async () => {
+  const fetchPlantHoldings = useCallback(async () => {
     try {
       if (!custId) return;
       const response = await plantHoldingService.getByCustomerId(custId);
-      setPlantHoldings(response);
+      
+      // Fetch plant categories to determine which holdings are auxiliary
+      const categoriesResponse = await apiClient.get('/PlantCategories');
+      const categories: PlantCategory[] = categoriesResponse.data;
+      
+      // Fetch all plants to get category information
+      const plantsResponse = await apiClient.get('/AllPlant');
+      const plants: Plant[] = plantsResponse.data;
+      
+      // Create a mapping of plant ID to category
+      const plantCategoryMap = new Map<number, PlantCategory>();
+      plants.forEach((plant: Plant) => {
+        const category = categories.find((cat: PlantCategory) => cat.categoryID === plant.plantCategory);
+        if (category) {
+          plantCategoryMap.set(plant.plantNameID, category);
+        }
+      });
+      
+      // Separate holdings based on category multiInspect flag
+      const regularHoldings: PlantHolding[] = [];
+      const auxHoldings: PlantHolding[] = [];
+      
+      response.forEach((holding: PlantHolding) => {
+        const category = plantCategoryMap.get(holding.plantNameID || 0);
+        if (category && category.multiInspect) {
+          auxHoldings.push(holding);
+        } else {
+          regularHoldings.push(holding);
+        }
+      });
+      
+      setPlantHoldings(regularHoldings);
+      setAuxiliaryHoldings(auxHoldings);
     } catch (err: unknown) {
       handleError(err);
     }
@@ -561,6 +594,69 @@ const CustomerSummary: React.FC = () => {
     </Dialog>
   );
 
+  const renderHoldingsTable = (holdings: PlantHolding[], sectionTitle: string) => (
+    <div className="plant-holdings-section">
+      <div className="section-header">
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={openCreatePlantHoldingDialog}
+        >
+          Add Plant Holding
+        </Button>
+      </div>
+      <TableContainer component={Paper} className="holdings-table">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Plant Name</TableCell>
+              <TableCell>Serial Number</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>SWL</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {holdings.map(holding => (
+              <React.Fragment key={holding.holdingID}>
+                <TableRow>
+                  <TableCell>{holding.plantDescription || 'N/A'}</TableCell>
+                  <TableCell>{holding.serialNumber}</TableCell>
+                  <TableCell>{holding.statusDescription || 'N/A'}</TableCell>
+                  <TableCell>{holding.swl}</TableCell>
+                  <TableCell align="right">
+                    <IconButton size="small" onClick={() => toggleHoldingExpand(holding.holdingID)} color="primary">
+                      {expandedHolding === holding.holdingID ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                    <IconButton size="small" onClick={() => openEditPlantHoldingDialog(holding)} color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton size="small" color="error" onClick={() => openDeleteHoldingDialog(holding)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell colSpan={5} style={{ paddingBottom: 0, paddingTop: 0 }}>
+                    <Collapse in={expandedHolding === holding.holdingID} timeout="auto" unmountOnExit>
+                      <div className="p-4 w-full">
+                        <InspectionList holdingId={holding.holdingID} />
+                      </div>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {holdings.length === 0 && (
+        <p className="no-holdings">No {sectionTitle.toLowerCase()} found for this customer.</p>
+      )}
+    </div>
+  );
+
   const renderPlantHoldingDialog = () => (
     <Dialog open={plantHoldingDialogOpen} onClose={handleDialogClose}>
       <DialogTitle>
@@ -704,6 +800,7 @@ const CustomerSummary: React.FC = () => {
         <Tab label="Customer Details" />
         <Tab label={`Notes (${notes.length})`} />
         <Tab label={`Plant Holdings (${plantHoldings.length})`} />
+        <Tab label={`Auxiliary Holdings (${auxiliaryHoldings.length})`} />
       </Tabs>
 
       <div className={styles['tab-content']}>
@@ -729,67 +826,10 @@ const CustomerSummary: React.FC = () => {
             </div>
         ) : activeTab === 1 ? (
           renderNotes()
+        ) : activeTab === 2 ? (
+          renderHoldingsTable(plantHoldings, "Plant Holdings")
         ) : (
-          <div className="plant-holdings-section">
-            <div className="section-header">
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={openCreatePlantHoldingDialog}
-              >
-                Add Plant Holding
-              </Button>
-            </div>
-            <TableContainer component={Paper} className="holdings-table">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Plant Name</TableCell>
-                    <TableCell>Serial Number</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>SWL</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {plantHoldings.map(holding => (
-                    <React.Fragment key={holding.holdingID}>
-                      <TableRow>
-                        <TableCell>{holding.plantDescription || 'N/A'}</TableCell>
-                        <TableCell>{holding.serialNumber}</TableCell>
-                        <TableCell>{holding.statusDescription || 'N/A'}</TableCell>
-                        <TableCell>{holding.swl}</TableCell>
-                        <TableCell align="right">
-                          <IconButton size="small" onClick={() => toggleHoldingExpand(holding.holdingID)} color="primary">
-                            {expandedHolding === holding.holdingID ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                          </IconButton>
-                          <IconButton size="small" onClick={() => openEditPlantHoldingDialog(holding)} color="primary">
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton size="small" color="error" onClick={() => openDeleteHoldingDialog(holding)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={5} style={{ paddingBottom: 0, paddingTop: 0 }}>
-                          <Collapse in={expandedHolding === holding.holdingID} timeout="auto" unmountOnExit>
-                            <div className="p-4 w-full">
-                              <InspectionList holdingId={holding.holdingID} />
-                            </div>
-                          </Collapse>
-                        </TableCell>
-                      </TableRow>
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            {plantHoldings.length === 0 && (
-              <p className="no-holdings">No plant holdings found for this customer.</p>
-            )}
-          </div>
+          renderHoldingsTable(auxiliaryHoldings, "Auxiliary Holdings")
         )}
       </div>
 

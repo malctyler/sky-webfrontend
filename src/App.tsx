@@ -24,6 +24,7 @@ const PlantCategories = React.lazy(() => import('./components/Plant/PlantCategor
 const ManagePlant = React.lazy(() => import('./components/Plant/ManagePlant'));
 const CertificatePage = React.lazy(() => import('./components/Inspection/CertificatePage'));
 const CustomerPlantHolding = React.lazy(() => import('./components/Customer/CustomerPlantHolding'));
+const CustomerAuxiliaryHolding = React.lazy(() => import('./components/Customer/CustomerAuxiliaryHolding'));
 const UserManagement = React.lazy(() => import('./components/UserManagement/UserManagement'));
 const Weather = React.lazy(() => import('./components/Weather/Weather'));
 const ScheduledList = React.lazy(() => import('./components/Scheduled/ScheduledList'));
@@ -78,7 +79,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If the user is a customer, only allow access to specific routes
   if (user.isCustomer) {
-    const allowedCustomerPaths = ['/plant-holding', '/home'];
+    const allowedCustomerPaths = ['/plant-holding', '/auxiliary-holding', '/home'];
     if (!allowedCustomerPaths.includes(currentPath)) {
       return <Navigate to="/plant-holding" replace state={{ from: currentPath }} />;
     }
@@ -305,6 +306,11 @@ function App() {
                   <Route path="/plant-holding" element={
                     <LazyWrapper>
                       <CustomerPlantHolding />
+                    </LazyWrapper>
+                  } />
+                  <Route path="/auxiliary-holding" element={
+                    <LazyWrapper>
+                      <CustomerAuxiliaryHolding />
                     </LazyWrapper>
                   } />
                   <Route

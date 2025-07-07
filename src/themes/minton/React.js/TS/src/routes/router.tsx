@@ -116,7 +116,7 @@ const AppRouter = () => {
 
         // Customer access restrictions
         if (user.isCustomer) {
-            const allowedPaths = ['/plant-holding', '/weather'];
+            const allowedPaths = ['/plant-holding', '/auxiliary-holding', '/weather'];
             if (!allowedPaths.includes(route.path)) {
                 return <Navigate to="/plant-holding" replace />;
             }

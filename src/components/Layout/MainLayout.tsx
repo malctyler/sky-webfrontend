@@ -95,7 +95,8 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
 
   if (user?.isCustomer) {
     baseItems.push(
-      { text: 'My Plant Holdings', icon: <CategoryIcon />, path: '/plant-holding' }
+      { text: 'My Plant Holdings', icon: <CategoryIcon />, path: '/plant-holding' },
+      { text: 'My Auxiliary Holdings', icon: <PlaylistAddCheckIcon />, path: '/auxiliary-holding' }
     );
   }
 
