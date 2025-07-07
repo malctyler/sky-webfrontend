@@ -44,7 +44,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeColorOption } from '../../contexts/ThemeContext';
@@ -110,8 +109,7 @@ const getMenuItems = (user: AuthUser | null, hasRole: (role: string) => boolean)
           icon: <PlaylistAddCheckIcon />, 
           subItems: [
             { text: 'Enter-Multi', icon: <AddTaskIcon />, path: '/multi-inspection/enter' },
-            { text: 'View-Multi-Certificate', icon: <VisibilityIcon />, path: '/multi-inspection/view-certificate' },
-            { text: 'Send-Multi-Certificate', icon: <SendIcon />, path: '/multi-inspection/send-certificate' }
+            { text: 'Generate-Multi-Certificate', icon: <VisibilityIcon />, path: '/multi-inspection/view-certificate' }
           ]
         },
         { text: 'Weather', icon: <CloudIcon />, path: '/weather' }
