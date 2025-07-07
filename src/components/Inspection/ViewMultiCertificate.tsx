@@ -9,8 +9,14 @@ import {
     MenuItem, 
     Button,
     CircularProgress,
-    Alert
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions
 } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -19,6 +25,7 @@ import { Customer } from '../../types/customerTypes';
 import { MultiInspectionCertificate } from '../../types/inspectionTypes';
 import customerService from '../../services/customerService';
 import MultiInspectionService from '../../services/multiInspectionService';
+import inspectionService from '../../services/inspectionService';
 import { generateMultiInspectionPdfBlob } from './MultiInspectionCertificateTemplate';
 import { toLocalISOString, datePickerConfig } from '../../utils/dateUtils';
 
@@ -31,6 +38,8 @@ const ViewMultiCertificate: React.FC = () => {
     const [certificateData, setCertificateData] = useState<MultiInspectionCertificate | null>(null);
     const [pdfGenerating, setPdfGenerating] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
+    const [sendDialogOpen, setSendDialogOpen] = useState(false);
+    const [sending, setSending] = useState(false);
 
     useEffect(() => {
         loadCustomers();
@@ -133,6 +142,35 @@ const ViewMultiCertificate: React.FC = () => {
         }
     };
 
+    const handleSendConfirm = async () => {
+        if (!certificateData) return;
+
+        setSending(true);
+        try {
+            // Create a unique identifier for this multi-inspection using customer ID and date
+            const multiInspectionId = `multi_${selectedCustomer}_${toLocalISOString(selectedDate!).split('T')[0].replace(/-/g, '')}`;
+            
+            // Send certificate using the multi-inspection identifier
+            // The backend will generate and send the PDF internally
+            await inspectionService.emailCertificate(multiInspectionId);
+            
+            setSendDialogOpen(false);
+            setError(null);
+            // You could add a success message here if you have a snackbar
+            console.log('Multi-inspection certificate sent successfully');
+        } catch (error) {
+            console.error('Error sending multi-inspection certificate:', error);
+            setError('Failed to send certificate. Please try again.');
+            setSendDialogOpen(false);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleSendCancel = () => {
+        setSendDialogOpen(false);
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
             <Box sx={{ p: 3 }}>
@@ -214,17 +252,59 @@ const ViewMultiCertificate: React.FC = () => {
                                     Error generating PDF: {pdfError}
                                 </Alert>
                             ) : (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleGenerateAndOpenPdf}
-                                >
-                                    Open Certificate in New Tab
-                                </Button>
+                                <Box sx={{ display: 'flex', gap: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={handleGenerateAndOpenPdf}
+                                    >
+                                        Open Certificate in New Tab
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        onClick={() => setSendDialogOpen(true)}
+                                        startIcon={<SendIcon />}
+                                    >
+                                        Send Certificate to Customer
+                                    </Button>
+                                </Box>
                             )}
                         </Box>
                     )}
                 </Paper>
+
+                {/* Send Certificate Confirmation Dialog */}
+                <Dialog
+                    open={sendDialogOpen}
+                    onClose={handleSendCancel}
+                    aria-labelledby="send-dialog-title"
+                    aria-describedby="send-dialog-description"
+                >
+                    <DialogTitle id="send-dialog-title">
+                        Send Certificate to Customer
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="send-dialog-description">
+                            This will send the multi-inspection certificate to the customer via email. 
+                            Are you sure you want to proceed?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleSendCancel} color="primary">
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleSendConfirm} 
+                            color="primary" 
+                            variant="contained"
+                            disabled={sending}
+                            startIcon={sending ? <CircularProgress size={20} /> : <SendIcon />}
+                        >
+                            {sending ? 'Sending...' : 'Send Certificate'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
         </LocalizationProvider>
     );
