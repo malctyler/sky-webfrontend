@@ -31,6 +31,13 @@ const getStatusColor = (status: string) => {
 };
 
 export const InspectionDueDatesTable: React.FC<Props> = ({ dueDates, onScheduleClick }) => {
+    // Sort by due date - soonest first
+    const sortedDueDates = [...dueDates].sort((a, b) => {
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+        return dateA.getTime() - dateB.getTime();
+    });
+
     return (
         <TableContainer>
             <Table size="small">
@@ -47,7 +54,7 @@ export const InspectionDueDatesTable: React.FC<Props> = ({ dueDates, onScheduleC
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {dueDates.map((item) => {
+                    {sortedDueDates.map((item) => {
                         const today = new Date();
                         const dueDate = new Date(item.dueDate);
                         const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
