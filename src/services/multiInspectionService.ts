@@ -53,6 +53,29 @@ export class MultiInspectionService {
         const response = await apiClient.get(`/multiinspection/completed/${customerId}/${inspectionDate}`);
         return response.data.data || response.data;
     }
+
+    /**
+     * Send multi-inspection certificate via email
+     */
+    static async emailMultiCertificate(pdfFile: File, customerEmail?: string): Promise<boolean> {
+        try {
+            const formData = new FormData();
+            formData.append('pdf', pdfFile, pdfFile.name);
+            if (customerEmail) {
+                formData.append('email', customerEmail);
+            }
+
+            await apiClient.post('/multiinspection/email', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error('Error sending multi-inspection certificate:', error);
+            return false;
+        }
+    }
 }
 
 export default MultiInspectionService;

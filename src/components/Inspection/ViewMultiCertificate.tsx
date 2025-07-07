@@ -25,7 +25,6 @@ import { Customer } from '../../types/customerTypes';
 import { MultiInspectionCertificate } from '../../types/inspectionTypes';
 import customerService from '../../services/customerService';
 import MultiInspectionService from '../../services/multiInspectionService';
-import inspectionService from '../../services/inspectionService';
 import { generateMultiInspectionPdfBlob } from './MultiInspectionCertificateTemplate';
 import { toLocalISOString, datePickerConfig } from '../../utils/dateUtils';
 
@@ -147,16 +146,22 @@ const ViewMultiCertificate: React.FC = () => {
 
         setSending(true);
         try {
-            // Create a unique identifier for this multi-inspection using customer ID and date
-            const multiInspectionId = `multi_${selectedCustomer}_${toLocalISOString(selectedDate!).split('T')[0].replace(/-/g, '')}`;
+            // Generate the PDF blob
+            const blob = await generateMultiInspectionPdfBlob(certificateData);
             
-            // Send certificate using the multi-inspection identifier
-            // The backend will generate and send the PDF internally
-            await inspectionService.emailCertificate(multiInspectionId);
+            // Convert blob to File for the email service
+            const filename = `multi-certificate-${certificateData.companyName || 'unknown'}-${certificateData.inspectionDate}.pdf`;
+            const file = new File([blob], filename, { type: 'application/pdf' });
+            
+            // Use the multi-inspection email service
+            const success = await MultiInspectionService.emailMultiCertificate(file);
+            
+            if (!success) {
+                throw new Error('Failed to send multi-inspection certificate');
+            }
             
             setSendDialogOpen(false);
             setError(null);
-            // You could add a success message here if you have a snackbar
             console.log('Multi-inspection certificate sent successfully');
         } catch (error) {
             console.error('Error sending multi-inspection certificate:', error);
