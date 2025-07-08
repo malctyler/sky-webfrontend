@@ -8,7 +8,7 @@ import { InspectionItem } from '../../types/inspectionTypes';
 import { Customer } from '../../types/customerTypes';
 import inspectionService from '../../services/inspectionService';
 import customerService from '../../services/customerService';
-import { MultiInspectionService } from '../../services/multiInspectionService';
+import plantHoldingService from '../../services/plantHoldingService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -108,46 +108,19 @@ const CustomerAuxiliaryHolding: React.FC = () => {
       
       console.log('CustomerAuxiliaryHolding: Starting to fetch auxiliary holdings for customer:', customerId);
       
-      // First, get categories with holdings for this customer (auxiliary categories only)
-      const auxiliaryCategories = await MultiInspectionService.getCategoriesWithHoldingsByCustomer(Number(customerId));
-      console.log('CustomerAuxiliaryHolding: Got auxiliary categories:', auxiliaryCategories);
+      // Get all holdings for this customer and filter for auxiliary ones
+      const holdingsData = await plantHoldingService.getByCustomerId(customerId);
       
-      // Create a set of auxiliary category IDs for quick lookup
-      const auxiliaryCategoryIds = new Set(auxiliaryCategories.map((cat: any) => cat.categoryID));
+      // Filter to only show auxiliary holdings (those with multiInspect = true)
+      const filteredHoldings = holdingsData.filter(holding => holding.multiInspect);
+      console.log('CustomerAuxiliaryHolding: Filtered from', holdingsData.length, 'to', filteredHoldings.length, 'auxiliary holdings');
       
-      // Filter holdings to only include those with auxiliary categories
-      // Since we can't directly check the plant category from the holding object,
-      // we'll need to use the MultiInspectionService to get the filtered items
-      if (auxiliaryCategoryIds.size > 0) {
-        console.log('CustomerAuxiliaryHolding: Found auxiliary categories, fetching items...');
-        const categoryIdsArray = Array.from(auxiliaryCategoryIds) as number[];
-        const auxiliaryItems = await MultiInspectionService.getMultiInspectionItems({
-          customerId: Number(customerId),
-          categoryIds: categoryIdsArray
-        });
-        
-        console.log('CustomerAuxiliaryHolding: Got auxiliary items:', auxiliaryItems);
-        
-        // Convert MultiInspectionItems back to PlantHolding format
-        const filteredHoldings = auxiliaryItems.map(item => ({
-          holdingID: item.holdingID,
-          custID: item.custID,
-          plantNameID: item.holdingID, // Using holdingID as identifier
-          plantDescription: item.plantDescription,
-          serialNumber: item.serialNumber,
-          statusID: item.statusID,
-          statusDescription: item.statusDescription,
-          swl: item.swl,
-          inspectionFrequency: 12, // Default value
-          inspectionFee: 75 // Default value
-        }));
-        
-        if (!mounted) return;
-        
-        console.log('CustomerAuxiliaryHolding: Processing', filteredHoldings.length, 'auxiliary holdings');
-        
-        const enhancedHoldings: PlantHoldingWithInspection[] = await Promise.all(
-          filteredHoldings.map(async (holding: PlantHolding) => {
+      if (!mounted) return;
+      
+      console.log('CustomerAuxiliaryHolding: Processing', filteredHoldings.length, 'auxiliary holdings');
+      
+      const enhancedHoldings: PlantHoldingWithInspection[] = await Promise.all(
+        filteredHoldings.map(async (holding: PlantHolding) => {
             try {
               const inspections = await inspectionService.getByPlantHolding(holding.holdingID);
               
@@ -200,14 +173,7 @@ const CustomerAuxiliaryHolding: React.FC = () => {
           setHoldings(enhancedHoldings);
           setLoading(false);
         }
-      } else {
-        // No auxiliary categories found for this customer
-        console.log('CustomerAuxiliaryHolding: No auxiliary categories found for customer');
-        if (mounted) {
-          setHoldings([]);
-          setLoading(false);
-        }
-      }
+        
     } catch (err) {
       console.error('CustomerAuxiliaryHolding: Error fetching auxiliary holdings:', err);
       if (mounted) {

@@ -9,6 +9,7 @@ export interface PlantHolding {
   swl?: string;
   inspectionFrequency?: number;
   inspectionFee?: number;
+  multiInspect?: boolean;
 }
 
 export interface NewPlantHolding {

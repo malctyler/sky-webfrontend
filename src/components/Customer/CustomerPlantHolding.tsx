@@ -9,7 +9,6 @@ import { Customer } from '../../types/customerTypes';
 import plantHoldingService from '../../services/plantHoldingService';
 import inspectionService from '../../services/inspectionService';
 import customerService from '../../services/customerService';
-import { MultiInspectionService } from '../../services/multiInspectionService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -103,36 +102,9 @@ const CustomerPlantHolding: React.FC = () => {
     try {
       const holdingsData = await plantHoldingService.getByCustomerId(customerId);
       
-      // Get auxiliary categories for this customer to filter them out
-      let auxiliaryCategoryIds = new Set<number>();
-      try {
-        console.log('CustomerPlantHolding: Fetching auxiliary categories for customer:', customerId);
-        const auxiliaryCategories = await MultiInspectionService.getCategoriesWithHoldingsByCustomer(Number(customerId));
-        console.log('CustomerPlantHolding: Got auxiliary categories:', auxiliaryCategories);
-        auxiliaryCategoryIds = new Set(auxiliaryCategories.map((cat: any) => cat.categoryID));
-      } catch (err) {
-        console.warn('Could not fetch auxiliary categories, showing all holdings:', err);
-      }
-      
-      // If we have auxiliary categories, filter out those holdings
-      let filteredHoldings = holdingsData;
-      if (auxiliaryCategoryIds.size > 0) {
-        try {
-          console.log('CustomerPlantHolding: Filtering out auxiliary holdings...');
-          const auxiliaryItems = await MultiInspectionService.getMultiInspectionItems({
-            customerId: Number(customerId),
-            categoryIds: Array.from(auxiliaryCategoryIds)
-          });
-          console.log('CustomerPlantHolding: Got auxiliary items to filter out:', auxiliaryItems);
-          const auxiliaryHoldingIds = new Set(auxiliaryItems.map((item: any) => item.holdingID));
-          filteredHoldings = holdingsData.filter(holding => !auxiliaryHoldingIds.has(holding.holdingID));
-          console.log('CustomerPlantHolding: Filtered from', holdingsData.length, 'to', filteredHoldings.length, 'regular holdings');
-        } catch (err) {
-          console.warn('Could not fetch auxiliary holdings for filtering, showing all holdings:', err);
-        }
-      } else {
-        console.log('CustomerPlantHolding: No auxiliary categories found, showing all holdings as regular');
-      }
+      // Filter out auxiliary holdings (those with multiInspect = true)
+      const filteredHoldings = holdingsData.filter(holding => !holding.multiInspect);
+      console.log('CustomerPlantHolding: Filtered from', holdingsData.length, 'to', filteredHoldings.length, 'regular holdings');
       
       // Fetch inspection data for each holding
       const holdingsWithInspections = await Promise.all(
