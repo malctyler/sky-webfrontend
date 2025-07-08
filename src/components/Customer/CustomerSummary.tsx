@@ -131,38 +131,75 @@ const CustomerSummary: React.FC = () => {
       if (!custId) return;
       const response = await plantHoldingService.getByCustomerId(custId);
       
-      // Fetch plant categories to determine which holdings are auxiliary
-      const categoriesResponse = await apiClient.get('/PlantCategories');
-      const categories: PlantCategory[] = categoriesResponse.data;
-      
-      // Fetch all plants to get category information
-      const plantsResponse = await apiClient.get('/AllPlant');
-      const plants: Plant[] = plantsResponse.data;
-      
-      // Create a mapping of plant ID to category
-      const plantCategoryMap = new Map<number, PlantCategory>();
-      plants.forEach((plant: Plant) => {
-        const category = categories.find((cat: PlantCategory) => cat.categoryID === plant.plantCategory);
-        if (category) {
-          plantCategoryMap.set(plant.plantNameID, category);
+      // Check if user has access to plant categories (staff/admin) or use customer-specific approach
+      try {
+        // Try staff/admin approach first
+        const categoriesResponse = await apiClient.get('/PlantCategories');
+        const categories: PlantCategory[] = categoriesResponse.data;
+        
+        // Fetch all plants to get category information
+        const plantsResponse = await apiClient.get('/AllPlant');
+        const plants: Plant[] = plantsResponse.data;
+        
+        // Create a mapping of plant ID to category
+        const plantCategoryMap = new Map<number, PlantCategory>();
+        plants.forEach((plant: Plant) => {
+          const category = categories.find((cat: PlantCategory) => cat.categoryID === plant.plantCategory);
+          if (category) {
+            plantCategoryMap.set(plant.plantNameID, category);
+          }
+        });
+        
+        // Separate holdings based on category multiInspect flag
+        const regularHoldings: PlantHolding[] = [];
+        const auxHoldings: PlantHolding[] = [];
+        
+        response.forEach((holding: PlantHolding) => {
+          const category = plantCategoryMap.get(holding.plantNameID || 0);
+          if (category && category.multiInspect) {
+            auxHoldings.push(holding);
+          } else {
+            regularHoldings.push(holding);
+          }
+        });
+        
+        setPlantHoldings(regularHoldings);
+        setAuxiliaryHoldings(auxHoldings);
+        
+      } catch (err) {
+        // If staff/admin approach fails (403 error), try customer approach
+        console.warn('Staff/admin approach failed, trying customer approach:', err);
+        
+        try {
+          // Use customer-specific approach via MultiInspectionService
+          const { MultiInspectionService } = await import('../../services/multiInspectionService');
+          const auxiliaryCategories = await MultiInspectionService.getCategoriesWithHoldingsByCustomer(Number(custId));
+          
+          if (auxiliaryCategories.length > 0) {
+            const categoryIdsArray = auxiliaryCategories.map((cat: any) => cat.categoryID);
+            const auxiliaryItems = await MultiInspectionService.getMultiInspectionItems({
+              customerId: Number(custId),
+              categoryIds: categoryIdsArray
+            });
+            
+            const auxiliaryHoldingIds = new Set(auxiliaryItems.map((item: any) => item.holdingID));
+            const regularHoldings = response.filter(holding => !auxiliaryHoldingIds.has(holding.holdingID));
+            const auxHoldings = response.filter(holding => auxiliaryHoldingIds.has(holding.holdingID));
+            
+            setPlantHoldings(regularHoldings);
+            setAuxiliaryHoldings(auxHoldings);
+          } else {
+            // No auxiliary categories found, all holdings are regular
+            setPlantHoldings(response);
+            setAuxiliaryHoldings([]);
+          }
+        } catch (customerErr) {
+          console.error('Customer approach also failed:', customerErr);
+          // Fall back to showing all holdings as regular
+          setPlantHoldings(response);
+          setAuxiliaryHoldings([]);
         }
-      });
-      
-      // Separate holdings based on category multiInspect flag
-      const regularHoldings: PlantHolding[] = [];
-      const auxHoldings: PlantHolding[] = [];
-      
-      response.forEach((holding: PlantHolding) => {
-        const category = plantCategoryMap.get(holding.plantNameID || 0);
-        if (category && category.multiInspect) {
-          auxHoldings.push(holding);
-        } else {
-          regularHoldings.push(holding);
-        }
-      });
-      
-      setPlantHoldings(regularHoldings);
-      setAuxiliaryHoldings(auxHoldings);
+      }
     } catch (err: unknown) {
       handleError(err);
     }
