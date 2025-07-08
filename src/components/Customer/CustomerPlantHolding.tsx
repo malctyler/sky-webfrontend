@@ -198,6 +198,31 @@ const CustomerPlantHolding: React.FC = () => {
     return () => setMounted(false);
   }, [user, fetchCustomer, fetchHoldings]);
 
+  // Add effect to refresh data when page regains focus or becomes visible
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user?.customerId) {
+        console.log('CustomerPlantHolding: Page regained focus, refreshing data');
+        fetchHoldings(user.customerId);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user?.customerId) {
+        console.log('CustomerPlantHolding: Page became visible, refreshing data');
+        fetchHoldings(user.customerId);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, fetchHoldings]);
+
   // Update filtered holdings when search term or holdings change
   useEffect(() => {
     const filtered = holdings.filter(holding =>

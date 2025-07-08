@@ -76,7 +76,8 @@ const CustomerSummary: React.FC = () => {
 
   // Options state
   const [allplant, setAllplant] = useState<Plant[]>([]);
-  const [allStatuses, setAllStatuses] = useState<Status[]>([]);  const [newPlantHolding, setNewPlantHolding] = useState<NewPlantHoldingForm>({
+  const [allStatuses, setAllStatuses] = useState<Status[]>([]);
+  const [plantCategories, setPlantCategories] = useState<PlantCategory[]>([]);  const [newPlantHolding, setNewPlantHolding] = useState<NewPlantHoldingForm>({
     custID: custId ? parseInt(custId) : null,
     plantNameID: '',
     serialNumber: '',
@@ -136,6 +137,7 @@ const CustomerSummary: React.FC = () => {
         // Try staff/admin approach first
         const categoriesResponse = await apiClient.get('/PlantCategories');
         const categories: PlantCategory[] = categoriesResponse.data;
+        setPlantCategories(categories);
         
         // Fetch all plants to get category information
         const plantsResponse = await apiClient.get('/AllPlant');
@@ -335,7 +337,14 @@ const CustomerSummary: React.FC = () => {
       };
       const response = await apiClient.post('/PlantHolding', apiPayload);
       const newHolding = response.data;
-      setPlantHoldings(prev => [...prev, newHolding]);
+      
+      // Add to the correct state based on whether it's auxiliary
+      if (newHolding.multiInspect) {
+        setAuxiliaryHoldings(prev => [...prev, newHolding]);
+      } else {
+        setPlantHoldings(prev => [...prev, newHolding]);
+      }
+      
       setPlantHoldingDialogOpen(false);
       resetPlantHoldingForm();
       showSuccess('Plant holding created successfully');
@@ -358,9 +367,15 @@ const CustomerSummary: React.FC = () => {
       };
       const response = await apiClient.put(`/PlantHolding/${editingPlantHolding.holdingID}`, apiPayload);
       const updatedHolding = response.data;
+      
+      // Update both plant holdings and auxiliary holdings states
       setPlantHoldings(prev => prev.map(holding => 
         holding.holdingID === editingPlantHolding.holdingID ? updatedHolding : holding
       ));
+      setAuxiliaryHoldings(prev => prev.map(holding => 
+        holding.holdingID === editingPlantHolding.holdingID ? updatedHolding : holding
+      ));
+      
       setPlantHoldingDialogOpen(false);
       resetPlantHoldingForm();
       showSuccess('Plant holding updated successfully');
@@ -381,6 +396,23 @@ const CustomerSummary: React.FC = () => {
       (a.plantDescription || '').localeCompare(b.plantDescription || '')
     );
   }, [allplant]);
+
+  // Filter plants based on active tab
+  const filteredPlants = useMemo(() => {
+    if (activeTab === 2) {
+      // Regular Plant Holdings tab - show only non-auxiliary plants
+      return sortedPlants.filter(plant => !plant.plantCategory || !plantCategories.some(cat => 
+        cat.categoryID === plant.plantCategory && cat.multiInspect
+      ));
+    } else if (activeTab === 3) {
+      // Auxiliary Holdings tab - show only auxiliary plants
+      return sortedPlants.filter(plant => plant.plantCategory && plantCategories.some(cat => 
+        cat.categoryID === plant.plantCategory && cat.multiInspect
+      ));
+    }
+    // For other tabs, show all plants
+    return sortedPlants;
+  }, [sortedPlants, activeTab, plantCategories]);
 
   // Event handlers
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -429,7 +461,11 @@ const CustomerSummary: React.FC = () => {
     if (!holdingToDelete) return;
     try {
       await apiClient.delete(`/PlantHolding/${holdingToDelete.holdingID}`);
+      
+      // Remove from both plant holdings and auxiliary holdings states
       setPlantHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
+      setAuxiliaryHoldings(prev => prev.filter(ph => ph.holdingID !== holdingToDelete.holdingID));
+      
       setDeleteHoldingDialog(false);
       setHoldingToDelete(null);
       showSuccess('Plant holding deleted successfully');
@@ -707,7 +743,7 @@ const CustomerSummary: React.FC = () => {
               value={newPlantHolding.plantNameID}
               onChange={handlePlantHoldingChange}
             >
-              {sortedPlants.map((plant: Plant) => (
+              {filteredPlants.map((plant: Plant) => (
                 <MenuItem key={plant.plantNameID} value={plant.plantNameID.toString()}>
                   {plant.plantDescription}
                 </MenuItem>
