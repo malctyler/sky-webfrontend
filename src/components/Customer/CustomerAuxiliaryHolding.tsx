@@ -3,13 +3,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { useLocation } from 'react-router-dom';
 import { Button, Typography, Box, Chip } from '@mui/material';
-import { PlantHolding, PlantCategory, Plant } from '../../types/plantholdingTypes';
+import { PlantHolding } from '../../types/plantholdingTypes';
 import { InspectionItem } from '../../types/inspectionTypes';
 import { Customer } from '../../types/customerTypes';
-import plantHoldingService from '../../services/plantHoldingService';
 import inspectionService from '../../services/inspectionService';
 import customerService from '../../services/customerService';
-import apiClient from '../../services/apiClient';
+import { MultiInspectionService } from '../../services/multiInspectionService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -107,86 +106,97 @@ const CustomerAuxiliaryHolding: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch all plant holdings for the customer
-      const response = await plantHoldingService.getByCustomerId(customerId);
+      // First, get categories with holdings for this customer (auxiliary categories only)
+      const auxiliaryCategories = await MultiInspectionService.getCategoriesWithHoldingsByCustomer(Number(customerId));
       
-      // Fetch plant categories to determine which holdings are auxiliary
-      const categoriesResponse = await apiClient.get('/PlantCategories');
-      const categories: PlantCategory[] = categoriesResponse.data;
+      // Create a set of auxiliary category IDs for quick lookup
+      const auxiliaryCategoryIds = new Set(auxiliaryCategories.map((cat: any) => cat.categoryID));
       
-      // Fetch all plants to get category information
-      const plantsResponse = await apiClient.get('/AllPlant');
-      const plants: Plant[] = plantsResponse.data;
-      
-      // Create a mapping of plant ID to category
-      const plantCategoryMap = new Map<number, PlantCategory>();
-      plants.forEach((plant: Plant) => {
-        const category = categories.find((cat: PlantCategory) => cat.categoryID === plant.plantCategory);
-        if (category) {
-          plantCategoryMap.set(plant.plantNameID, category);
-        }
-      });
-      
-      // Filter for only auxiliary holdings (multiInspect = true)
-      const auxiliaryHoldings = response.filter((holding: PlantHolding) => {
-        const category = plantCategoryMap.get(holding.plantNameID || 0);
-        return category && category.multiInspect;
-      });
-      
-      if (!mounted) return;
-      
-      const enhancedHoldings: PlantHoldingWithInspection[] = await Promise.all(
-        auxiliaryHoldings.map(async (holding: PlantHolding) => {
-          try {
-            const inspections = await inspectionService.getByPlantHolding(holding.holdingID);
-            
-            if (inspections.length === 0) {
+      // Filter holdings to only include those with auxiliary categories
+      // Since we can't directly check the plant category from the holding object,
+      // we'll need to use the MultiInspectionService to get the filtered items
+      if (auxiliaryCategoryIds.size > 0) {
+        const categoryIdsArray = Array.from(auxiliaryCategoryIds) as number[];
+        const auxiliaryItems = await MultiInspectionService.getMultiInspectionItems({
+          customerId: Number(customerId),
+          categoryIds: categoryIdsArray
+        });
+        
+        // Convert MultiInspectionItems back to PlantHolding format
+        const filteredHoldings = auxiliaryItems.map(item => ({
+          holdingID: item.holdingID,
+          custID: item.custID,
+          plantNameID: item.holdingID, // Using holdingID as identifier
+          plantDescription: item.plantDescription,
+          serialNumber: item.serialNumber,
+          statusID: item.statusID,
+          statusDescription: item.statusDescription,
+          swl: item.swl,
+          inspectionFrequency: 12, // Default value
+          inspectionFee: 75 // Default value
+        }));
+        
+        if (!mounted) return;
+        
+        const enhancedHoldings: PlantHoldingWithInspection[] = await Promise.all(
+          filteredHoldings.map(async (holding: PlantHolding) => {
+            try {
+              const inspections = await inspectionService.getByPlantHolding(holding.holdingID);
+              
+              if (inspections.length === 0) {
+                return {
+                  ...holding,
+                  inspectionStatus: 'Overdue' as const,
+                  formattedLastInspection: 'Never',
+                  formattedNextDue: 'Overdue'
+                };
+              }
+              
+              // Sort inspections by date (most recent first)
+              const sortedInspections = inspections.sort((a, b) => {
+                const dateA = a.inspectionDate ? new Date(a.inspectionDate).getTime() : 0;
+                const dateB = b.inspectionDate ? new Date(b.inspectionDate).getTime() : 0;
+                return dateB - dateA;
+              });
+              
+              const latestInspection = sortedInspections[0];
+              const lastInspectionDate = latestInspection?.inspectionDate;
+              const inspectionStatus = getInspectionStatus(lastInspectionDate, holding.inspectionFrequency);
+              const nextDueDate = calculateNextDueDate(lastInspectionDate, holding.inspectionFrequency);
+              
+              return {
+                ...holding,
+                lastInspectionDate,
+                formattedLastInspection: formatDate(lastInspectionDate),
+                nextDueDate,
+                formattedNextDue: formatDate(nextDueDate),
+                inspectionStatus,
+                latestInspection
+              };
+            } catch (inspectionError) {
+              console.error(`Error fetching inspections for holding ${holding.holdingID}:`, inspectionError);
+              setInspectionErrors(prev => new Set(prev).add(holding.holdingID));
+              
               return {
                 ...holding,
                 inspectionStatus: 'Overdue' as const,
-                formattedLastInspection: 'Never',
-                formattedNextDue: 'Overdue'
+                formattedLastInspection: 'Error loading',
+                formattedNextDue: 'Error loading'
               };
             }
-            
-            // Sort inspections by date (most recent first)
-            const sortedInspections = inspections.sort((a, b) => {
-              const dateA = a.inspectionDate ? new Date(a.inspectionDate).getTime() : 0;
-              const dateB = b.inspectionDate ? new Date(b.inspectionDate).getTime() : 0;
-              return dateB - dateA;
-            });
-            
-            const latestInspection = sortedInspections[0];
-            const lastInspectionDate = latestInspection?.inspectionDate;
-            const inspectionStatus = getInspectionStatus(lastInspectionDate, holding.inspectionFrequency);
-            const nextDueDate = calculateNextDueDate(lastInspectionDate, holding.inspectionFrequency);
-            
-            return {
-              ...holding,
-              lastInspectionDate,
-              formattedLastInspection: formatDate(lastInspectionDate),
-              nextDueDate,
-              formattedNextDue: formatDate(nextDueDate),
-              inspectionStatus,
-              latestInspection
-            };
-          } catch (inspectionError) {
-            console.error(`Error fetching inspections for holding ${holding.holdingID}:`, inspectionError);
-            setInspectionErrors(prev => new Set(prev).add(holding.holdingID));
-            
-            return {
-              ...holding,
-              inspectionStatus: 'Overdue' as const,
-              formattedLastInspection: 'Error loading',
-              formattedNextDue: 'Error loading'
-            };
-          }
-        })
-      );
-      
-      if (mounted) {
-        setHoldings(enhancedHoldings);
-        setLoading(false);
+          })
+        );
+        
+        if (mounted) {
+          setHoldings(enhancedHoldings);
+          setLoading(false);
+        }
+      } else {
+        // No auxiliary categories found for this customer
+        if (mounted) {
+          setHoldings([]);
+          setLoading(false);
+        }
       }
     } catch (err) {
       console.error('Error fetching auxiliary holdings:', err);

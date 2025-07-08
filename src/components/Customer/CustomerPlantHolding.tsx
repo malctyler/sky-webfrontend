@@ -9,6 +9,7 @@ import { Customer } from '../../types/customerTypes';
 import plantHoldingService from '../../services/plantHoldingService';
 import inspectionService from '../../services/inspectionService';
 import customerService from '../../services/customerService';
+import { MultiInspectionService } from '../../services/multiInspectionService';
 import styles from './CustomerPlantHolding.module.css';
 
 interface LocationState {
@@ -102,9 +103,33 @@ const CustomerPlantHolding: React.FC = () => {
     try {
       const holdingsData = await plantHoldingService.getByCustomerId(customerId);
       
+      // Get auxiliary categories for this customer to filter them out
+      let auxiliaryCategoryIds = new Set<number>();
+      try {
+        const auxiliaryCategories = await MultiInspectionService.getCategoriesWithHoldingsByCustomer(Number(customerId));
+        auxiliaryCategoryIds = new Set(auxiliaryCategories.map((cat: any) => cat.categoryID));
+      } catch (err) {
+        console.warn('Could not fetch auxiliary categories, showing all holdings:', err);
+      }
+      
+      // If we have auxiliary categories, filter out those holdings
+      let filteredHoldings = holdingsData;
+      if (auxiliaryCategoryIds.size > 0) {
+        try {
+          const auxiliaryItems = await MultiInspectionService.getMultiInspectionItems({
+            customerId: Number(customerId),
+            categoryIds: Array.from(auxiliaryCategoryIds)
+          });
+          const auxiliaryHoldingIds = new Set(auxiliaryItems.map((item: any) => item.holdingID));
+          filteredHoldings = holdingsData.filter(holding => !auxiliaryHoldingIds.has(holding.holdingID));
+        } catch (err) {
+          console.warn('Could not fetch auxiliary holdings for filtering, showing all holdings:', err);
+        }
+      }
+      
       // Fetch inspection data for each holding
       const holdingsWithInspections = await Promise.all(
-        holdingsData.map(async (holding): Promise<PlantHoldingWithInspection> => {
+        filteredHoldings.map(async (holding): Promise<PlantHoldingWithInspection> => {
           // Skip inspection fetch if we've already encountered errors for this holding
           if (inspectionErrors.has(holding.holdingID)) {
             return {
