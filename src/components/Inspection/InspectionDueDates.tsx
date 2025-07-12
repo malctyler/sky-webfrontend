@@ -22,6 +22,10 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    FormLabel,
+    RadioGroup,
+    FormControlLabel,
+    Radio
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -29,6 +33,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
 import inspectionService from '../../services/inspectionService';
 import inspectorService from '../../services/inspectorService';
+
+type PlantFilter = 'all' | 'main' | 'auxiliary';
 import { toLocalISOString } from '../../utils/dateUtils';
 import { InspectionDueDate, ScheduleInspectionRequest } from '../../types/inspectionTypes';
 import { Inspector } from '../../types/inspectorTypes';
@@ -52,6 +58,8 @@ const getStatusColor = (status: string): "error" | "warning" | "success" | "defa
 
 const InspectionDueDates: React.FC = () => {
     const [dueDates, setDueDates] = useState<InspectionDueDate[]>([]);
+    const [filteredDueDates, setFilteredDueDates] = useState<InspectionDueDate[]>([]);
+    const [plantFilter, setPlantFilter] = useState<PlantFilter>('all');
     const [error, setError] = useState<string | null>(null);
     const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
     const [isMapDialogOpen, setIsMapDialogOpen] = useState(false);
@@ -116,7 +124,18 @@ const InspectionDueDates: React.FC = () => {
         };
 
         void fetchDueDates();
-    }, []);    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    }, []);
+
+    // Filter due dates based on plant filter selection
+    useEffect(() => {
+        if (plantFilter === 'all') {
+            setFilteredDueDates(dueDates);
+        } else if (plantFilter === 'main') {
+            setFilteredDueDates(dueDates.filter(item => !item.multiInspect));
+        } else if (plantFilter === 'auxiliary') {
+            setFilteredDueDates(dueDates.filter(item => item.multiInspect));
+        }
+    }, [dueDates, plantFilter]);    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [conflictData, setConflictData] = useState<{ message: string; existingDates: string[]; serialNumber: string } | null>(null);    const handleScheduleInspection = async () => {
         if (!selectedItem || !scheduledDate || !selectedInspector) {
             setError('Please select an inspector and schedule date');
@@ -182,10 +201,26 @@ const InspectionDueDates: React.FC = () => {
                         View on Map
                     </Button>
                 </Box>
+                
+                {/* Plant Filter Controls */}
+                <Box mb={2}>
+                    <FormControl component="fieldset">
+                        <FormLabel component="legend" sx={{ mb: 1 }}>Filter by Plant Type:</FormLabel>
+                        <RadioGroup
+                            row
+                            value={plantFilter}
+                            onChange={(e) => setPlantFilter(e.target.value as PlantFilter)}
+                        >
+                            <FormControlLabel value="all" control={<Radio />} label="All Plant" />
+                            <FormControlLabel value="main" control={<Radio />} label="Main Plant" />
+                            <FormControlLabel value="auxiliary" control={<Radio />} label="Auxiliary Plant" />
+                        </RadioGroup>
+                    </FormControl>
+                </Box>
                 {error ? (
                     <Typography color="error">{error}</Typography>
-                ) : dueDates.length === 0 ? (
-                    <Typography>No inspections due.</Typography>
+                ) : filteredDueDates.length === 0 ? (
+                    <Typography>No inspections due for the selected filter.</Typography>
                 ) : (
                     <TableContainer>
                         <Table size="small">
@@ -202,7 +237,7 @@ const InspectionDueDates: React.FC = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {dueDates.map((item) => {
+                                {filteredDueDates.map((item) => {
                                     const today = new Date();
                                     const dueDate = new Date(item.dueDate);
                                     const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -424,7 +459,7 @@ const InspectionDueDates: React.FC = () => {
                 <DialogTitle>Inspection Locations</DialogTitle>
                 <DialogContent sx={{ p: 0 }}>
                     <InspectionMap
-                        inspections={dueDates.filter(date => {
+                        inspections={filteredDueDates.filter(date => {
                             const dueDate = new Date(date.dueDate);
                             const thirtyDaysFromNow = new Date();
                             thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
