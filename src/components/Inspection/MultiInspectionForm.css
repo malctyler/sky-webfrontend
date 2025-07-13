@@ -5,6 +5,11 @@
     margin: 0 auto;
 }
 
+/* Dark mode support for the page */
+.dark.multi-inspection-page {
+    color: #e0e0e0;
+}
+
 .customer-selection {
     text-align: center;
     padding: 40px 20px;
@@ -15,10 +20,20 @@
     color: #333;
 }
 
+/* Dark mode support for customer selection heading */
+.dark .customer-selection h1 {
+    color: #f0f0f0;
+}
+
 .customer-selection p {
     color: #666;
     margin-bottom: 30px;
     font-size: 16px;
+}
+
+/* Dark mode support for customer selection text */
+.dark .customer-selection p {
+    color: #ccc;
 }
 
 .message {
@@ -34,10 +49,24 @@
     border: 1px solid #c3e6cb;
 }
 
+/* Dark mode support for success messages */
+.dark .message.success {
+    background-color: #2d5a3d;
+    color: #9fdf9f;
+    border: 1px solid #4a7c59;
+}
+
 .message.error {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+}
+
+/* Dark mode support for error messages */
+.dark .message.error {
+    background-color: #7d3c45;
+    color: #f5c2c7;
+    border: 1px solid #a85c5c;
 }
 
 .instructions {
@@ -47,9 +76,20 @@
     margin-bottom: 20px;
 }
 
+/* Dark mode support for instructions */
+.dark .instructions {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
 .instructions h3 {
     margin-top: 0;
     color: #333;
+}
+
+/* Dark mode support for instructions heading */
+.dark .instructions h3 {
+    color: #f0f0f0;
 }
 
 .instructions ol {
@@ -62,11 +102,26 @@
     color: #555;
 }
 
+/* Dark mode support for instructions list items */
+.dark .instructions li {
+    color: #ccc;
+}
+
 /* Multi-Inspection Form Styles */
 .multi-inspection-form {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* Dark mode support for the main form */
+.dark.multi-inspection-form {
+    color: #e0e0e0;
+}
+
+.dark.multi-inspection-form h2,
+.dark.multi-inspection-form h3 {
+    color: #f0f0f0;
 }
 
 .form-group {
@@ -77,6 +132,11 @@
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+}
+
+/* Dark mode support for labels */
+.dark .form-group label {
+    color: #e0e0e0;
 }
 
 .form-row {
@@ -99,6 +159,13 @@
   border: 1px solid #e9ecef;
 }
 
+/* Dark mode support for loading/empty states */
+.dark .form-group div:not(.category-checkboxes) {
+  color: #ccc;
+  background-color: #3a3a3a;
+  border: 1px solid #555;
+}
+
 .category-checkboxes {
     display: flex;
     flex-wrap: wrap;
@@ -109,11 +176,23 @@
     background-color: #f9f9f9;
 }
 
+/* Dark mode support for category checkboxes */
+.dark .category-checkboxes {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;
     gap: 5px;
     cursor: pointer;
+    color: #333;
+}
+
+/* Dark mode support for checkbox labels */
+.dark .checkbox-label {
+    color: #e0e0e0;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -137,13 +216,30 @@
     text-align: left;
 }
 
+/* Dark mode support for table cells */
+.dark .items-table th,
+.dark .items-table td {
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
 .items-table th {
     background-color: #f5f5f5;
     font-weight: bold;
 }
 
+/* Dark mode support for table headers */
+.dark .items-table th {
+    background-color: #404040;
+}
+
 .items-table tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+
+/* Dark mode support for table rows */
+.dark .items-table tr:nth-child(even) {
+    background-color: #353535;
 }
 
 .defects-input {
@@ -154,6 +250,13 @@
     border-radius: 4px;
 }
 
+/* Dark mode support for defects input */
+.dark .defects-input {
+    background-color: #404040;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
 .form-actions {
     display: flex;
     gap: 10px;
@@ -161,6 +264,11 @@
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #ddd;
+}
+
+/* Dark mode support for form actions */
+.dark .form-actions {
+    border-top: 1px solid #555;
 }
 
 .form-actions button {
@@ -202,9 +310,25 @@ select {
     font-size: 14px;
 }
 
+/* Dark mode support for form inputs */
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="datetime-local"],
+.dark textarea,
+.dark select {
+    background-color: #404040;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
 select {
     cursor: pointer;
     background-color: white;
+}
+
+/* Dark mode support for select elements */
+.dark select {
+    background-color: #404040;
 }
 
 select:focus {

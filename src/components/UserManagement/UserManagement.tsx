@@ -93,6 +93,7 @@ const UserManagement: React.FC = () => {
               <TableCell>First Name</TableCell>
               <TableCell>Last Name</TableCell>
               <TableCell>Is Customer</TableCell>
+              <TableCell>Email Confirmed</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -103,6 +104,7 @@ const UserManagement: React.FC = () => {
                 <TableCell>{user.firstName}</TableCell>
                 <TableCell>{user.lastName}</TableCell>
                 <TableCell>{user.isCustomer ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{user.emailConfirmed ? 'Yes' : 'No'}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleEdit(user)}>Edit</Button>
                   <Button onClick={() => openDeleteDialog(user)} color="error">Delete</Button>

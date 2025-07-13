@@ -54,7 +54,7 @@ const ResetPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      await apiClient.post('/Auth/reset-password', {
+      await apiClient.post('/auth/reset-password', {
         email,
         token,
         newPassword

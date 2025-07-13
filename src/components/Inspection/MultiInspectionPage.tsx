@@ -4,6 +4,7 @@ import MultiInspectionForm from './MultiInspectionForm';
 import MultiInspectionService from '../../services/multiInspectionService';
 import { CreateMultiInspection } from '../../types/inspectionTypes';
 import apiClient from '../../services/apiClient';
+import { useTheme } from '../../contexts/ThemeContext';
 import './MultiInspectionForm.css';
 
 interface Customer {
@@ -14,6 +15,7 @@ interface Customer {
 }
 
 const MultiInspectionPage: React.FC = () => {
+    const { isDarkMode } = useTheme();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [isFormVisible, setIsFormVisible] = useState(false);
@@ -74,7 +76,7 @@ const MultiInspectionPage: React.FC = () => {
     };
 
     return (
-        <div className="multi-inspection-page">
+        <div className={`multi-inspection-page ${isDarkMode ? 'dark' : 'light'}`}>
             {message && (
                 <div className={`message ${message.type}`}>
                     {message.text}

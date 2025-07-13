@@ -48,7 +48,9 @@ instance.interceptors.request.use((config: ApiClientConfig) => {
             '/auth/check-email-confirmation'
         ];
         
-        const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+        const isPublicEndpoint = publicEndpoints.some(endpoint => 
+            config.url?.toLowerCase().includes(endpoint.toLowerCase())
+        );
         
         if (!isPublicEndpoint) {
             console.log('Debug: Protected endpoint accessed without token, rejecting request');

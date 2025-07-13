@@ -11,6 +11,8 @@ import {
 import { PlantCategory } from '../../types/plantTypes';
 import MultiInspectionService from '../../services/multiInspectionService';
 import { datePickerConfig, toLocalISOString } from '../../utils/dateUtils';
+import { useTheme } from '../../contexts/ThemeContext';
+import './MultiInspectionForm.css';
 
 // Inspector interface
 interface Inspector {
@@ -29,6 +31,7 @@ const MultiInspectionForm: React.FC<MultiInspectionFormProps> = ({
     onSubmit,
     onCancel
 }) => {
+    const { isDarkMode } = useTheme();
     const [categories, setCategories] = useState<PlantCategory[]>([]);
     const [inspectors, setInspectors] = useState<Inspector[]>([]);
     const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
@@ -155,7 +158,7 @@ const MultiInspectionForm: React.FC<MultiInspectionFormProps> = ({
     };
 
     return (
-        <div className="multi-inspection-form">
+        <div className={`multi-inspection-form ${isDarkMode ? 'dark' : 'light'}`}>
             <h2>Multi-Inspection Form</h2>
             
             <form onSubmit={handleSubmit}>
